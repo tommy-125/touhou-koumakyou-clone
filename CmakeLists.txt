@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(TouhouKoumakyouClone)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # 讓clangd分析抓得到include路徑
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -13,6 +15,13 @@ FetchContent_Declare(
     URL         https://github.com/ntut-open-source-club/practical-tools-for-simple-design/archive/refs/tags/v0.2.zip
 )
 FetchContent_MakeAvailable(PTSD)
+
+# 自定義config.hpp以指定視窗大小及視窗標題
+configure_file(
+    ${CMAKE_SOURCE_DIR}/config/config.hpp
+    ${ptsd_SOURCE_DIR}/include/config.hpp
+    COPYONLY
+)
 
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 file(GLOB_RECURSE HEADER_FILES include/*.hpp)
