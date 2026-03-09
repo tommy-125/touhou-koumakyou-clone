@@ -68,6 +68,10 @@ vcpkg_installed/
 Testing/
 .cache/
 
+#resource files
+resources
+
 # Other files
 *.claude/
 *.vscode/
+*.clangd
