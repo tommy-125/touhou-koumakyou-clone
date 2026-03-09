@@ -1,0 +1,46 @@
+#pragma once
+
+#include <array>
+#include <string>
+
+#include <glm/glm.hpp>
+
+#include "Anm/AnmTypes.hpp"
+
+namespace Anm {
+
+class Manager {
+public:
+    static constexpr int MAX_ENTRIES = 2048;
+
+    // 全域共用
+    std::array<Sprite, MAX_ENTRIES> sprites;
+    std::array<Script, MAX_ENTRIES> scripts;
+
+    /**
+     * Load an ANM txt file.
+     * @param spriteFolder  folder containing sprite_0.png, sprite_1.png, ...
+     * @param txtPath       path to the decompiled .anm txt file
+     * @param spriteIdxOffset  global index base for this entry
+     */
+    void LoadAnm(const std::string &spriteFolder,
+                 const std::string &txtPath,
+                 int spriteIdxOffset);
+
+    /** Run one frame of script for a VM. Call once per frame per object. */
+    void ExecuteScript(Vm &vm);
+
+    /**
+     * Send an interrupt to a VM.
+     * If the VM is stopped, it will resume from InterruptLabel(interrupt)
+     * on the next ExecuteScript call.
+     */
+    void SendInterrupt(Vm &vm, int interrupt);
+
+    /** Convert th06 screen coords to PTSD world coords.
+     *  th06: (0,0)=top-left, y-down, 640x480
+     *  PTSD: (0,0)=center,   y-up,   pixel units */
+    static glm::vec2 ToPtsd(glm::vec2 th06pos);
+};
+
+} // namespace Anm
