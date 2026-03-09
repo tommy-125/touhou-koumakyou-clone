@@ -119,6 +119,7 @@ void Manager::ExecuteScript(Vm &vm) {
                 vm.instrIdx    = i;
                 vm.currentTime = instr.time;
                 vm.isStopped   = false;
+                vm.isVisible   = true;
                 vm.pendingInterrupt = 0;
                 break;
             }
