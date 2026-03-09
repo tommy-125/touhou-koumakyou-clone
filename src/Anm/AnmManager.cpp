@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 
 #include <glm/glm.hpp>
@@ -130,7 +129,7 @@ void Manager::ExecuteScript(Vm &vm) {
     // Dispatch instructions whose time has come
     while (vm.instrIdx < (int)script.instrs.size()) {
         const Instr &instr = script.instrs[vm.instrIdx];
-        
+
         if (instr.time > vm.currentTime) break;
 
         vm.instrIdx++;

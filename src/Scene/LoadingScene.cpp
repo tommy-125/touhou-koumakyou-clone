@@ -1,4 +1,5 @@
 #include "Scene/LoadingScene.hpp"
+#include "Util/Image.hpp"
 
 LoadingScene::LoadingScene() {
     auto image = std::make_shared<Util::Image>(

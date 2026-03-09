@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <string>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -10,7 +9,7 @@
 
 namespace Anm {
 
-// ── Opcode constants ────────────────────────────────────────────────────────────────
+// ── Opcode constants ──
 constexpr int Exit             = 0;
 constexpr int SetActiveSprite  = 1;
 constexpr int SetScale         = 2;

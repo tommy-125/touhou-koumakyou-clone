@@ -1,4 +1,5 @@
 #include "Scene/TitleScene.hpp"
+#include "Util/Image.hpp"
 
 TitleScene::TitleScene() {
     auto image = std::make_shared<Util::Image>(

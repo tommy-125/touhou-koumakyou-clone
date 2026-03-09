@@ -2,7 +2,6 @@
 #define SCENE_TITLE_SCENE_HPP
 
 #include "Util/GameObject.hpp"
-#include "Util/Image.hpp"
 #include "Util/Renderer.hpp"
 
 class TitleScene {
