@@ -187,8 +187,25 @@ void Manager::ExecuteScript(Vm &vm) {
             break;
 
         case SetAlpha:
-            if (!instr.args.empty())
-                vm.alpha = instr.args[0] / 255.0f;
+            if (!instr.args.empty()) {
+                vm.alpha      = instr.args[0] / 255.0f;
+                vm.fadeInterp = false;
+            }
+            break;
+
+        case Fade:
+            if (instr.args.size() >= 2) {
+                vm.fadeInterp    = true;
+                vm.fadeStart     = vm.alpha;
+                vm.fadeTarget    = instr.args[0] / 255.0f;
+                vm.fadeDuration  = static_cast<int>(instr.args[1]);
+                vm.fadeTimer     = 0;
+            }
+            break;
+
+        case SetAngleVel:
+            if (instr.args.size() >= 3)
+                vm.angleVel = instr.args[2];
             break;
 
         case SetScale:
@@ -197,8 +214,8 @@ void Manager::ExecuteScript(Vm &vm) {
             break;
 
         case SetRotation:
-            if (!instr.args.empty())
-                vm.rotation = instr.args[0];
+            if (instr.args.size() >= 3)
+                vm.rotation = instr.args[2];
             break;
 
         case SetBlendAdditive:
@@ -215,6 +232,22 @@ void Manager::ExecuteScript(Vm &vm) {
     vm.currentTime++;
 
 update_interp:
+    // Angle velocity
+    vm.rotation += vm.angleVel;
+
+    // Alpha fade interpolation
+    if (vm.fadeInterp) {
+        float t = (vm.fadeDuration > 0)
+                      ? (float)vm.fadeTimer / vm.fadeDuration
+                      : 1.0f;
+        vm.alpha = glm::mix(vm.fadeStart, vm.fadeTarget, t);
+        vm.fadeTimer++;
+        if (vm.fadeTimer > vm.fadeDuration) {
+            vm.fadeInterp = false;
+            vm.alpha      = vm.fadeTarget;
+        }
+    }
+
     // Position interpolation (runs even when script is stopped mid-tween)
     if (vm.posInterp) {
         float t = (vm.posInterpDuration > 0)

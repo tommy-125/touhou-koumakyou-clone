@@ -79,6 +79,9 @@ struct Vm {
     bool      isStopped = false;
     int       pendingInterrupt = 0;
 
+    // Angle velocity (per frame)
+    float     angleVel         = 0;
+
     // Position interpolation
     bool      posInterp        = false;
     int       posInterpMode    = 0;  // 0=linear 1=decel 2=accel
@@ -86,6 +89,13 @@ struct Vm {
     glm::vec2 posInterpEnd     = {0, 0};
     int       posInterpDuration = 0;
     int       posInterpTimer    = 0;
+
+    // Alpha fade interpolation
+    bool      fadeInterp       = false;
+    float     fadeStart        = 0;
+    float     fadeTarget       = 1.0f;
+    int       fadeDuration     = 0;
+    int       fadeTimer        = 0;
 };
 
 } // namespace Anm
