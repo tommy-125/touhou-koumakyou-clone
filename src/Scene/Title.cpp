@@ -47,11 +47,16 @@ void Title::Update() {
 
         obj.SetVisible(vm.isVisible);
 
-        if (vm.spriteIdx >= 0 && m_Anm.sprites[vm.spriteIdx].image) {
+        if (m_Anm.sprites[vm.spriteIdx].image) {
             obj.SetDrawable(m_Anm.sprites[vm.spriteIdx].image);
         }
 
-        obj.m_Transform.translation = Anm::Manager::ToPtsd(vm.pos);
+        glm::vec2 translation = Anm::Manager::ToPtsd(vm.pos);
+        if (vm.anchorTopLeft) {
+            const auto &spr = m_Anm.sprites[vm.spriteIdx];
+            translation += glm::vec2{spr.width / 2.0f, -spr.height / 2.0f};
+        }
+        obj.m_Transform.translation = translation;
         obj.m_Transform.scale       = vm.scale;
         obj.m_Transform.rotation    = vm.rotation;
     }

@@ -218,10 +218,13 @@ void Manager::ExecuteScript(Vm &vm) {
                 vm.rotation = instr.args[2];
             break;
 
+        case AnchorTopLeft:
+            vm.anchorTopLeft = true;
+            break;
+
         case SetBlendAdditive:
         case SetBlendDefault:
         case SetZWriteDisable:
-        case AnchorTopLeft:
         case SetAutoRotate:
         case Nop:
         default:
