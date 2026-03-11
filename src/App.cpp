@@ -1,11 +1,11 @@
 #include "App.hpp"
-#include "Scene/LoadingScene.hpp"
+#include "Scene/Loading.hpp"
 #include "Util/Input.hpp"
 #include "Util/Logger.hpp"
 
 void App::Start() {
     LOG_TRACE("Start");
-    m_Scene = std::make_unique<LoadingScene>();
+    m_Scene = std::make_unique<Loading>();
 }
 
 void App::Update() {

@@ -1,9 +1,9 @@
-#include "Scene/LoadingScene.hpp"
-#include "Scene/TitleScene.hpp"
+#include "Scene/Loading.hpp"
+#include "Scene/Title.hpp"
 #include "Util/Image.hpp"
 #include <memory>
 
-LoadingScene::LoadingScene() {
+Loading::Loading() {
     auto image = std::make_shared<Util::Image>(
         GA_RESOURCE_DIR "/th06c/th06c_TL_output/no_anm/loading.png"
     );
@@ -12,13 +12,13 @@ LoadingScene::LoadingScene() {
     m_Renderer.AddChild(m_LoadingObj);
 }
 
-void LoadingScene::Update() {
+void Loading::Update() {
     m_Renderer.Update();
 
     // TODO: Wait for actual resource loading to complete before setting m_Done = true
     m_Done = true;
 }
 
-std::unique_ptr<Scene> LoadingScene::NextScene() {
-    return std::make_unique<TitleScene>();
+std::unique_ptr<Scene> Loading::NextScene() {
+    return std::make_unique<Title>();
 }

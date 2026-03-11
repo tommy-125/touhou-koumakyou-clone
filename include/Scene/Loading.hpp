@@ -1,13 +1,13 @@
-#ifndef SCENE_LOADING_SCENE_HPP
-#define SCENE_LOADING_SCENE_HPP
+#ifndef SCENE_LOADING_HPP
+#define SCENE_LOADING_HPP
 
 #include "Util/GameObject.hpp"
 
 #include "Scene/Scene.hpp"
 
-class LoadingScene : public Scene {
+class Loading : public Scene {
 public:
-    LoadingScene();
+    Loading();
 
     void Update() override;
     std::unique_ptr<Scene> NextScene() override;

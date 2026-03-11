@@ -1,10 +1,10 @@
-#include "Scene/TitleScene.hpp"
+#include "Scene/Title.hpp"
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
 #include "Util/Image.hpp"
 
-TitleScene::TitleScene() {
+Title::Title() {
     // Background
     auto bgImage = std::make_shared<Util::Image>(
         GA_RESOURCE_DIR "/th06c/th06c_TL_output/no_anm/title00.jpg"
@@ -38,9 +38,9 @@ TitleScene::TitleScene() {
     }
 }
 
-void TitleScene::Update() {
+void Title::Update() {
     for (int i = 0; i < static_cast<int>(m_Vms.size()); i++) {
-        m_Anm.ExecuteScript(m_Vms[i]); 
+        m_Anm.ExecuteScript(m_Vms[i]);
 
         const auto &vm  = m_Vms[i];
         auto       &obj = *m_Objs[i];

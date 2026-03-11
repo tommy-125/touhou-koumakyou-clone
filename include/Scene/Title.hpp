@@ -1,5 +1,5 @@
-#ifndef SCENE_TITLE_SCENE_HPP
-#define SCENE_TITLE_SCENE_HPP
+#ifndef SCENE_TITLE_HPP
+#define SCENE_TITLE_HPP
 
 #include <memory>
 #include <vector>
@@ -9,9 +9,9 @@
 
 #include "Scene/Scene.hpp"
 
-class TitleScene : public Scene {
+class Title : public Scene {
 public:
-    TitleScene();
+    Title();
 
     void Update() override;
 
