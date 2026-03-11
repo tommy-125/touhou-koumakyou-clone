@@ -1,29 +1,18 @@
-#ifndef APP_HPP
-#define APP_HPP
+#pragma once
 
-#include "Scene/LoadingScene.hpp"
-#include "Scene/TitleScene.hpp"
+#include <memory>
+
+#include "Scene/Scene.hpp"
 
 class App {
-    public:
-        enum class State {
-            START,
-            LOADING,
-            TITLE,
-            END,
-        };
+public:
+    void Start();
+    void Update();
+    void End(); // NOLINT(readability-convert-member-functions-to-static)
 
-        State GetCurrentState() const { return m_CurrentState; }
+    bool IsDone() const { return m_Done; }
 
-        void Start();
-        void Update();
-        void End(); // NOLINT(readability-convert-member-functions-to-static)
-
-    private:
-        State m_CurrentState = State::START;
-
-        LoadingScene m_LoadingScene;
-        TitleScene m_TitleScene;
+private:
+    std::unique_ptr<Scene> m_Scene;
+    bool m_Done = false;
 };
-
-#endif

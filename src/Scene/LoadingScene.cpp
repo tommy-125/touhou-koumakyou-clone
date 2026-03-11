@@ -1,5 +1,7 @@
 #include "Scene/LoadingScene.hpp"
+#include "Scene/TitleScene.hpp"
 #include "Util/Image.hpp"
+#include <memory>
 
 LoadingScene::LoadingScene() {
     auto image = std::make_shared<Util::Image>(
@@ -15,4 +17,8 @@ void LoadingScene::Update() {
 
     // TODO: Wait for actual resource loading to complete before setting m_Done = true
     m_Done = true;
+}
+
+std::unique_ptr<Scene> LoadingScene::NextScene() {
+    return std::make_unique<TitleScene>();
 }

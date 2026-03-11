@@ -5,27 +5,16 @@ int main(int, char**) {
     auto context = Core::Context::GetInstance();
     App app;
 
-    while (!context->GetExit()) {
+    app.Start();
+
+    while (!context->GetExit() && !app.IsDone()) {
         context->Setup();
-        switch (app.GetCurrentState()) {
-        case App::State::START:
-            app.Start();
-            break;
-
-        case App::State::LOADING:
-        case App::State::TITLE:
-            app.Update();
-            break;
-
-        case App::State::END:
-            app.End();
-            context->SetExit(true);
-            break;
-        }
+        app.Update();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         context->Update();
     }
 
+    app.End();
     return 0;
 }

@@ -1,13 +1,20 @@
-#pragma once
+#ifndef ANM_MANAGER_HPP
+#define ANM_MANAGER_HPP
 
 #include <array>
 #include <string>
 
 #include <glm/glm.hpp>
 
+#include "Anm/AnmDefs.hpp"
 #include "Anm/AnmTypes.hpp"
 
 namespace Anm {
+
+struct LoadedEntry {
+    const Entry *entry;
+    int          scriptCount;
+};
 
 class Manager {
 public:
@@ -21,11 +28,12 @@ public:
      * Load an ANM txt file.
      * @param spriteFolder  folder containing sprite_0.png, sprite_1.png, ...
      * @param txtPath       path to the decompiled .anm txt file
-     * @param spriteIdxOffset  global index base for this entry
+     * @param idxOffset  global index base for this entry
      */
-    void LoadAnm(const std::string &spriteFolder,
-                 const std::string &txtPath,
-                 int spriteIdxOffset);
+    /** Returns the number of scripts loaded for the number of VMs and the offset. */
+    int LoadAnm(const std::string &spriteFolder,
+                const std::string &txtPath,
+                int idxOffset);
 
     /** Run one frame of script for a VM. Call once per frame per object. */
     void ExecuteScript(Vm &vm);
@@ -44,3 +52,5 @@ public:
 };
 
 } // namespace Anm
+
+#endif // ANM_MANAGER_HPP

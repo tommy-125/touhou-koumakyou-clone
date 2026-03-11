@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ANM_TYPES_HPP
+#define ANM_TYPES_HPP
 
 #include <memory>
 #include <vector>
@@ -88,3 +89,5 @@ struct Vm {
 };
 
 } // namespace Anm
+
+#endif // ANM_TYPES_HPP

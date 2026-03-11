@@ -20,17 +20,18 @@ static float ParseArg(const std::string &token) {
 }
 
 
-void Manager::LoadAnm(const std::string &spriteFolder,
-                      const std::string &txtPath,
-                      int spriteIdxOffset) {
+int Manager::LoadAnm(const std::string &spriteFolder,
+                     const std::string &txtPath,
+                     int spriteIdxOffset) {
     // Open the ANM txt file
     std::ifstream file(txtPath);
     if (!file.is_open()) {
         LOG_ERROR("AnmManager: cannot open {}", txtPath);
-        return;
+        return 0;
     }
 
     int currentScriptId = -1;
+    int scriptCount = 0;
 
     std::string line;
     while (std::getline(file, line)) {
@@ -62,6 +63,7 @@ void Manager::LoadAnm(const std::string &spriteFolder,
         if (line.rfind("Script: ", 0) == 0) {
             currentScriptId = std::stoi(line.substr(8)) + spriteIdxOffset;
             scripts[currentScriptId] = Script{};
+            scriptCount++;
             continue;
         }
 
@@ -85,6 +87,7 @@ void Manager::LoadAnm(const std::string &spriteFolder,
             continue;
         }
     }
+    return scriptCount;
 }
 
 // ── Script execution ──────────────────────────────────────────────────────────
@@ -110,12 +113,12 @@ void Manager::ExecuteScript(Vm &vm) {
         if (vm.pendingInterrupt == 0) goto update_interp;
 
         // search for the interrupt label in the script
-        for (int i = 0; i < (int)script.instrs.size(); i++) {
+        for (int i = 0; i < static_cast<int>(script.instrs.size()); i++) {
             const Instr &instr = script.instrs[i];
 
             if (instr.opcode == InterruptLabel &&
                 !instr.args.empty() &&
-                (int)instr.args[0] == vm.pendingInterrupt) { // found the interrupt label
+                static_cast<int>(instr.args[0]) == vm.pendingInterrupt) { // found the interrupt label
                 vm.instrIdx    = i;
                 vm.currentTime = instr.time;
                 vm.isStopped   = false;
@@ -128,7 +131,7 @@ void Manager::ExecuteScript(Vm &vm) {
     }
 
     // Dispatch instructions whose time has come
-    while (vm.instrIdx < (int)script.instrs.size()) {
+    while (vm.instrIdx < static_cast<int>(script.instrs.size())) {
         const Instr &instr = script.instrs[vm.instrIdx];
 
         if (instr.time > vm.currentTime) break;
@@ -156,7 +159,7 @@ void Manager::ExecuteScript(Vm &vm) {
 
         case SetActiveSprite:
             if (!instr.args.empty()) {
-                vm.spriteIdx = (int)instr.args[0] + vm.spriteOffset;
+                vm.spriteIdx = static_cast<int>(instr.args[0]) + vm.spriteOffset;
                 vm.isVisible = true;
             }
             break;
@@ -174,7 +177,7 @@ void Manager::ExecuteScript(Vm &vm) {
                 vm.posInterpMode    = instr.opcode - PosTimeLinear;
                 vm.posInterpStart   = vm.pos;
                 vm.posInterpEnd     = {instr.args[0], instr.args[1]};
-                vm.posInterpDuration = (int)instr.args[3];
+                vm.posInterpDuration = static_cast<int>(instr.args[3]);
                 vm.posInterpTimer   = 0;
             }
             break;

@@ -1,32 +1,30 @@
 #include "App.hpp"
-
+#include "Scene/LoadingScene.hpp"
 #include "Util/Input.hpp"
 #include "Util/Logger.hpp"
 
 void App::Start() {
     LOG_TRACE("Start");
-    m_CurrentState = State::LOADING;
+    m_Scene = std::make_unique<LoadingScene>();
 }
 
 void App::Update() {
     if (Util::Input::IsKeyUp(Util::Keycode::ESCAPE) || Util::Input::IfExit()) {
-        m_CurrentState = State::END;
+        m_Done = true;
         return;
     }
 
-    switch (m_CurrentState) {
-    case State::LOADING:
-        m_LoadingScene.Update();
-        if (m_LoadingScene.IsDone())
-            m_CurrentState = State::TITLE;
-        break;
+    if (!m_Scene) return;
 
-    case State::TITLE:
-        m_TitleScene.Update();
-        break;
+    m_Scene->Update();
 
-    default:
-        break;
+    if (m_Scene->IsDone()) {
+        auto nextScene = m_Scene->NextScene();
+        if (nextScene) {
+            m_Scene = std::move(nextScene);
+        } else {
+            m_Done = true;
+        }
     }
 }
 
