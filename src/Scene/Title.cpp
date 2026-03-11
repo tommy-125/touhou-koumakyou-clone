@@ -3,6 +3,7 @@
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
 #include "Util/Image.hpp"
+#include "Util/Input.hpp"
 
 Title::Title() {
     // Background
@@ -14,6 +15,8 @@ Title::Title() {
 
     // Load ANM
     std::vector<Anm::LoadedEntry> loaded = {
+        {&Anm::TITLE01, m_Anm.LoadAnm(Anm::TITLE01.folder, Anm::TITLE01.txt, Anm::TITLE01.offset)},
+        {&Anm::TITLE01S, m_Anm.LoadAnm(Anm::TITLE01S.folder, Anm::TITLE01S.txt, Anm::TITLE01S.offset)},
         {&Anm::TITLE02, m_Anm.LoadAnm(Anm::TITLE02.folder, Anm::TITLE02.txt, Anm::TITLE02.offset)},
         {&Anm::TITLE03, m_Anm.LoadAnm(Anm::TITLE03.folder, Anm::TITLE03.txt, Anm::TITLE03.offset)},
     };
@@ -39,6 +42,29 @@ Title::Title() {
 }
 
 void Title::Update() {
+    switch (m_CurrentState) {
+        case TitleState::Title:
+            if(Util::Input::IsKeyDown(Util::Keycode::Z) || Util::Input::IsKeyDown(Util::Keycode::X)) {
+                m_CurrentState = TitleState::MainMenu;
+                for (auto &vm : m_Vms) {
+                    m_Anm.SendInterrupt(vm, TITLE_INTERRUPT_ENTER_MAINMENU);
+                }
+            }
+            break;
+        case TitleState::MainMenu:
+            
+        case TitleState::Start:
+        case TitleState::ExtraStart:
+        case TitleState::PracticeStart:
+        case TitleState::Replay:
+        case TitleState::Score:
+        case TitleState::MusicRoom:
+        case TitleState::Option:
+        case TitleState::Quit:
+            break;
+    }
+
+    // Update each VM and corresponding GameObject
     for (int i = 0; i < static_cast<int>(m_Vms.size()); i++) {
         m_Anm.ExecuteScript(m_Vms[i]);
 

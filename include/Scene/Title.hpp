@@ -9,6 +9,11 @@
 
 #include "Scene/Scene.hpp"
 
+constexpr int TITLE_INTERRUPT_ENTER_TITLE = 1;
+constexpr int TITLE_INTERRUPT_ENTER_MAINMENU = 2;
+constexpr int TITLE_INTERRUPT_ENTER_OPTION = 3;
+constexpr int TITLE_INTERRUPT_LEAVE_MAINMENU = 4;
+
 enum class TitleState {
     Title,
     MainMenu,
@@ -29,6 +34,7 @@ public:
     void Update() override;
 
 private:
+    TitleState m_CurrentState = TitleState::Title;
     Anm::Manager m_Anm;
 
     std::vector<Anm::Vm> m_Vms;
