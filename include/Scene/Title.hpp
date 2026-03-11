@@ -9,6 +9,19 @@
 
 #include "Scene/Scene.hpp"
 
+enum class TitleState {
+    Title,
+    MainMenu,
+    Start,
+    ExtraStart,
+    PracticeStart,
+    Replay,
+    Score,
+    MusicRoom,
+    Option,
+    Quit,
+};
+
 class Title : public Scene {
 public:
     Title();
