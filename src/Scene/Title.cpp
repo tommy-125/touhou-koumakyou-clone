@@ -56,8 +56,15 @@ void Title::Update() {
         case TitleState::MainMenu: {
             if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
                 m_SelectedMenuIdx = (m_SelectedMenuIdx - 1 + TITLE_MENU_COUNT) % TITLE_MENU_COUNT; // add TITLE_MENU_COUNT before mod to avoid negative
+                if(static_cast<TitleMenuItem>(m_SelectedMenuIdx) == TitleMenuItem::ExtraStart) { // skip ExtraStart
+                    m_SelectedMenuIdx = (m_SelectedMenuIdx - 1 + TITLE_MENU_COUNT) % TITLE_MENU_COUNT;
+                }
+
             } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
                 m_SelectedMenuIdx = (m_SelectedMenuIdx + 1) % TITLE_MENU_COUNT; // wrap around
+                if(static_cast<TitleMenuItem>(m_SelectedMenuIdx) == TitleMenuItem::ExtraStart) { // skip ExtraStart
+                    m_SelectedMenuIdx = (m_SelectedMenuIdx + 1) % TITLE_MENU_COUNT; 
+                }
             }
             m_SelectedMenuItem = static_cast<TitleMenuItem>(m_SelectedMenuIdx);
             
