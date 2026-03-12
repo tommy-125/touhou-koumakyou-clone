@@ -39,6 +39,8 @@ Title::Title() {
             m_Anm.SendInterrupt(m_Vms[vmIdx], 1);
         }
     }
+
+    m_MenuVmStartIdx = 0; // start idx of TITLE01S's VM
 }
 
 void Title::Update() {
@@ -51,17 +53,31 @@ void Title::Update() {
                 }
             }
             break;
-        case TitleState::MainMenu:
+        case TitleState::MainMenu: {
+            if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
+                m_SelectedMenuIdx = (m_SelectedMenuIdx - 1 + TITLE_MENU_COUNT) % TITLE_MENU_COUNT; // add TITLE_MENU_COUNT before mod to avoid negative
+            } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
+                m_SelectedMenuIdx = (m_SelectedMenuIdx + 1) % TITLE_MENU_COUNT; // wrap around
+            }
+            m_SelectedMenuItem = static_cast<TitleMenuItem>(m_SelectedMenuIdx);
             
-        case TitleState::Start:
-        case TitleState::ExtraStart:
-        case TitleState::PracticeStart:
-        case TitleState::Replay:
-        case TitleState::Score:
-        case TitleState::MusicRoom:
-        case TitleState::Option:
-        case TitleState::Quit:
-            break;
+            switch(m_SelectedMenuItem) {
+                case TitleMenuItem::Start:
+                case TitleMenuItem::ExtraStart:
+                case TitleMenuItem::PracticeStart:
+                case TitleMenuItem::Replay:
+                case TitleMenuItem::Score:
+                case TitleMenuItem::MusicRoom:
+                case TitleMenuItem::Option:
+                    break;
+                case TitleMenuItem::Quit:
+                    if(Util::Input::IsKeyDown(Util::Keycode::Z) || Util::Input::IsKeyDown(Util::Keycode::X)) {
+                        m_Done = true;
+                        
+                    }
+                    break;
+            }
+        }
     }
 
     // Update each VM and corresponding GameObject
@@ -76,6 +92,14 @@ void Title::Update() {
         if (m_Anm.sprites[vm.spriteIdx].image) {
             obj.SetDrawable(m_Anm.sprites[vm.spriteIdx].image);
         }
+        
+        // TITLE01S range: show the currently selected menu item
+        if (i == m_MenuVmStartIdx + static_cast<int>(m_SelectedMenuItem)) {
+            int spriteIdx = vm.spriteIdx - vm.spriteOffset + Anm::TITLE01S.offset;
+            if (m_Anm.sprites[spriteIdx].image) {
+                obj.SetDrawable(m_Anm.sprites[spriteIdx].image);
+            }
+        }
 
         glm::vec2 translation = Anm::Manager::ToPtsd(vm.pos);
         if (vm.anchorTopLeft) {
@@ -88,4 +112,22 @@ void Title::Update() {
     }
 
     m_Renderer.Update();
+}
+
+std::unique_ptr<Scene> Title::NextScene() {
+    if (m_Done) {
+        switch(m_SelectedMenuItem) {
+            case TitleMenuItem::Start:
+            case TitleMenuItem::ExtraStart:
+            case TitleMenuItem::PracticeStart:
+            case TitleMenuItem::Replay:
+            case TitleMenuItem::Score:
+            case TitleMenuItem::MusicRoom:
+            case TitleMenuItem::Option:
+            case TitleMenuItem::Quit:
+                return nullptr;
+        }
+
+    }
+    return nullptr;
 }

@@ -8,13 +8,13 @@ struct Entry {
     int         offset;
 };
 
-constexpr Entry TITLE01 = { // Main menu and option
+constexpr Entry TITLE01 = { // Main menu and option (Gray)
     GA_RESOURCE_DIR "/th06c/th06c_TL_output/title01",
     GA_RESOURCE_DIR "/th06c/th06c_TL_output/title01/title01.txt",
     0,
 };
 
-constexpr Entry TITLE01S = { // Main menu and option
+constexpr Entry TITLE01S = { // Main menu and option (Red)
     GA_RESOURCE_DIR "/th06c/th06c_TL_output/title01s",
     GA_RESOURCE_DIR "/th06c/th06c_TL_output/title01s/title01s.txt",
     40,

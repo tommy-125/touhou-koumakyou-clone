@@ -17,6 +17,9 @@ constexpr int TITLE_INTERRUPT_LEAVE_MAINMENU = 4;
 enum class TitleState {
     Title,
     MainMenu,
+};
+
+enum class TitleMenuItem {
     Start,
     ExtraStart,
     PracticeStart,
@@ -27,20 +30,26 @@ enum class TitleState {
     Quit,
 };
 
+constexpr int TITLE_MENU_COUNT = static_cast<int>(TitleMenuItem::Quit) + 1;
 class Title : public Scene {
 public:
     Title();
 
     void Update() override;
-
+    std::unique_ptr<Scene> NextScene() override;
 private:
     TitleState m_CurrentState = TitleState::Title;
+    TitleMenuItem m_SelectedMenuItem = TitleMenuItem::Start;
+
     Anm::Manager m_Anm;
 
     std::vector<Anm::Vm> m_Vms;
     std::vector<std::shared_ptr<Util::GameObject>> m_Objs;
 
     std::shared_ptr<Util::GameObject> m_BgObj;
+
+    int m_MenuVmStartIdx;
+    int m_SelectedMenuIdx = 0;
 };
 
 #endif
