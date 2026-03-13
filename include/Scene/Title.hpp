@@ -50,6 +50,9 @@ private:
 
     int m_MenuVmStartIdx;
     int m_SelectedMenuIdx = 0;
+
+    bool m_Quitting = false;
+    int m_QuitTimer = 0; // quit timer for animating leave main menu transition
 };
 
 #endif

@@ -79,10 +79,22 @@ void Title::Update() {
                     break;
                 case TitleMenuItem::Quit:
                     if(Util::Input::IsKeyDown(Util::Keycode::Z) || Util::Input::IsKeyDown(Util::Keycode::X)) {
-                        m_Done = true;
-                        
+                        if(!m_Quitting) {
+                            m_Quitting = true;
+                            m_QuitTimer = 0;
+                            for (auto &vm : m_Vms) {
+                                m_Anm.SendInterrupt(vm, TITLE_INTERRUPT_LEAVE_MAINMENU);
+                            }
+                        }
                     }
                     break;
+            }
+        }
+
+        if(m_Quitting) {
+            m_QuitTimer++;
+            if(m_QuitTimer >= 60) {
+                m_Done = true;
             }
         }
     }
@@ -95,7 +107,7 @@ void Title::Update() {
         auto       &obj = *m_Objs[i];
 
         obj.SetVisible(vm.isVisible);
-        obj.SetAlpha(0.5f);
+        obj.SetAlpha(vm.alpha);
         if (m_Anm.sprites[vm.spriteIdx].image) {
             obj.SetDrawable(m_Anm.sprites[vm.spriteIdx].image);
         }
