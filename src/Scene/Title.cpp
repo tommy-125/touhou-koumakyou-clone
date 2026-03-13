@@ -95,16 +95,22 @@ void Title::Update() {
         auto       &obj = *m_Objs[i];
 
         obj.SetVisible(vm.isVisible);
-
+        obj.SetAlpha(0.5f);
         if (m_Anm.sprites[vm.spriteIdx].image) {
             obj.SetDrawable(m_Anm.sprites[vm.spriteIdx].image);
         }
         
-        // TITLE01S range: show the currently selected menu item
-        if (i == m_MenuVmStartIdx + static_cast<int>(m_SelectedMenuItem)) {
-            int spriteIdx = vm.spriteIdx - vm.spriteOffset + Anm::TITLE01S.offset;
-            if (m_Anm.sprites[spriteIdx].image) {
-                obj.SetDrawable(m_Anm.sprites[spriteIdx].image);
+        
+        if (i >= m_MenuVmStartIdx && i < m_MenuVmStartIdx + TITLE_MENU_COUNT) {
+            // TITLE01S range: show the currently selected menu item
+            if (i == m_MenuVmStartIdx + static_cast<int>(m_SelectedMenuItem)) {
+                int spriteIdx = vm.spriteIdx - vm.spriteOffset + Anm::TITLE01S.offset;
+                if (m_Anm.sprites[spriteIdx].image) {
+                    obj.SetDrawable(m_Anm.sprites[spriteIdx].image);
+                }
+            }
+            else {
+                obj.SetAlpha(0.5f); // dim unselected menu items
             }
         }
 

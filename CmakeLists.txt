@@ -6,16 +6,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # 讓clangd分析抓得到include路徑
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include(FetchContent)
-set(FETCHCONTENT_QUIET FALSE)
+# include(FetchContent)
+# set(FETCHCONTENT_QUIET FALSE)
+# FetchContent_Declare(
+#     ptsd
+#     GIT_REPOSITORY https://github.com/tommy-125/practical-tools-for-simple-design
+#     GIT_TAG main
+# )
 
-FetchContent_Declare(
-    ptsd
-    GIT_REPOSITORY https://github.com/tommy-125/practical-tools-for-simple-design
-    GIT_TAG main
-)
+# FetchContent_MakeAvailable(PTSD)
 
-FetchContent_MakeAvailable(PTSD)
+set(ptsd_SOURCE_DIR C:/Users/tommy/Desktop/Projects/MyProjects/practical-tools-for-simple-design)
+add_subdirectory(${ptsd_SOURCE_DIR} ptsd-build)
 
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 file(GLOB_RECURSE HEADER_FILES include/*.hpp)
