@@ -2,12 +2,15 @@
 #define ANM_MANAGER_HPP
 
 #include <array>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <glm/glm.hpp>
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmTypes.hpp"
+#include "Util/GameObject.hpp"
 
 namespace Anm {
 
@@ -37,6 +40,10 @@ public:
 
     /** Run one frame of script for a VM. Call once per frame per object. */
     void ExecuteScript(Vm &vm);
+
+    /** Execute scripts and sync all VM states to their corresponding GameObjects. */
+    void UpdateObjects(std::vector<Vm> &vms,
+                       std::vector<std::shared_ptr<Util::GameObject>> &objs);
 
     /**
      * Send an interrupt to a VM.

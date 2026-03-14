@@ -75,6 +75,7 @@ struct Vm {
     float     rotation  = 0;
     glm::vec2 scale     = {1, 1};
     float     alpha     = 1.0f;
+    float     zIndex    = 1.0f;
     bool      isVisible = false;
     bool      isStopped = false;
     bool      anchorTopLeft = false;

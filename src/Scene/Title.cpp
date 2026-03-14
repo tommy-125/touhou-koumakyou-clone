@@ -49,6 +49,9 @@ Title::Title() : m_MainMenuBlackMask(0.5f, 0.0f), m_LeaveMainMenuBlackMask(2.0f,
 
                 m_UnselectedMenuItemVms[i]->alpha = 0.5f; // dim unselected menu items
             }
+            if(e.entry == &Anm::TITLE03 && i != 0) {  
+                m_Vms[vmIdx].zIndex = 1.5f; // set zIndex of red title logo to be above menu items
+            }
         }
     }
     m_Renderer.AddChild(m_MainMenuBlackMask.GetObj());
@@ -114,28 +117,7 @@ void Title::Update() {
         }
     }
 
-    // Update each VM and corresponding GameObject
-    for (int i = 0; i < static_cast<int>(m_Vms.size()); i++) {
-        m_Anm.ExecuteScript(m_Vms[i]);
-
-        const auto &vm  = m_Vms[i];
-        auto       &obj = *m_Objs[i];
-
-        obj.SetVisible(vm.isVisible);
-        obj.SetAlpha(vm.alpha);
-        if (m_Anm.sprites[vm.spriteIdx].image) {
-            obj.SetDrawable(m_Anm.sprites[vm.spriteIdx].image);
-        }
-
-        glm::vec2 translation = Anm::Manager::ToPtsd(vm.pos);
-        if (vm.anchorTopLeft) {
-            const auto &spr = m_Anm.sprites[vm.spriteIdx];
-            translation += glm::vec2{spr.width / 2.0f, -spr.height / 2.0f};
-        }
-        obj.m_Transform.translation = translation;
-        obj.m_Transform.scale       = vm.scale;
-        obj.m_Transform.rotation    = vm.rotation;
-    }
+    m_Anm.UpdateObjects(m_Vms, m_Objs);
 
     for(int i = 0; i < TITLE_MENU_COUNT; i++) {
         int selectedMenuSpriteIdx = m_UnselectedMenuItemVms[i]->spriteIdx - Anm::TITLE01.offset + Anm::TITLE01S.offset; // calculate selected menu item sprite index

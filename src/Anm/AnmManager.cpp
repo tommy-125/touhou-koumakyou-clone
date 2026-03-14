@@ -1,6 +1,10 @@
 #include "Anm/AnmManager.hpp"
 
 #include <fstream>
+#include <memory>
+#include <vector>
+
+#include "Util/GameObject.hpp"
 #include <sstream>
 #include <string>
 
@@ -262,6 +266,33 @@ update_interp:
             vm.posInterp = false;
             vm.pos       = vm.posInterpEnd;
         }
+    }
+}
+
+void Manager::UpdateObjects(std::vector<Vm> &vms,
+                            std::vector<std::shared_ptr<Util::GameObject>> &objs) {
+    for (int i = 0; i < static_cast<int>(vms.size()); i++) {
+        ExecuteScript(vms[i]);
+
+        const auto &vm  = vms[i];
+        auto       &obj = *objs[i];
+
+        obj.SetVisible(vm.isVisible);
+        obj.SetAlpha(vm.alpha);
+        obj.SetZIndex(vm.zIndex);
+
+        if (vm.spriteIdx >= 0 && sprites[vm.spriteIdx].image) {
+            obj.SetDrawable(sprites[vm.spriteIdx].image);
+        }
+
+        glm::vec2 translation = ToPtsd(vm.pos);
+        if (vm.anchorTopLeft) {
+            const auto &spr = sprites[vm.spriteIdx];
+            translation += glm::vec2{spr.width / 2.0f, -spr.height / 2.0f};
+        }
+        obj.m_Transform.translation = translation;
+        obj.m_Transform.scale       = vm.scale;
+        obj.m_Transform.rotation    = vm.rotation;
     }
 }
 
