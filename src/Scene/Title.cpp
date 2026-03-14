@@ -73,6 +73,8 @@ void Title::Update() {
                 if(static_cast<TitleMenuItem>(m_SelectedMenuItemIdx) == TitleMenuItem::ExtraStart) { // skip ExtraStart
                     m_SelectedMenuItemIdx = (m_SelectedMenuItemIdx + 1) % TITLE_MENU_COUNT; 
                 }
+            } else if(Util::Input::IsKeyDown(Util::Keycode::X)) {
+                        m_SelectedMenuItemIdx = static_cast<int>(TitleMenuItem::Quit);
             }
             m_SelectedMenuItem = static_cast<TitleMenuItem>(m_SelectedMenuItemIdx);
             
@@ -84,12 +86,9 @@ void Title::Update() {
                 case TitleMenuItem::Score:
                 case TitleMenuItem::MusicRoom:
                 case TitleMenuItem::Option:
-                    if(Util::Input::IsKeyDown(Util::Keycode::X)) {
-                        m_SelectedMenuItemIdx = static_cast<int>(TitleMenuItem::Quit);
-                    }
                     break;
                 case TitleMenuItem::Quit:
-                    if(Util::Input::IsKeyDown(Util::Keycode::Z) || Util::Input::IsKeyDown(Util::Keycode::X)) {
+                    if(Util::Input::IsKeyDown(Util::Keycode::Z)) {
                         if(!m_Quitting) {
                             m_Quitting = true;
                             m_QuitTimer = 0;
