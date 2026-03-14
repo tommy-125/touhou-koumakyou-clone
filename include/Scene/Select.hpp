@@ -10,16 +10,31 @@
 
 #include "Scene/Scene.hpp"
 
+// Difficulty select
 constexpr int SELECT_INTERRUPT_ENTER_DIFFICULTY_SELECT = 6;
 constexpr int SELECT_INTERRUPT_SELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT = 8;
 constexpr int SELECT_INTERRUPT_UNSELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT = 18;
 constexpr int SELECT_INTERRUPT_RETURN_TITLE = 4;
+constexpr int SELECT_INTERRUPT_DIFFICULTY_TITLE_ENTER_CHARA_SELECT = 7;
 
-constexpr int SELECT_EVENT_ENTER_DIFFICULTY_SELECT= 100;
-constexpr int SELECT_EVENT_ENTER_CHARA_SELECT= 101;
-constexpr int SELECT_EVENT_RETURN_DIFFICULTY_SELECT= 102;
-constexpr int SELECT_EVENT_RETURN_TITLE = 103;
+// Character select
+constexpr int SELECT_INTERRUPT_ENTER_CHARA_SELECT = 7;
+constexpr int SELECT_INTERRUPT_CHARA_ENTER_FROM_RIGHT = 10;
+constexpr int SELECT_INTERRUPT_CHARA_ENTER_FROM_LEFT = 9;
+constexpr int SELECT_INTERRUPT_CHARA_LEAVE_FROM_RIGHT = 12;
+constexpr int SELECT_INTERRUPT_CHARA_LEAVE_FROM_LEFT = 11;
+constexpr int SELECT_INTERRUPT_SELECTED_CHARA_ITEM_ENTER_SPELLCARD_SELECT = 19;
+constexpr int SELECT_INTERRUPT_RETURN_DIFFICULTY_SELECT = 6;
 
+enum class SelectEvent {
+    EnterDifficultySelect,
+    EnterCharaSelect,
+    ReturnDifficultySelect,
+    ReturnTitle,
+    SwapCharaItemRight,
+    SwapCharaItemLeft,
+    EnterSpellCardSelect,
+};
 
 enum class SelectState {
     Difficulty,
@@ -51,6 +66,7 @@ enum class MarisaSpellCardItem {
 
 constexpr int SELECT_DIFFICULTY_COUNT = static_cast<int>(DifficultyItem::Lunatic) + 1;
 constexpr int SELECT_CHARACTER_COUNT = static_cast<int>(CharacterItem::Marisa) + 1;
+constexpr int SELECT_CHARACTER_PART_COUNT = 2; // each character has 2 parts in the ANM (upper and lower)
 constexpr int SELECT_SPELL_CARD_COUNT = static_cast<int>(ReimuSpellCardItem::SpellCard2) + 1;
 
 class Select : public Scene {
@@ -59,7 +75,7 @@ public:
 
     void Update() override;
     std::unique_ptr<Scene> NextScene() override;
-    void HandleInterruptEvent(const int interruptEvent);
+    void HandleInterruptEvent(SelectEvent event);
 private:
     SelectState m_CurrentState = SelectState::Difficulty;
     DifficultyItem m_SelectedDifficultyItem = DifficultyItem::Normal;
@@ -74,8 +90,10 @@ private:
 
     std::vector<Anm::Vm*> m_DifficultyItemVms;
     std::vector<std::shared_ptr<Util::GameObject>> m_DifficultyItemObjs;
-    
+
     Anm::Vm* m_DifficultyTitleVm;
+
+    std::vector<std::vector<Anm::Vm*>> m_CharacterItemVms;
 
     std::shared_ptr<Util::GameObject> m_BgObj;
     Util::BlackMask m_EnterSelectBlackMask;

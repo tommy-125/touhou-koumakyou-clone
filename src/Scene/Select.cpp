@@ -37,9 +37,17 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
 
     m_DifficultyItemVms.resize(SELECT_DIFFICULTY_COUNT);
     m_DifficultyItemObjs.resize(SELECT_DIFFICULTY_COUNT);
+
+    m_CharacterItemVms.resize(SELECT_CHARACTER_COUNT);
+    for (int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
+        m_CharacterItemVms[i].resize(SELECT_SPELL_CARD_COUNT);
+    }
+
     // Init each VM and GameObject
     int vmIdx = 0;
     int difficultyVmIdx = 0;
+    int character00VmIdx = 0;
+    int character01VmIdx = 0;
     for (auto &e : loaded) {
         for (int i = 0; i < e.scriptCount; i++, vmIdx++) {
             m_Vms[vmIdx].scriptIdx    = e.entry->offset + i;
@@ -56,12 +64,20 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
                     m_DifficultyItemObjs[difficultyVmIdx-1] = m_Objs[vmIdx];
                 }
                 difficultyVmIdx++;
+            } else if(e.entry == &Anm::SLPL00A || e.entry == &Anm::SLPL00B) {
+                m_CharacterItemVms[0][character00VmIdx] = &m_Vms[vmIdx];
+                m_CharacterItemVms[0][character00VmIdx]->zIndex = 1.5f;
+                character00VmIdx++;
+            } else if(e.entry == &Anm::SLPL01A || e.entry == &Anm::SLPL01B) {
+                m_CharacterItemVms[1][character01VmIdx] = &m_Vms[vmIdx];
+                m_CharacterItemVms[1][character01VmIdx]->zIndex = 1.5f;
+                character01VmIdx++;
             }
         }
     }
     m_EnterSelectBlackMask.Fade(30, 0.0f); // start with black mask fully transparent
     m_Renderer.AddChild(m_EnterSelectBlackMask.GetObj());
-    HandleInterruptEvent(SELECT_EVENT_ENTER_DIFFICULTY_SELECT);
+    HandleInterruptEvent(SelectEvent::EnterDifficultySelect);
 }
 
 void Select::Update() {
@@ -74,10 +90,10 @@ void Select::Update() {
                 m_SelectedDifficultyItemIdx = (m_SelectedDifficultyItemIdx + 1) % SELECT_DIFFICULTY_COUNT;
             } else if(Util::Input::IsKeyDown(Util::Keycode::Z)) {
                 m_CurrentState = SelectState::Character;
-                HandleInterruptEvent(SELECT_EVENT_ENTER_CHARA_SELECT);
+                HandleInterruptEvent(SelectEvent::EnterCharaSelect);
 
             } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
-                HandleInterruptEvent(SELECT_EVENT_RETURN_TITLE);
+                HandleInterruptEvent(SelectEvent::ReturnTitle);
                 m_EnterSelectBlackMask.Fade(30, 1.0f); // fade to black before returning to title
                 m_Quitting = true; // start quit timer and animation
             }
@@ -87,14 +103,16 @@ void Select::Update() {
         case SelectState::Character:
             if (Util::Input::IsKeyDown(Util::Keycode::LEFT)) {
                 m_SelectedCharacterItemIdx = (m_SelectedCharacterItemIdx - 1 + SELECT_CHARACTER_COUNT) % SELECT_CHARACTER_COUNT;
+                HandleInterruptEvent(SelectEvent::SwapCharaItemLeft);
             } else if (Util::Input::IsKeyDown(Util::Keycode::RIGHT)) {
                 m_SelectedCharacterItemIdx = (m_SelectedCharacterItemIdx + 1) % SELECT_CHARACTER_COUNT;
+                HandleInterruptEvent(SelectEvent::SwapCharaItemRight);
             } else if(Util::Input::IsKeyDown(Util::Keycode::Z)) {
                 m_CurrentState = SelectState::SpellCard;
-
+                HandleInterruptEvent(SelectEvent::EnterSpellCardSelect);
             } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
                 m_CurrentState = SelectState::Difficulty;
-                HandleInterruptEvent(SELECT_EVENT_ENTER_DIFFICULTY_SELECT);
+                HandleInterruptEvent(SelectEvent::ReturnDifficultySelect);
             }
             m_SelectedCharacterItem = static_cast<CharacterItem>(m_SelectedCharacterItemIdx);
             break;
@@ -157,25 +175,74 @@ std::unique_ptr<Scene> Select::NextScene() {
     return nullptr;
 }
 
-void Select::HandleInterruptEvent(const int interruptEvent) {
-    if(interruptEvent == SELECT_EVENT_ENTER_DIFFICULTY_SELECT) {
-        m_Anm.SendInterrupt(*m_DifficultyTitleVm, SELECT_INTERRUPT_ENTER_DIFFICULTY_SELECT);
-        for(int i = 0; i < SELECT_DIFFICULTY_COUNT; i++) {
-            m_Anm.SendInterrupt(*m_DifficultyItemVms[i], SELECT_INTERRUPT_ENTER_DIFFICULTY_SELECT);
-        }
-    } else if (interruptEvent == SELECT_EVENT_ENTER_CHARA_SELECT) {
-        for(int i = 0; i < SELECT_DIFFICULTY_COUNT; i++) {
-            m_Anm.SendInterrupt(*m_DifficultyTitleVm, SELECT_INTERRUPT_UNSELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT);
-            if(i == m_SelectedDifficultyItemIdx) {
-                m_Anm.SendInterrupt(*m_DifficultyItemVms[i], SELECT_INTERRUPT_SELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT);
-            } else {
-                m_Anm.SendInterrupt(*m_DifficultyItemVms[i], SELECT_INTERRUPT_UNSELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT);
+void Select::HandleInterruptEvent(SelectEvent event) {
+    switch (event) {
+        case SelectEvent::ReturnDifficultySelect:
+            for(int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
+                for (int j = 0; j < SELECT_CHARACTER_PART_COUNT; j++) {
+                    m_Anm.SendInterrupt(*m_CharacterItemVms[i][j], SELECT_INTERRUPT_RETURN_DIFFICULTY_SELECT);
+                }
             }
-        }
-    } else if (interruptEvent == SELECT_EVENT_RETURN_TITLE) {
-        m_Anm.SendInterrupt(*m_DifficultyTitleVm, SELECT_INTERRUPT_RETURN_TITLE);
-        for(int i = 0; i < SELECT_DIFFICULTY_COUNT; i++) {
-            m_Anm.SendInterrupt(*m_DifficultyItemVms[i], SELECT_INTERRUPT_RETURN_TITLE);
-        }
+            [[fallthrough]];
+        case SelectEvent::EnterDifficultySelect:
+            m_Anm.SendInterrupt(*m_DifficultyTitleVm, SELECT_INTERRUPT_ENTER_DIFFICULTY_SELECT);
+            for (int i = 0; i < SELECT_DIFFICULTY_COUNT; i++) {
+                m_Anm.SendInterrupt(*m_DifficultyItemVms[i], SELECT_INTERRUPT_ENTER_DIFFICULTY_SELECT);
+            }
+            break;
+        case SelectEvent::EnterCharaSelect:
+            m_Anm.SendInterrupt(*m_DifficultyTitleVm, SELECT_INTERRUPT_DIFFICULTY_TITLE_ENTER_CHARA_SELECT);
+            for (int i = 0; i < SELECT_DIFFICULTY_COUNT; i++) {
+                if (i == m_SelectedDifficultyItemIdx) {
+                    m_Anm.SendInterrupt(*m_DifficultyItemVms[i], SELECT_INTERRUPT_SELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT);
+                } else {
+                    m_Anm.SendInterrupt(*m_DifficultyItemVms[i], SELECT_INTERRUPT_UNSELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT);
+                }
+            }
+            for (int i = 0; i < SELECT_CHARACTER_PART_COUNT; i++) {
+                m_Anm.SendInterrupt(*m_CharacterItemVms[m_SelectedCharacterItemIdx][i], SELECT_INTERRUPT_ENTER_CHARA_SELECT);
+            }
+            break;
+        case SelectEvent::ReturnTitle:
+            m_Anm.SendInterrupt(*m_DifficultyTitleVm, SELECT_INTERRUPT_RETURN_TITLE);
+            for (int i = 0; i < SELECT_DIFFICULTY_COUNT; i++) {
+                m_Anm.SendInterrupt(*m_DifficultyItemVms[i], SELECT_INTERRUPT_RETURN_TITLE);
+            }
+            break;
+        case SelectEvent::SwapCharaItemRight:
+            for(int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
+                if(i == m_SelectedCharacterItemIdx) {
+                    for (int j = 0; j < SELECT_CHARACTER_PART_COUNT; j++) {
+                        m_Anm.SendInterrupt(*m_CharacterItemVms[i][j], SELECT_INTERRUPT_CHARA_ENTER_FROM_RIGHT);
+                    }
+                } else {
+                    for (int j = 0; j < SELECT_CHARACTER_PART_COUNT; j++) {
+                        m_Anm.SendInterrupt(*m_CharacterItemVms[i][j], SELECT_INTERRUPT_CHARA_LEAVE_FROM_LEFT);
+                    }
+                }
+            }
+            break;
+        case SelectEvent::SwapCharaItemLeft:
+            for(int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
+                if(i == m_SelectedCharacterItemIdx) {
+                    for (int j = 0; j < SELECT_CHARACTER_PART_COUNT; j++) {
+                        m_Anm.SendInterrupt(*m_CharacterItemVms[i][j], SELECT_INTERRUPT_CHARA_ENTER_FROM_LEFT);
+                    }
+                } else {
+                    for (int j = 0; j < SELECT_CHARACTER_PART_COUNT; j++) {
+                        m_Anm.SendInterrupt(*m_CharacterItemVms[i][j], SELECT_INTERRUPT_CHARA_LEAVE_FROM_RIGHT);
+                    }
+                }
+            }
+            break;
+        case SelectEvent::EnterSpellCardSelect:
+            for(int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
+                if(i == m_SelectedCharacterItemIdx) {
+                    for (int j = 0; j < SELECT_CHARACTER_PART_COUNT; j++) {
+                        m_Anm.SendInterrupt(*m_CharacterItemVms[i][j], SELECT_INTERRUPT_SELECTED_CHARA_ITEM_ENTER_SPELLCARD_SELECT);
+                    }
+                }
+            }
+            break;
     }
 }
