@@ -86,8 +86,10 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
             } else if(e.entry == &Anm::SELECT04) {
                if(i < 2) {
                     m_SpellCardItemVms[0][i] = &m_Vms[vmIdx];
+                    m_SpellCardItemVms[0][i]->zIndex = 1.6f; // spell card items should be above character items
                 } else {
                     m_SpellCardItemVms[1][i-2] = &m_Vms[vmIdx];
+                    m_SpellCardItemVms[1][i-2]->zIndex = 1.6f;
                 }
             }
         }
