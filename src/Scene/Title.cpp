@@ -26,8 +26,8 @@ Title::Title() {
     m_Vms.resize(total);
     m_Objs.resize(total);
 
-    m_UnselectedMenuVms.resize(loaded[0].scriptCount);
-    m_UnselectedMenuObjs.resize(loaded[0].scriptCount);
+    m_UnselectedMenuItemVms.resize(loaded[0].scriptCount);
+    m_UnselectedMenuItemObjs.resize(loaded[0].scriptCount);
 
     // Init each VM and GameObject, then queue interrupt 1 to start the animation
     int vmIdx = 0;
@@ -42,10 +42,10 @@ Title::Title() {
             m_Anm.SendInterrupt(m_Vms[vmIdx], 1);
 
             if(e.entry == &Anm::TITLE01) {
-                m_UnselectedMenuVms[i] = &m_Vms[vmIdx];
-                m_UnselectedMenuObjs[i] = m_Objs[vmIdx];
+                m_UnselectedMenuItemVms[i] = &m_Vms[vmIdx];
+                m_UnselectedMenuItemObjs[i] = m_Objs[vmIdx];
 
-                m_UnselectedMenuVms[i]->alpha = 0.5f; // dim unselected menu items
+                m_UnselectedMenuItemVms[i]->alpha = 0.5f; // dim unselected menu items
             }
         }
     }
@@ -133,12 +133,12 @@ void Title::Update() {
     }
 
     for(int i = 0; i < TITLE_MENU_COUNT; i++) {
-        int selectedMenuSpriteIdx = m_UnselectedMenuVms[i]->spriteIdx - Anm::TITLE01.offset + Anm::TITLE01S.offset; // calculate selected menu item sprite index
+        int selectedMenuSpriteIdx = m_UnselectedMenuItemVms[i]->spriteIdx - Anm::TITLE01.offset + Anm::TITLE01S.offset; // calculate selected menu item sprite index
         
         if(i == m_SelectedMenuItemIdx) {
             if (m_Anm.sprites[selectedMenuSpriteIdx].image) {
-                m_UnselectedMenuObjs[i]->SetDrawable(m_Anm.sprites[selectedMenuSpriteIdx].image); // show the currently selected menu item
-                m_UnselectedMenuObjs[i]->SetAlpha(1.0f);
+                m_UnselectedMenuItemObjs[i]->SetDrawable(m_Anm.sprites[selectedMenuSpriteIdx].image); // show the currently selected menu item
+                m_UnselectedMenuItemObjs[i]->SetAlpha(1.0f);
             }
         }
     }

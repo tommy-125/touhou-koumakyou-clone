@@ -32,6 +32,7 @@ enum class TitleMenuItem {
 };
 
 constexpr int TITLE_MENU_COUNT = static_cast<int>(TitleMenuItem::Quit) + 1;
+
 class Title : public Scene {
 public:
     Title();
@@ -47,8 +48,8 @@ private:
     std::vector<Anm::Vm> m_Vms;
     std::vector<std::shared_ptr<Util::GameObject>> m_Objs;
 
-    std::vector<Anm::Vm*> m_UnselectedMenuVms;
-    std::vector<std::shared_ptr<Util::GameObject>> m_UnselectedMenuObjs;
+    std::vector<Anm::Vm*> m_UnselectedMenuItemVms;
+    std::vector<std::shared_ptr<Util::GameObject>> m_UnselectedMenuItemObjs;
 
     std::shared_ptr<Util::GameObject> m_BgObj;
 
