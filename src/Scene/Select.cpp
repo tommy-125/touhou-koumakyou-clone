@@ -40,7 +40,12 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
 
     m_CharacterItemVms.resize(SELECT_CHARACTER_COUNT);
     for (int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
-        m_CharacterItemVms[i].resize(SELECT_SPELL_CARD_COUNT);
+        m_CharacterItemVms[i].resize(SELECT_SPELLCARD_COUNT);
+    }
+
+    m_SpellCardItemVms.resize(SELECT_CHARACTER_COUNT);
+    for (int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
+        m_SpellCardItemVms[i].resize(SELECT_SPELLCARD_COUNT);
     }
 
     // Init each VM and GameObject
@@ -72,6 +77,18 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
                 m_CharacterItemVms[1][character01VmIdx] = &m_Vms[vmIdx];
                 m_CharacterItemVms[1][character01VmIdx]->zIndex = 1.5f;
                 character01VmIdx++;
+            } else if(e.entry == &Anm::SELECT03) {
+                if(i == 0) {
+                    m_CharacterTitleVm = &m_Vms[vmIdx];
+                } else {
+                    m_SpellCardTitleVm = &m_Vms[vmIdx];
+                }
+            } else if(e.entry == &Anm::SELECT04) {
+               if(i < 2) {
+                    m_SpellCardItemVms[0][i] = &m_Vms[vmIdx];
+                } else {
+                    m_SpellCardItemVms[1][i-2] = &m_Vms[vmIdx];
+                }
             }
         }
     }
@@ -117,14 +134,15 @@ void Select::Update() {
             m_SelectedCharacterItem = static_cast<CharacterItem>(m_SelectedCharacterItemIdx);
             break;
         case SelectState::SpellCard:
-            if (Util::Input::IsKeyDown(Util::Keycode::LEFT)) {
-                m_SelectedSpellCardItemIdx = (m_SelectedSpellCardItemIdx - 1 + SELECT_SPELL_CARD_COUNT) % SELECT_SPELL_CARD_COUNT;
-            } else if (Util::Input::IsKeyDown(Util::Keycode::RIGHT)) {
-                m_SelectedSpellCardItemIdx = (m_SelectedSpellCardItemIdx + 1) % SELECT_SPELL_CARD_COUNT;
+            if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
+                m_SelectedSpellCardItemIdx = (m_SelectedSpellCardItemIdx - 1 + SELECT_SPELLCARD_COUNT) % SELECT_SPELLCARD_COUNT;
+            } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
+                m_SelectedSpellCardItemIdx = (m_SelectedSpellCardItemIdx + 1) % SELECT_SPELLCARD_COUNT;
             } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
                 m_Done = true; // TODO: Proceed to next scene based on selected character and spell card
             } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
                 m_CurrentState = SelectState::Character;
+                HandleInterruptEvent(SelectEvent::ReturnCharaSelect);
             }
 
             switch (m_SelectedCharacterItem) {
@@ -158,6 +176,26 @@ void Select::Update() {
         }
     }
 
+    if(m_CurrentState == SelectState::SpellCard) {
+        if(m_SelectedCharacterItem == CharacterItem::Reimu) {
+            for(int i = 0; i < SELECT_SPELLCARD_COUNT; i++) {
+                if(i == m_SelectedSpellCardItemIdx) {
+                    m_SpellCardItemVms[0][i]->alpha = 1.0f;
+                } else {
+                    m_SpellCardItemVms[0][i]->alpha = 0.5f;
+                }
+            }
+        } else if(m_SelectedCharacterItem == CharacterItem::Marisa) {
+            for(int i = 0; i < SELECT_SPELLCARD_COUNT; i++) {
+                if(i == m_SelectedSpellCardItemIdx) {
+                    m_SpellCardItemVms[1][i]->alpha = 1.0f;
+                } else {
+                    m_SpellCardItemVms[1][i]->alpha = 0.5f;
+                }
+            }
+        }
+    }
+
     m_Renderer.Update();
 }
 
@@ -178,9 +216,10 @@ std::unique_ptr<Scene> Select::NextScene() {
 void Select::HandleInterruptEvent(SelectEvent event) {
     switch (event) {
         case SelectEvent::ReturnDifficultySelect:
+            m_Anm.SendInterrupt(*m_CharacterTitleVm, SELECT_INTERRUPT_CHARA_TITLE_LEAVE_CHARA_SELECT);
             for(int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
                 for (int j = 0; j < SELECT_CHARACTER_PART_COUNT; j++) {
-                    m_Anm.SendInterrupt(*m_CharacterItemVms[i][j], SELECT_INTERRUPT_RETURN_DIFFICULTY_SELECT);
+                    m_Anm.SendInterrupt(*m_CharacterItemVms[i][j], SELECT_INTERRUPT_CHARA_ITEM_RETURN_DIFFICULTY_SELECT);
                 }
             }
             [[fallthrough]];
@@ -190,6 +229,13 @@ void Select::HandleInterruptEvent(SelectEvent event) {
                 m_Anm.SendInterrupt(*m_DifficultyItemVms[i], SELECT_INTERRUPT_ENTER_DIFFICULTY_SELECT);
             }
             break;
+        
+        case SelectEvent::ReturnCharaSelect:
+            m_Anm.SendInterrupt(*m_SpellCardTitleVm, SELECT_INTERRUPT_SPELLCARD_ALL_ITEM_LEAVE_SPELLCARD_SELECT);
+            for(int i = 0; i < SELECT_SPELLCARD_COUNT; i++) {
+                m_Anm.SendInterrupt(*m_SpellCardItemVms[m_SelectedCharacterItemIdx][i], SELECT_INTERRUPT_SPELLCARD_ALL_ITEM_LEAVE_SPELLCARD_SELECT);
+            }
+            [[fallthrough]];
         case SelectEvent::EnterCharaSelect:
             m_Anm.SendInterrupt(*m_DifficultyTitleVm, SELECT_INTERRUPT_DIFFICULTY_TITLE_ENTER_CHARA_SELECT);
             for (int i = 0; i < SELECT_DIFFICULTY_COUNT; i++) {
@@ -199,6 +245,8 @@ void Select::HandleInterruptEvent(SelectEvent event) {
                     m_Anm.SendInterrupt(*m_DifficultyItemVms[i], SELECT_INTERRUPT_UNSELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT);
                 }
             }
+
+            m_Anm.SendInterrupt(*m_CharacterTitleVm, SELECT_INTERRUPT_ENTER_CHARA_SELECT);
             for (int i = 0; i < SELECT_CHARACTER_PART_COUNT; i++) {
                 m_Anm.SendInterrupt(*m_CharacterItemVms[m_SelectedCharacterItemIdx][i], SELECT_INTERRUPT_ENTER_CHARA_SELECT);
             }
@@ -236,12 +284,18 @@ void Select::HandleInterruptEvent(SelectEvent event) {
             }
             break;
         case SelectEvent::EnterSpellCardSelect:
+            m_Anm.SendInterrupt(*m_SpellCardTitleVm, SELECT_INTERRUPT_CHARA_TITLE_LEAVE_CHARA_SELECT);
             for(int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
                 if(i == m_SelectedCharacterItemIdx) {
                     for (int j = 0; j < SELECT_CHARACTER_PART_COUNT; j++) {
                         m_Anm.SendInterrupt(*m_CharacterItemVms[i][j], SELECT_INTERRUPT_SELECTED_CHARA_ITEM_ENTER_SPELLCARD_SELECT);
                     }
                 }
+            }
+
+            m_Anm.SendInterrupt(*m_SpellCardTitleVm, SELECT_INTERRUPT_SPELLCARD_TITLE_ENTER_SPELLCARD_SELECT);
+            for(int i = 0; i < SELECT_SPELLCARD_COUNT; i++) {
+                m_Anm.SendInterrupt(*m_SpellCardItemVms[m_SelectedCharacterItemIdx][i], SELECT_INTERRUPT_SPELLCARD_ITEM_ENTER_SPELLCARD_SELECT);
             }
             break;
     }

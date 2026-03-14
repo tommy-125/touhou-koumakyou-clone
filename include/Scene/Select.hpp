@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Anm/AnmManager.hpp"
+#include "Anm/AnmTypes.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/BlackMask.hpp"
 
@@ -24,7 +25,13 @@ constexpr int SELECT_INTERRUPT_CHARA_ENTER_FROM_LEFT = 9;
 constexpr int SELECT_INTERRUPT_CHARA_LEAVE_FROM_RIGHT = 12;
 constexpr int SELECT_INTERRUPT_CHARA_LEAVE_FROM_LEFT = 11;
 constexpr int SELECT_INTERRUPT_SELECTED_CHARA_ITEM_ENTER_SPELLCARD_SELECT = 19;
-constexpr int SELECT_INTERRUPT_RETURN_DIFFICULTY_SELECT = 6;
+constexpr int SELECT_INTERRUPT_CHARA_ITEM_RETURN_DIFFICULTY_SELECT = 6;
+constexpr int SELECT_INTERRUPT_CHARA_TITLE_LEAVE_CHARA_SELECT = -1;
+
+// Spell card select
+constexpr int SELECT_INTERRUPT_SPELLCARD_TITLE_ENTER_SPELLCARD_SELECT = 7;
+constexpr int SELECT_INTERRUPT_SPELLCARD_ITEM_ENTER_SPELLCARD_SELECT = 13;
+constexpr int SELECT_INTERRUPT_SPELLCARD_ALL_ITEM_LEAVE_SPELLCARD_SELECT = -1; // include title
 
 enum class SelectEvent {
     EnterDifficultySelect,
@@ -34,6 +41,7 @@ enum class SelectEvent {
     SwapCharaItemRight,
     SwapCharaItemLeft,
     EnterSpellCardSelect,
+    ReturnCharaSelect,
 };
 
 enum class SelectState {
@@ -67,7 +75,7 @@ enum class MarisaSpellCardItem {
 constexpr int SELECT_DIFFICULTY_COUNT = static_cast<int>(DifficultyItem::Lunatic) + 1;
 constexpr int SELECT_CHARACTER_COUNT = static_cast<int>(CharacterItem::Marisa) + 1;
 constexpr int SELECT_CHARACTER_PART_COUNT = 2; // each character has 2 parts in the ANM (upper and lower)
-constexpr int SELECT_SPELL_CARD_COUNT = static_cast<int>(ReimuSpellCardItem::SpellCard2) + 1;
+constexpr int SELECT_SPELLCARD_COUNT = static_cast<int>(ReimuSpellCardItem::SpellCard2) + 1;
 
 class Select : public Scene {
 public:
@@ -88,13 +96,18 @@ private:
     std::vector<Anm::Vm> m_Vms;
     std::vector<std::shared_ptr<Util::GameObject>> m_Objs;
 
+    Anm::Vm* m_DifficultyTitleVm;
+
     std::vector<Anm::Vm*> m_DifficultyItemVms;
     std::vector<std::shared_ptr<Util::GameObject>> m_DifficultyItemObjs;
 
-    Anm::Vm* m_DifficultyTitleVm;
+    Anm::Vm* m_CharacterTitleVm;
 
     std::vector<std::vector<Anm::Vm*>> m_CharacterItemVms;
 
+    Anm::Vm* m_SpellCardTitleVm;
+
+    std::vector<std::vector<Anm::Vm*>> m_SpellCardItemVms;
     std::shared_ptr<Util::GameObject> m_BgObj;
     Util::BlackMask m_EnterSelectBlackMask;
 
