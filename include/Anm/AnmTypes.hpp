@@ -98,6 +98,13 @@ struct Vm {
     float     fadeTarget       = 1.0f;
     int       fadeDuration     = 0;
     int       fadeTimer        = 0;
+
+    // Scale interpolation
+    bool      scaleInterp         = false;
+    glm::vec2 scaleInterpStart    = {1, 1};
+    glm::vec2 scaleInterpEnd      = {1, 1};
+    int       scaleInterpDuration = 0;
+    int       scaleInterpTimer    = 0;
 };
 
 } // namespace Anm

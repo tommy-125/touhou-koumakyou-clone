@@ -226,6 +226,16 @@ void Manager::ExecuteScript(Vm &vm) {
             vm.anchorTopLeft = true;
             break;
 
+        case ScaleTime:
+            if (instr.args.size() >= 3) {
+                vm.scaleInterp         = true;
+                vm.scaleInterpStart    = vm.scale;
+                vm.scaleInterpEnd      = {instr.args[0], instr.args[1]};
+                vm.scaleInterpDuration = static_cast<int>(instr.args[2]);
+                vm.scaleInterpTimer    = 0;
+            }
+            break;
+
         case SetBlendAdditive:
         case SetBlendDefault:
         case SetZWriteDisable:
@@ -252,6 +262,19 @@ update_interp:
         if (vm.fadeTimer > vm.fadeDuration) {
             vm.fadeInterp = false;
             vm.alpha      = vm.fadeTarget;
+        }
+    }
+
+    // Scale interpolation
+    if (vm.scaleInterp) {
+        float t = (vm.scaleInterpDuration > 0)
+                      ? (float)vm.scaleInterpTimer / vm.scaleInterpDuration
+                      : 1.0f;
+        vm.scale = glm::mix(vm.scaleInterpStart, vm.scaleInterpEnd, t);
+        vm.scaleInterpTimer++;
+        if (vm.scaleInterpTimer > vm.scaleInterpDuration) {
+            vm.scaleInterp = false;
+            vm.scale       = vm.scaleInterpEnd;
         }
     }
 
