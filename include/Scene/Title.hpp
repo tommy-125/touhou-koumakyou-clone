@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Anm/AnmManager.hpp"
+#include "Anm/AnmTypes.hpp"
 #include "Util/GameObject.hpp"
 
 #include "Scene/Scene.hpp"
@@ -46,9 +47,11 @@ private:
     std::vector<Anm::Vm> m_Vms;
     std::vector<std::shared_ptr<Util::GameObject>> m_Objs;
 
+    std::vector<Anm::Vm*> m_UnselectedMenuVms;
+    std::vector<std::shared_ptr<Util::GameObject>> m_UnselectedMenuObjs;
+
     std::shared_ptr<Util::GameObject> m_BgObj;
 
-    int m_MenuVmStartIdx;
     int m_SelectedMenuIdx = 0;
 
     bool m_Quitting = false;

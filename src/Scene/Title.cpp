@@ -26,6 +26,9 @@ Title::Title() {
     m_Vms.resize(total);
     m_Objs.resize(total);
 
+    m_UnselectedMenuVms.resize(loaded[0].scriptCount);
+    m_UnselectedMenuObjs.resize(loaded[0].scriptCount);
+
     // Init each VM and GameObject, then queue interrupt 1 to start the animation
     int vmIdx = 0;
     for (auto &e : loaded) {
@@ -37,10 +40,15 @@ Title::Title() {
             m_Renderer.AddChild(m_Objs[vmIdx]);
 
             m_Anm.SendInterrupt(m_Vms[vmIdx], 1);
+
+            if(e.entry == &Anm::TITLE01) {
+                m_UnselectedMenuVms[i] = &m_Vms[vmIdx];
+                m_UnselectedMenuObjs[i] = m_Objs[vmIdx];
+
+                m_UnselectedMenuVms[i]->alpha = 0.5f; // dim unselected menu items
+            }
         }
     }
-
-    m_MenuVmStartIdx = 0; // start idx of TITLE01S's VM
 }
 
 void Title::Update() {
@@ -111,20 +119,6 @@ void Title::Update() {
         if (m_Anm.sprites[vm.spriteIdx].image) {
             obj.SetDrawable(m_Anm.sprites[vm.spriteIdx].image);
         }
-        
-        
-        if (i >= m_MenuVmStartIdx && i < m_MenuVmStartIdx + TITLE_MENU_COUNT) {
-            // TITLE01S range: show the currently selected menu item
-            if (i == m_MenuVmStartIdx + static_cast<int>(m_SelectedMenuItem)) {
-                int spriteIdx = vm.spriteIdx - vm.spriteOffset + Anm::TITLE01S.offset;
-                if (m_Anm.sprites[spriteIdx].image) {
-                    obj.SetDrawable(m_Anm.sprites[spriteIdx].image);
-                }
-            }
-            else {
-                obj.SetAlpha(0.5f); // dim unselected menu items
-            }
-        }
 
         glm::vec2 translation = Anm::Manager::ToPtsd(vm.pos);
         if (vm.anchorTopLeft) {
@@ -136,7 +130,18 @@ void Title::Update() {
         obj.m_Transform.rotation    = vm.rotation;
     }
 
-    m_Renderer.Update();
+    for(int i = 0; i < TITLE_MENU_COUNT; i++) {
+        int selectedMenuSpriteIdx = m_UnselectedMenuVms[i]->spriteIdx - Anm::TITLE01.offset + Anm::TITLE01S.offset; // calculate selected menu item sprite index
+        
+        if(i == m_SelectedMenuIdx) {
+            if (m_Anm.sprites[selectedMenuSpriteIdx].image) {
+                m_UnselectedMenuObjs[i]->SetDrawable(m_Anm.sprites[selectedMenuSpriteIdx].image); // show the currently selected menu item
+                m_UnselectedMenuObjs[i]->SetAlpha(1.0f);
+            }
+        }
+    }
+
+    m_Renderer.Update();    
 }
 
 std::unique_ptr<Scene> Title::NextScene() {
