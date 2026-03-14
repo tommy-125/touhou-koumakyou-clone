@@ -4,8 +4,10 @@
 #include "Anm/AnmManager.hpp"
 #include "Util/Image.hpp"
 #include "Util/Input.hpp"
+#include "Util/BlackMask.hpp"
+#include "Scene/Select.hpp"
 
-Title::Title() {
+Title::Title() : m_MainMenuBlackMask(0.5f, 0.0f), m_LeaveMainMenuBlackMask(2.0f, 0.0f) {
     // Background
     auto bgImage = std::make_shared<Util::Image>(
         GA_RESOURCE_DIR "/th06c/th06c_TL_output/no_anm/title00.jpg"
@@ -49,15 +51,20 @@ Title::Title() {
             }
         }
     }
+    m_Renderer.AddChild(m_MainMenuBlackMask.GetObj());
+    m_Renderer.AddChild(m_LeaveMainMenuBlackMask.GetObj());
 }
 
 void Title::Update() {
+    m_MainMenuBlackMask.Update();
+    m_LeaveMainMenuBlackMask.Update();
     switch (m_CurrentState) {
         case TitleState::Title:
             if(Util::Input::IsKeyDown(Util::Keycode::Z) || Util::Input::IsKeyDown(Util::Keycode::X)) {
                 m_CurrentState = TitleState::MainMenu;
                 for (auto &vm : m_Vms) {
                     m_Anm.SendInterrupt(vm, TITLE_INTERRUPT_ENTER_MAINMENU);
+                    m_MainMenuBlackMask.Fade(30, 0.25f);
                 }
             }
             break;
@@ -80,6 +87,10 @@ void Title::Update() {
             
             switch(m_SelectedMenuItem) {
                 case TitleMenuItem::Start:
+                    if(Util::Input::IsKeyDown(Util::Keycode::Z)) {
+                        LeaveMainMenu(false); // fade out and proceed to next scene
+                    }
+                    break;
                 case TitleMenuItem::ExtraStart:
                 case TitleMenuItem::PracticeStart:
                 case TitleMenuItem::Replay:
@@ -89,13 +100,7 @@ void Title::Update() {
                     break;
                 case TitleMenuItem::Quit:
                     if(Util::Input::IsKeyDown(Util::Keycode::Z)) {
-                        if(!m_Quitting) {
-                            m_Quitting = true;
-                            m_QuitTimer = 0;
-                            for (auto &vm : m_Vms) {
-                                m_Anm.SendInterrupt(vm, TITLE_INTERRUPT_LEAVE_MAINMENU);
-                            }
-                        }
+                        LeaveMainMenu(true);
                     }
                     break;
             }
@@ -150,6 +155,7 @@ std::unique_ptr<Scene> Title::NextScene() {
     if (m_Done) {
         switch(m_SelectedMenuItem) {
             case TitleMenuItem::Start:
+                return std::make_unique<Select>();
             case TitleMenuItem::ExtraStart:
             case TitleMenuItem::PracticeStart:
             case TitleMenuItem::Replay:
@@ -162,4 +168,16 @@ std::unique_ptr<Scene> Title::NextScene() {
 
     }
     return nullptr;
+}
+
+void Title::LeaveMainMenu(bool quit) {
+    for (auto &vm : m_Vms) {
+        m_Anm.SendInterrupt(vm, TITLE_INTERRUPT_LEAVE_MAINMENU);
+    }
+    m_Quitting = true;
+    m_QuitTimer = 0;
+
+    if(!quit) {
+        m_LeaveMainMenuBlackMask.Fade(30, 1.0f);
+    }
 }

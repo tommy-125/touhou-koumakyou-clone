@@ -7,6 +7,7 @@
 #include "Anm/AnmManager.hpp"
 #include "Anm/AnmTypes.hpp"
 #include "Util/GameObject.hpp"
+#include "Util/BlackMask.hpp"
 
 #include "Scene/Scene.hpp"
 
@@ -39,6 +40,7 @@ public:
 
     void Update() override;
     std::unique_ptr<Scene> NextScene() override;
+    void LeaveMainMenu(bool quit);
 private:
     TitleState m_CurrentState = TitleState::Title;
     TitleMenuItem m_SelectedMenuItem = TitleMenuItem::Start;
@@ -52,6 +54,8 @@ private:
     std::vector<std::shared_ptr<Util::GameObject>> m_UnselectedMenuItemObjs;
 
     std::shared_ptr<Util::GameObject> m_BgObj;
+    Util::BlackMask m_MainMenuBlackMask;
+    Util::BlackMask m_LeaveMainMenuBlackMask;
 
     int m_SelectedMenuItemIdx = 0;
 

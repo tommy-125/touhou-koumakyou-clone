@@ -51,7 +51,7 @@ constexpr Entry SELECT03 = { // Character select title / Spell card select title
 };
 
 constexpr Entry SELECT04 = { // Spell cards
-    GA_RESOURCE_DIR "/th06c/th06c_ TL_output/select04",
+    GA_RESOURCE_DIR "/th06c/th06c_TL_output/select04",
     GA_RESOURCE_DIR "/th06c/th06c_TL_output/select04/select04.txt",
     110,
 };
@@ -62,27 +62,27 @@ constexpr Entry SELECT05 = { // Extra
     115,
 };
 
-constexpr Entry SLP00A = { // Upper part of Reimu's sprite art
-    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slp00a",
-    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slp00a/slp00a.txt",
+constexpr Entry SLPL00A = { // Upper part of Reimu's sprite art
+    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slpl00a",
+    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slpl00a/slpl00a.txt",
     120,
 };
 
-constexpr Entry SLP00B = { // Lower part of Reimu's sprite art
-    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slp00b",
-    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slp00b/slp00b.txt",
+constexpr Entry SLPL00B = { // Lower part of Reimu's sprite art
+    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slpl00b",
+    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slpl00b/slpl00b.txt",
     125,
 };
 
-constexpr Entry SLP01A = { // Upper part of Marisa's sprite art
-    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slp01a",
-    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slp01a/slp01a.txt",
+constexpr Entry SLPL01A = { // Upper part of Marisa's sprite art
+    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slpl01a",
+    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slpl01a/slpl01a.txt",
     130,
 };
 
-constexpr Entry SLP01B = { // Lower part of Marisa's sprite art
-    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slp01b",
-    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slp01b/slp01b.txt",
+constexpr Entry SLPL01B = { // Lower part of Marisa's sprite art
+    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slpl01b",
+    GA_RESOURCE_DIR "/th06c/th06c_TL_output/slpl01b/slpl01b.txt",
     135,
 };
 
