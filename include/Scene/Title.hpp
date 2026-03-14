@@ -52,7 +52,7 @@ private:
 
     std::shared_ptr<Util::GameObject> m_BgObj;
 
-    int m_SelectedMenuIdx = 0;
+    int m_SelectedMenuItemIdx = 0;
 
     bool m_Quitting = false;
     int m_QuitTimer = 0; // quit timer for animating leave main menu transition

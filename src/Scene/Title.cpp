@@ -63,18 +63,18 @@ void Title::Update() {
             break;
         case TitleState::MainMenu: {
             if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
-                m_SelectedMenuIdx = (m_SelectedMenuIdx - 1 + TITLE_MENU_COUNT) % TITLE_MENU_COUNT; // add TITLE_MENU_COUNT before mod to avoid negative
-                if(static_cast<TitleMenuItem>(m_SelectedMenuIdx) == TitleMenuItem::ExtraStart) { // skip ExtraStart
-                    m_SelectedMenuIdx = (m_SelectedMenuIdx - 1 + TITLE_MENU_COUNT) % TITLE_MENU_COUNT;
+                m_SelectedMenuItemIdx = (m_SelectedMenuItemIdx - 1 + TITLE_MENU_COUNT) % TITLE_MENU_COUNT; // add TITLE_MENU_COUNT before mod to avoid negative
+                if(static_cast<TitleMenuItem>(m_SelectedMenuItemIdx) == TitleMenuItem::ExtraStart) { // skip ExtraStart
+                    m_SelectedMenuItemIdx = (m_SelectedMenuItemIdx - 1 + TITLE_MENU_COUNT) % TITLE_MENU_COUNT;
                 }
 
             } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
-                m_SelectedMenuIdx = (m_SelectedMenuIdx + 1) % TITLE_MENU_COUNT; // wrap around
-                if(static_cast<TitleMenuItem>(m_SelectedMenuIdx) == TitleMenuItem::ExtraStart) { // skip ExtraStart
-                    m_SelectedMenuIdx = (m_SelectedMenuIdx + 1) % TITLE_MENU_COUNT; 
+                m_SelectedMenuItemIdx = (m_SelectedMenuItemIdx + 1) % TITLE_MENU_COUNT; // wrap around
+                if(static_cast<TitleMenuItem>(m_SelectedMenuItemIdx) == TitleMenuItem::ExtraStart) { // skip ExtraStart
+                    m_SelectedMenuItemIdx = (m_SelectedMenuItemIdx + 1) % TITLE_MENU_COUNT; 
                 }
             }
-            m_SelectedMenuItem = static_cast<TitleMenuItem>(m_SelectedMenuIdx);
+            m_SelectedMenuItem = static_cast<TitleMenuItem>(m_SelectedMenuItemIdx);
             
             switch(m_SelectedMenuItem) {
                 case TitleMenuItem::Start:
@@ -84,6 +84,9 @@ void Title::Update() {
                 case TitleMenuItem::Score:
                 case TitleMenuItem::MusicRoom:
                 case TitleMenuItem::Option:
+                    if(Util::Input::IsKeyDown(Util::Keycode::X)) {
+                        m_SelectedMenuItemIdx = static_cast<int>(TitleMenuItem::Quit);
+                    }
                     break;
                 case TitleMenuItem::Quit:
                     if(Util::Input::IsKeyDown(Util::Keycode::Z) || Util::Input::IsKeyDown(Util::Keycode::X)) {
@@ -133,7 +136,7 @@ void Title::Update() {
     for(int i = 0; i < TITLE_MENU_COUNT; i++) {
         int selectedMenuSpriteIdx = m_UnselectedMenuVms[i]->spriteIdx - Anm::TITLE01.offset + Anm::TITLE01S.offset; // calculate selected menu item sprite index
         
-        if(i == m_SelectedMenuIdx) {
+        if(i == m_SelectedMenuItemIdx) {
             if (m_Anm.sprites[selectedMenuSpriteIdx].image) {
                 m_UnselectedMenuObjs[i]->SetDrawable(m_Anm.sprites[selectedMenuSpriteIdx].image); // show the currently selected menu item
                 m_UnselectedMenuObjs[i]->SetAlpha(1.0f);
