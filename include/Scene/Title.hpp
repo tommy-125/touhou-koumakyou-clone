@@ -40,7 +40,7 @@ public:
 
     void Update() override;
     std::unique_ptr<Scene> NextScene() override;
-    void LeaveMainMenu(bool quit);
+    void LeaveMainMenu(bool quitGame);
 private:
     TitleState m_CurrentState = TitleState::Title;
     TitleMenuItem m_SelectedMenuItem = TitleMenuItem::Start;
