@@ -32,7 +32,7 @@ constexpr Entry TITLE03 = { // Title logo
     90,
 };
 
-constexpr Entry SELECT01 = { // Difficulty choose title / Normal / Easy 
+constexpr Entry SELECT01 = { // Difficulty select title / Normal / Easy 
     GA_RESOURCE_DIR "/th06c/th06c_TL_output/select01",
     GA_RESOURCE_DIR "/th06c/th06c_TL_output/select01/select01.txt",
     95,
@@ -44,7 +44,7 @@ constexpr Entry SELECT02 = { // Hard / Lunatic
     100,
 };
 
-constexpr Entry SELECT03 = { // Character choose title / Spell card chooese title
+constexpr Entry SELECT03 = { // Character select title / Spell card select title
     GA_RESOURCE_DIR "/th06c/th06c_TL_output/select03",
     GA_RESOURCE_DIR "/th06c/th06c_TL_output/select03/select03.txt",
     105,
