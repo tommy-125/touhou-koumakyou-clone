@@ -8,11 +8,11 @@ int main(int, char**) {
     app.Start();
 
     while (!context->GetExit() && !app.IsDone()) {
+        context->Update();
         context->Setup();
         app.Update();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        context->Update();
     }
 
     app.End();
