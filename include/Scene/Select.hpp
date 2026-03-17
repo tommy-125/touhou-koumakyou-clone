@@ -8,6 +8,7 @@
 #include "Anm/AnmTypes.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/BlackMask.hpp"
+#include "Character.hpp"
 
 #include "Scene/Scene.hpp"
 
@@ -54,11 +55,6 @@ enum class DifficultyItem {
     Normal,
     Hard,
     Lunatic,
-};
-
-enum class CharacterItem {
-    Reimu,
-    Marisa,
 };
 
 enum class SpellCardItem {
