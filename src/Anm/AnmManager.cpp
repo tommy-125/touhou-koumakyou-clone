@@ -110,32 +110,46 @@ static float Easing(float t, int mode) {
     }
 }
 
+void Manager::SetScript(Vm &vm, int globalScriptIdx, int spriteOffset) { // set script and immediately execute time=0 instructions to set initial state
+    vm.scriptIdx    = globalScriptIdx;
+    vm.spriteOffset = spriteOffset;
+    vm.instrIdx     = 0;
+    vm.currentTime  = 0;
+    vm.isStopped    = false;
+    ExecuteScript(vm); // immediately execute for initial state
+}
+
+// Execute sequence: handle interrupts -> if stopped, do nothing -> otherwise, execute instructions whose time has come -> update interpolation
 void Manager::ExecuteScript(Vm &vm) {
     if (vm.scriptIdx < 0) return;
     const Script &script = scripts[vm.scriptIdx];
 
-    // Resume from interrupt if stopped
-    if (vm.isStopped) {
+    // ── Interrupt handling ────────────────────────────────────────────────────
+    if (vm.pendingInterrupt != 0) {
+        int target = -1;
 
-        // if there is no pending interrupt, skip to update position interpolation
-        if (vm.pendingInterrupt == 0) goto update_interp;
-
-        // search for the interrupt label in the script
         for (int i = 0; i < static_cast<int>(script.instrs.size()); i++) {
-            const Instr &instr = script.instrs[i];
-
-            if (instr.opcode == InterruptLabel &&
-                !instr.args.empty() &&
-                static_cast<int>(instr.args[0]) == vm.pendingInterrupt) { // found the interrupt label
-                vm.instrIdx    = i;
-                vm.currentTime = instr.time;
-                vm.isStopped   = false;
-                vm.isVisible   = true;
-                vm.pendingInterrupt = 0;
+            const Instr &label = script.instrs[i];
+            if (label.opcode == InterruptLabel &&
+                !label.args.empty() &&
+                static_cast<int>(label.args[0]) == vm.pendingInterrupt) {
+                target = i;
                 break;
             }
         }
-        if (vm.isStopped) goto update_interp; // label not found
+        if (target >= 0) {
+            vm.instrIdx         = target;
+            vm.currentTime      = script.instrs[target].time;
+            vm.isStopped        = false;
+            vm.isVisible        = true;
+            vm.pendingInterrupt = 0;
+        } else {
+            vm.isStopped        = true;
+            vm.pendingInterrupt = 0;
+            goto update_interp;
+        }
+    } else if (vm.isStopped) {
+        goto update_interp;
     }
 
     // Dispatch instructions whose time has come
@@ -157,13 +171,27 @@ void Manager::ExecuteScript(Vm &vm) {
             return;
 
         case Stop:
-            vm.isStopped = true;
-            goto update_interp;
-
         case StopHide:
-            vm.isVisible = false;
+            if (instr.opcode == StopHide) vm.isVisible = false;
             vm.isStopped = true;
-            goto update_interp;
+
+            if (vm.pendingInterrupt != 0) {
+                for (int j = 0; j < static_cast<int>(script.instrs.size()); j++) { // search for the interrupt label
+                    const Instr &label = script.instrs[j];
+                    if (label.opcode == InterruptLabel &&
+                        !label.args.empty() &&
+                        static_cast<int>(label.args[0]) == vm.pendingInterrupt) {
+                        vm.instrIdx         = j;
+                        vm.currentTime      = label.time;
+                        vm.isStopped        = false;
+                        vm.isVisible        = true;
+                        vm.pendingInterrupt = 0;
+                        break;
+                    }
+                }
+            }
+            if (vm.isStopped) goto update_interp;
+            continue; // resume dispatch from new instrIdx
 
         case SetActiveSprite:
             if (!instr.args.empty()) {
@@ -193,6 +221,7 @@ void Manager::ExecuteScript(Vm &vm) {
         case Jump:
             if (!instr.args.empty()) {
                 int targetOffset = static_cast<int>(instr.args[0]);
+
                 for (int j = 0; j < static_cast<int>(script.instrs.size()); j++) {
                     if (script.instrs[j].byteOffset == targetOffset) {
                         vm.instrIdx    = j;

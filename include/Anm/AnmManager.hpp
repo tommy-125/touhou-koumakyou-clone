@@ -38,6 +38,9 @@ public:
                 const std::string &txtPath,
                 int idxOffset);
 
+    /** Set a script on a VM and immediately execute its time=0 instructions. */
+    void SetScript(Vm &vm, int globalScriptIdx, int spriteOffset);
+
     /** Run one frame of script for a VM. Call once per frame per object. */
     void ExecuteScript(Vm &vm);
 

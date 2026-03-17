@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Scene/Title.hpp"
+#include "Scene/Stage1.hpp"
 
 Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
     // Background
@@ -56,8 +57,7 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
     int character01VmIdx = 0;
     for (auto &e : loaded) {
         for (int i = 0; i < e.scriptCount; i++, vmIdx++) {
-            m_Vms[vmIdx].scriptIdx    = e.entry->offset + i;
-            m_Vms[vmIdx].spriteOffset = e.entry->offset;
+            m_Anm.SetScript(m_Vms[vmIdx], e.entry->offset + i, e.entry->offset);
 
             m_Objs[vmIdx] = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
             m_Renderer.AddChild(m_Objs[vmIdx]);
@@ -99,6 +99,7 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
     }
     m_EnterSelectBlackMask.Fade(30, 0.0f); // start with black mask fully transparent
     m_Renderer.AddChild(m_EnterSelectBlackMask.GetObj());
+
     HandleInterruptEvent(SelectEvent::EnterDifficultySelect);
 }
 
@@ -144,7 +145,7 @@ void Select::Update() {
             } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
                 m_SelectedSpellCardItemIdx = (m_SelectedSpellCardItemIdx + 1) % SELECT_SPELLCARD_COUNT;
             } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
-                m_Done = true; // TODO: Proceed to next scene based on selected character and spell card
+                m_Quitting = true; // start quit timer and animation
             } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
                 m_CurrentState = SelectState::Character;
                 HandleInterruptEvent(SelectEvent::ReturnCharaSelect);
@@ -204,8 +205,10 @@ std::unique_ptr<Scene> Select::NextScene() {
                 return std::make_unique<Title>(); // go back to title
             case SelectState::Character:
                 break;
-            case SelectState::SpellCard:
-                break;
+            case SelectState::SpellCard: {
+                int spellIdx = m_SelectedSpellCardItemIdx;
+                return std::make_unique<Stage1>(m_SelectedCharacterItem, spellIdx);
+            }
         }
     }
     return nullptr;
