@@ -186,6 +186,19 @@ void Manager::ExecuteScript(Vm &vm) {
             }
             break;
 
+        case Jump:
+            if (!instr.args.empty()) {
+                int targetTime = static_cast<int>(instr.args[0]);
+                vm.currentTime = targetTime;
+                vm.instrIdx = 0;
+                while (vm.instrIdx < static_cast<int>(script.instrs.size()) &&
+                       script.instrs[vm.instrIdx].time < targetTime) {
+                    vm.instrIdx++;
+                }
+                continue;
+            }
+            break;
+
         case InterruptLabel:
             // nop — only meaningful as a jump target
             break;
