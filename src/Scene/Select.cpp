@@ -4,6 +4,7 @@
 #include "Anm/AnmManager.hpp"
 #include "Util/Image.hpp"
 #include "Util/Input.hpp"
+
 #include <memory>
 
 #include "Scene/Title.hpp"
@@ -80,8 +81,10 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
             } else if(e.entry == &Anm::SELECT03) {
                 if(i == 0) {
                     m_CharacterTitleVm = &m_Vms[vmIdx];
-                } else {
+                    m_CharacterTitleVm->zIndex = 1.6f;
+                } else if(i == 1) {
                     m_SpellCardTitleVm = &m_Vms[vmIdx];
+                    m_SpellCardTitleVm->zIndex = 1.6f;
                 }
             } else if(e.entry == &Anm::SELECT04) {
                if(i < 2) {
@@ -286,7 +289,7 @@ void Select::HandleInterruptEvent(SelectEvent event) {
             }
             break;
         case SelectEvent::EnterSpellCardSelect:
-            m_Anm.SendInterrupt(*m_SpellCardTitleVm, SELECT_INTERRUPT_CHARA_TITLE_LEAVE_CHARA_SELECT);
+            m_Anm.SendInterrupt(*m_CharacterTitleVm, SELECT_INTERRUPT_CHARA_TITLE_LEAVE_CHARA_SELECT);
             for(int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
                 if(i == m_SelectedCharacterItemIdx) {
                     for (int j = 0; j < SELECT_CHARACTER_PART_COUNT; j++) {
@@ -295,9 +298,9 @@ void Select::HandleInterruptEvent(SelectEvent event) {
                 }
             }
 
-            m_Anm.SendInterrupt(*m_SpellCardTitleVm, SELECT_INTERRUPT_SPELLCARD_TITLE_ENTER_SPELLCARD_SELECT);
+            m_Anm.SendInterrupt(*m_SpellCardTitleVm, SELECT_INTERRUPT_SPELLCARD_ALL_ITEM_ENTER_SPELLCARD_SELECT);
             for(int i = 0; i < SELECT_SPELLCARD_COUNT; i++) {
-                m_Anm.SendInterrupt(*m_SpellCardItemVms[m_SelectedCharacterItemIdx][i], SELECT_INTERRUPT_SPELLCARD_ITEM_ENTER_SPELLCARD_SELECT);
+                m_Anm.SendInterrupt(*m_SpellCardItemVms[m_SelectedCharacterItemIdx][i], SELECT_INTERRUPT_SPELLCARD_ALL_ITEM_ENTER_SPELLCARD_SELECT);
             }
             break;
     }
