@@ -53,8 +53,9 @@ struct Sprite {
 };
 
 struct Instr {
-    int time   = 0;
-    int opcode = 0;
+    int time       = 0;
+    int opcode     = 0;
+    int byteOffset = 0;  // byte offset from start of script's first instruction
     std::vector<float> args;
 };
 

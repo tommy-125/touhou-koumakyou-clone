@@ -34,8 +34,9 @@ int Manager::LoadAnm(const std::string &spriteFolder,
         return 0;
     }
 
-    int currentScriptId = -1;
-    int scriptCount = 0;
+    int currentScriptId  = -1;
+    int scriptCount      = 0;
+    int scriptByteOffset = 0;
 
     std::string line;
     while (std::getline(file, line)) {
@@ -68,6 +69,7 @@ int Manager::LoadAnm(const std::string &spriteFolder,
             currentScriptId = std::stoi(line.substr(8)) + spriteIdxOffset;
             scripts[currentScriptId] = Script{};
             scriptCount++;
+            scriptByteOffset = 0;
             continue;
         }
 
@@ -87,6 +89,8 @@ int Manager::LoadAnm(const std::string &spriteFolder,
                     instr.args.emplace_back(ParseArg(token));
                 } catch (...) {}
             }
+            instr.byteOffset  = scriptByteOffset;
+            scriptByteOffset += 4 + static_cast<int>(instr.args.size()) * 4;
             scripts[currentScriptId].instrs.emplace_back(std::move(instr));
             continue;
         }
@@ -188,12 +192,13 @@ void Manager::ExecuteScript(Vm &vm) {
 
         case Jump:
             if (!instr.args.empty()) {
-                int targetTime = static_cast<int>(instr.args[0]);
-                vm.currentTime = targetTime;
-                vm.instrIdx = 0;
-                while (vm.instrIdx < static_cast<int>(script.instrs.size()) &&
-                       script.instrs[vm.instrIdx].time < targetTime) {
-                    vm.instrIdx++;
+                int targetOffset = static_cast<int>(instr.args[0]);
+                for (int j = 0; j < static_cast<int>(script.instrs.size()); j++) {
+                    if (script.instrs[j].byteOffset == targetOffset) {
+                        vm.instrIdx    = j;
+                        vm.currentTime = script.instrs[j].time;
+                        break;
+                    }
                 }
                 continue;
             }
