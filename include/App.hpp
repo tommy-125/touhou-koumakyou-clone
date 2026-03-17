@@ -1,4 +1,5 @@
-#pragma once
+#ifndef APP_HPP
+#define APP_HPP
 
 #include <memory>
 
@@ -16,3 +17,5 @@ private:
     std::unique_ptr<Scene> m_Scene;
     bool m_Done = false;
 };
+
+#endif // APP_HPP
