@@ -150,14 +150,7 @@ void Select::Update() {
                 HandleInterruptEvent(SelectEvent::ReturnCharaSelect);
             }
 
-            switch (m_SelectedCharacterItem) {
-                case CharacterItem::Reimu:
-                    m_SelectedReimuSpellCardItem = static_cast<ReimuSpellCardItem>(m_SelectedSpellCardItemIdx);
-                    break;
-                case CharacterItem::Marisa:
-                    m_SelectedMarisaSpellCardItem = static_cast<MarisaSpellCardItem>(m_SelectedSpellCardItemIdx);
-                    break;
-            }
+            m_SelectedSpellCardItem = static_cast<SpellCardItem>(m_SelectedSpellCardItemIdx);
             break;
     }
 

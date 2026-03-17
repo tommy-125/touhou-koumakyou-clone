@@ -61,20 +61,16 @@ enum class CharacterItem {
     Marisa,
 };
 
-enum class ReimuSpellCardItem {
-    SpellCard1,
-    SpellCard2,
+enum class SpellCardItem {
+    SpellCard00,
+    SpellCard01,
 };
 
-enum class MarisaSpellCardItem {
-    SpellCard1,
-    SpellCard2,
-};
 
 constexpr int SELECT_DIFFICULTY_COUNT = static_cast<int>(DifficultyItem::Lunatic) + 1;
 constexpr int SELECT_CHARACTER_COUNT = static_cast<int>(CharacterItem::Marisa) + 1;
 constexpr int SELECT_CHARACTER_PART_COUNT = 2; // each character has 2 parts in the ANM (upper and lower)
-constexpr int SELECT_SPELLCARD_COUNT = static_cast<int>(ReimuSpellCardItem::SpellCard2) + 1;
+constexpr int SELECT_SPELLCARD_COUNT = static_cast<int>(SpellCardItem::SpellCard01) + 1;
 
 class Select : public Scene {
 public:
@@ -87,9 +83,8 @@ private:
     SelectState m_CurrentState = SelectState::Difficulty;
     DifficultyItem m_SelectedDifficultyItem = DifficultyItem::Normal;
     CharacterItem m_SelectedCharacterItem = CharacterItem::Reimu;
-    ReimuSpellCardItem m_SelectedReimuSpellCardItem = ReimuSpellCardItem::SpellCard1;
-    MarisaSpellCardItem m_SelectedMarisaSpellCardItem = MarisaSpellCardItem::SpellCard1;
-    
+    SpellCardItem m_SelectedSpellCardItem = SpellCardItem::SpellCard00;
+
     Anm::Manager m_Anm;
 
     std::vector<Anm::Vm> m_Vms;
