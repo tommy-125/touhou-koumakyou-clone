@@ -79,6 +79,8 @@ struct Vm {
     bool      isVisible = false;
     bool      isStopped = false;
     bool      anchorTopLeft = false;
+    bool      flipX     = false;
+    bool      flipY     = false;
     int       pendingInterrupt = 0;
 
     // Angle velocity (per frame)

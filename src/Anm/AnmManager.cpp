@@ -249,6 +249,14 @@ void Manager::ExecuteScript(Vm &vm) {
             }
             break;
 
+        case FlipX:
+            vm.flipX = !vm.flipX;
+            break;
+
+        case FlipY:
+            vm.flipY = !vm.flipY;
+            break;
+
         case SetBlendAdditive:
         case SetBlendDefault:
         case SetZWriteDisable:
@@ -327,7 +335,10 @@ void Manager::UpdateObjects(std::vector<Vm> &vms,
             translation += glm::vec2{spr.width / 2.0f, -spr.height / 2.0f};
         }
         obj.m_Transform.translation = translation;
-        obj.m_Transform.scale       = vm.scale;
+        obj.m_Transform.scale       = glm::vec2{
+            vm.flipX ? -vm.scale.x : vm.scale.x,
+            vm.flipY ? -vm.scale.y : vm.scale.y,
+        };
         obj.m_Transform.rotation    = vm.rotation;
     }
 }
