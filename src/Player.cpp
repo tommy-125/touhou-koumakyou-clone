@@ -1,11 +1,11 @@
-#include "Character.hpp"
+#include "Player.hpp"
 
 #include "Util/Input.hpp"
 #include <cmath>
 #include <glm/glm.hpp>
 
-Character::Character(CharacterItem character, int spellCardIdx)
-    : m_Data(character == CharacterItem::Reimu ? &REIMU_DATA : &MARISA_DATA),
+Player::Player(PlayerItem character, int spellCardIdx)
+    : m_Data(character == PlayerItem::Reimu ? &REIMU_DATA : &MARISA_DATA),
       m_SpellCardIdx(spellCardIdx) {
 
     const Anm::Entry &entry = *m_Data->anmEntry;
@@ -26,7 +26,7 @@ Character::Character(CharacterItem character, int spellCardIdx)
     }
 }
 
-void Character::Update() {
+void Player::Update() {
     // ── Movement ──────────────────────────────────────────────────────────────
     float speed = Util::Input::IsKeyPressed(Util::Keycode::LSHIFT)
                       ? m_Data->speedFocused
@@ -72,7 +72,7 @@ void Character::Update() {
     m_Renderer.Update();
 }
 
-void Character::SetMoveState(MoveState newState) {
+void Player::SetMoveState(MoveState newState) {
     if (newState == m_MoveState) return;
 
     if (newState == MoveState::Idle) {
@@ -87,7 +87,7 @@ void Character::SetMoveState(MoveState newState) {
     m_MoveState = newState;
 }
 
-void Character::SetScript(PlayerScript script) {
+void Player::SetScript(PlayerScript script) {
     m_BodyVm->flipX = false;
     m_Anm.SetScript(*m_BodyVm, m_Data->anmEntry->offset + static_cast<int>(script), m_Data->anmEntry->offset);
 }

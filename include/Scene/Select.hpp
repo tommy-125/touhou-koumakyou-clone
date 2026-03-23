@@ -8,7 +8,7 @@
 #include "Anm/AnmTypes.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/BlackMask.hpp"
-#include "Character.hpp"
+#include "Player.hpp"
 
 #include "Scene/Scene.hpp"
 

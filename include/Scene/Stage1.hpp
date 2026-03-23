@@ -1,7 +1,7 @@
 #ifndef SCENE_STAGE1_HPP
 #define SCENE_STAGE1_HPP
 
-#include "Character.hpp"
+#include "Player.hpp"
 #include "Scene/Scene.hpp"
 
 class Stage1 : public Scene {
@@ -10,7 +10,7 @@ public:
     void Update() override;
 
 private:
-    Character m_Character;
+    Player m_Player;
 };
 
 #endif // SCENE_STAGE1_HPP

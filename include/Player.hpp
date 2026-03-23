@@ -1,5 +1,5 @@
-#ifndef CHARACTER_HPP
-#define CHARACTER_HPP
+#ifndef PLAYER_HPP
+#define PLAYER_HPP
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
@@ -40,6 +40,28 @@ enum class PlayerScript {
     ReturnFromRight = 4,
 };
 
+enum class ShotType {
+    A,
+    B,
+};
+
+enum BulletType
+{
+    STRAIGHT,
+    HOMING,
+    PIERCE,
+    LASER
+};
+
+enum PlayerState
+{
+    ALIVE,
+    SPAWNING,
+    DEAD,
+    INVULNERABLE,
+};
+
+
 // th06 screen coordinates (origin top-left, y-down)
 constexpr float PLAYER_SPAWN_X  = 192.0f;
 constexpr float PLAYER_SPAWN_Y  = 384.0f;
@@ -48,25 +70,25 @@ constexpr float PLAY_AREA_RIGHT = 416.0f;
 constexpr float PLAY_AREA_TOP   = 16.0f;
 constexpr float PLAY_AREA_BOTTOM = 464.0f;
 
-struct CharacterData {
+struct PlayerData {
     float              speed;
     float              speedFocused;
     const Anm::Entry  *anmEntry;
 };
 
-constexpr CharacterData REIMU_DATA  = { 4.0f, 2.0f,  &Anm::PLAYER00 };
-constexpr CharacterData MARISA_DATA = { 5.0f, 2.5f,  &Anm::PLAYER01 };
+constexpr PlayerData REIMU_DATA  = { 4.0f, 2.0f,  &Anm::PLAYER00 };
+constexpr PlayerData MARISA_DATA = { 5.0f, 2.5f,  &Anm::PLAYER01 };
 
-class Character {
+class Player {
 public:
-    Character(CharacterItem character, int spellCardIdx);
+    Player(CharacterItem character, int spellCardIdx);
     void Update();
 
 private:
     void SetMoveState(MoveState newState);
     void SetScript(PlayerScript script);
 
-    const CharacterData *m_Data;
+    const PlayerData *m_Data;
     int                  m_SpellCardIdx;
     MoveState            m_MoveState       = MoveState::Idle;
     int                  m_ReturnFramesLeft = 0;
@@ -82,4 +104,4 @@ private:
     Util::Renderer m_Renderer;
 };
 
-#endif // CHARACTER_HPP
+#endif // PLAYER_HPP
