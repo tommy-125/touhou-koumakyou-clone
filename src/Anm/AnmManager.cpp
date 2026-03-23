@@ -291,6 +291,11 @@ void Manager::ExecuteScript(Vm &vm) {
             vm.flipY = !vm.flipY;
             break;
 
+        case SetScaleSpeed:
+            if (instr.args.size() >= 2)
+                vm.scaleSpeed = {instr.args[0], instr.args[1]};
+            break;
+
         case SetBlendAdditive:
         case SetBlendDefault:
         case SetZWriteDisable:
@@ -306,6 +311,9 @@ void Manager::ExecuteScript(Vm &vm) {
 update_interp:
     // Angle velocity
     vm.rotation += vm.angleVel;
+
+    // Scale velocity
+    vm.scale += vm.scaleSpeed;
 
     // Alpha fade interpolation
     if (vm.fadeInterp) {

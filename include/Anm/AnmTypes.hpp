@@ -87,6 +87,9 @@ struct Vm {
     // Angle velocity (per frame)
     float     angleVel         = 0;
 
+    // Scale velocity (per frame)
+    glm::vec2 scaleSpeed       = {0, 0};
+
     // Position interpolation
     bool      posInterp        = false;
     int       posInterpMode    = 0;  // 0=linear 1=decel 2=accel
