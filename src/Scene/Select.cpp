@@ -206,8 +206,7 @@ std::unique_ptr<Scene> Select::NextScene() {
             case SelectState::Character:
                 break;
             case SelectState::SpellCard: {
-                int spellIdx = m_SelectedSpellCardItemIdx;
-                return std::make_unique<Stage1>(m_SelectedCharacterItem, spellIdx);
+                return std::make_unique<Stage1>(m_SelectedCharacterItem, m_SelectedSpellCardItemIdx);
             }
         }
     }

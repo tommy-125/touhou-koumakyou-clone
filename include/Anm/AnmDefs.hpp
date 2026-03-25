@@ -87,11 +87,19 @@ constexpr Entry SLPL01B = { // Lower part of Marisa's sprite art
     130+5,
 };
 
+
 constexpr Entry PLAYER00 = { // Reimu sprite
     GA_RESOURCE_DIR "/th06c/th06c_CM_output/player00",
     GA_RESOURCE_DIR "/th06c/th06c_CM_output/player00/player00.txt",
     135+5,
 };
+constexpr int ANM_SCRIPT_PLAYER_BULLET = (PLAYER00.offset + 64); // Basic player bullet script for both character 
+
+constexpr int ANM_SCRIPT_PLAYER_REIMU_A_ORB_BULLET = (PLAYER00.offset + 65);
+constexpr int ANM_SCRIPT_PLAYER_REIMU_A_ORB_BULLET_COLLISION = (PLAYER00.offset + 97);
+constexpr int ANM_SCRIPT_PLAYER_REIMU_B_ORB_BULLET = (PLAYER00.offset + 66);
+constexpr int ANM_SCRIPT_PLAYER_REIMU_B_ORB_BULLET_COLLISION = (PLAYER00.offset + 98);
+constexpr int ANM_SCRIPT_PLAYER_REIMU_BULLET_COLLISION = (PLAYER00.offset + 96);
 
 constexpr Entry PLAYER01 = { // Marisa sprite
     GA_RESOURCE_DIR "/th06c/th06c_CM_output/player01",

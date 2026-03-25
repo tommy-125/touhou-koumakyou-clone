@@ -57,16 +57,10 @@ enum class DifficultyItem {
     Lunatic,
 };
 
-enum class SpellCardItem {
-    SpellCard00,
-    SpellCard01,
-};
-
-
 constexpr int SELECT_DIFFICULTY_COUNT = static_cast<int>(DifficultyItem::Lunatic) + 1;
 constexpr int SELECT_CHARACTER_COUNT = static_cast<int>(CharacterItem::Marisa) + 1;
 constexpr int SELECT_CHARACTER_PART_COUNT = 2; // each character has 2 parts in the ANM (upper and lower)
-constexpr int SELECT_SPELLCARD_COUNT = static_cast<int>(SpellCardItem::SpellCard01) + 1;
+constexpr int SELECT_SPELLCARD_COUNT = static_cast<int>(SpellCardItem::Shot_Type_B) + 1;
 
 class Select : public Scene {
 public:
@@ -79,7 +73,7 @@ private:
     SelectState m_CurrentState = SelectState::Difficulty;
     DifficultyItem m_SelectedDifficultyItem = DifficultyItem::Normal;
     CharacterItem m_SelectedCharacterItem = CharacterItem::Reimu;
-    SpellCardItem m_SelectedSpellCardItem = SpellCardItem::SpellCard00;
+    SpellCardItem m_SelectedSpellCardItem = SpellCardItem::Shot_Type_A;
 
     Anm::Manager m_Anm;
 

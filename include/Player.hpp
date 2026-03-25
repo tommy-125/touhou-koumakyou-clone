@@ -6,7 +6,9 @@
 #include "Anm/AnmTypes.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/Renderer.hpp"
+#include "Util/Math.hpp"
 
+#include <glm/fwd.hpp>
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
@@ -14,6 +16,11 @@
 enum class CharacterItem {
     Reimu,
     Marisa,
+};
+
+enum class SpellCardItem {
+    Shot_Type_A,
+    Shot_Type_B,
 };
 
 enum class ReimuSpellCardItem {
@@ -45,7 +52,7 @@ enum class ShotType {
     B,
 };
 
-enum BulletType
+enum class BulletType
 {
     STRAIGHT,
     HOMING,
@@ -53,12 +60,40 @@ enum BulletType
     LASER
 };
 
-enum PlayerState
+enum class BulletState
+{
+    UNUSED,
+    FIRED,
+    COLLIDED,
+};
+
+enum class PlayerState
 {
     ALIVE,
     SPAWNING,
     DEAD,
     INVULNERABLE,
+};
+
+struct CharacterPowerBulletData { // Bullet data for one bullet
+    int m_WaitBetweenBullets;
+    int m_BulletFrame;
+    glm::vec2 m_motion;
+    glm::vec2 m_size;
+    float m_Direction;
+    float m_Velocity;
+    int m_Damage;
+    int m_SpawnPositionIdx;
+    BulletType m_BulletType;
+    int m_AnmFileIdx;
+    // int m_BulletSoundIdx; 
+};
+
+struct CharacterPowerData { // Record bullet data depending on power level
+
+    int m_NumBullets;
+    int m_Power;
+    const CharacterPowerBulletData *m_Bullets;
 };
 
 
@@ -71,13 +106,28 @@ constexpr float PLAY_AREA_TOP   = 16.0f;
 constexpr float PLAY_AREA_BOTTOM = 464.0f;
 
 struct PlayerData {
-    float              speed;
-    float              speedFocused;
-    const Anm::Entry  *anmEntry;
+    float              m_OrthogonalMovementSpeed;
+    float              m_OrthogonalMovementSpeedFocus;
+    float              m_DiagonalMovementSpeed;
+    float              m_DiagonalMovementSpeedFocus;
+    const Anm::Entry  *m_AnmEntry;
 };
 
-constexpr PlayerData REIMU_DATA  = { 4.0f, 2.0f,  &Anm::PLAYER00 };
-constexpr PlayerData MARISA_DATA = { 5.0f, 2.5f,  &Anm::PLAYER01 };
+struct PlayerBullet {
+    Anm::Vm m_Sprite;
+    glm::vec2 m_Position;
+    glm::vec2 m_Size;
+    glm::vec2 m_Velocity;
+    float m_SidewaysMotion;
+    int m_Damage;
+    BulletState m_BulletState;
+    BulletType m_BulletType;
+    int m_SpawnPositionIdx;
+};
+
+
+constexpr PlayerData REIMU_DATA  = { 4.0f, 2.0f, 4.0f * INV_SQRT2, 2.0f * INV_SQRT2, &Anm::PLAYER00 };
+constexpr PlayerData MARISA_DATA = { 5.0f, 2.5f, 5.0f * INV_SQRT2, 2.5f * INV_SQRT2, &Anm::PLAYER01 };
 
 class Player {
 public:
@@ -86,13 +136,21 @@ public:
 
 private:
     void SetMoveState(MoveState newState);
-    void SetScript(PlayerScript script);
-
+    void SetMoveScript(PlayerScript script);
+    void HandlePlayerInput();
+    void HandleMovement();
+    void HandleStateMachine();
     const PlayerData *m_Data;
     int                  m_SpellCardIdx;
     MoveState            m_MoveState       = MoveState::Idle;
     int                  m_ReturnFramesLeft = 0;
     glm::vec2            m_BodyPos   = {PLAYER_SPAWN_X, PLAYER_SPAWN_Y};
+    glm::vec2            m_HitboxTopLeft;
+    glm::vec2            m_HitboxBottomRight;
+    glm::vec2            m_GrabItemTopLeft;
+    glm::vec2            m_GrabItemBottomRight;
+    glm::vec2            m_HitboxSize;
+    glm::vec2            m_GrabItemSize;
 
     Anm::Manager  m_Anm;
 
