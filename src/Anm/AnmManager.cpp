@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 
-#include "Util/GameObject.hpp"
 #include <sstream>
 #include <string>
 
@@ -355,13 +354,13 @@ update_interp:
     }
 }
 
-void Manager::UpdateObjects(std::vector<Vm> &vms,
-                            std::vector<std::shared_ptr<Util::GameObject>> &objs) {
+void Manager::UpdateObjects(std::vector<Vm> &vms) {
     for (int i = 0; i < static_cast<int>(vms.size()); i++) {
         ExecuteScript(vms[i]);
 
         const auto &vm  = vms[i];
-        auto       &obj = *objs[i];
+        if (!vm.obj) continue;
+        auto       &obj = *vm.obj;
 
         obj.SetVisible(vm.isVisible);
         obj.SetAlpha(vm.alpha);

@@ -34,11 +34,8 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
     int total = 0;
     for (auto &e : loaded) total += e.scriptCount;
     m_Vms.resize(total);
-    m_Objs.resize(total);
-
 
     m_DifficultyItemVms.resize(SELECT_DIFFICULTY_COUNT);
-    m_DifficultyItemObjs.resize(SELECT_DIFFICULTY_COUNT);
 
     m_CharacterItemVms.resize(SELECT_CHARACTER_COUNT);
     for (int i = 0; i < SELECT_CHARACTER_COUNT; i++) {
@@ -59,15 +56,14 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
         for (int i = 0; i < e.scriptCount; i++, vmIdx++) {
             m_Anm.SetScript(m_Vms[vmIdx], e.entry->offset + i, e.entry->offset);
 
-            m_Objs[vmIdx] = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
-            m_Renderer.AddChild(m_Objs[vmIdx]);
+            m_Vms[vmIdx].obj = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
+            m_Renderer.AddChild(m_Vms[vmIdx].obj);
 
             if(e.entry == &Anm::SELECT01 || e.entry == &Anm::SELECT02) { // skip idx of 0 since it is difficulty select title
                 if(difficultyVmIdx == 0) {
                     m_DifficultyTitleVm = &m_Vms[vmIdx];
                 } else {
                     m_DifficultyItemVms[difficultyVmIdx-1] = &m_Vms[vmIdx];
-                    m_DifficultyItemObjs[difficultyVmIdx-1] = m_Objs[vmIdx];
                 }
                 difficultyVmIdx++;
             } else if(e.entry == &Anm::SLPL00A || e.entry == &Anm::SLPL00B) {
@@ -162,15 +158,15 @@ void Select::Update() {
         }
     }
     
-    m_Anm.UpdateObjects(m_Vms, m_Objs);
+    m_Anm.UpdateObjects(m_Vms);
 
     // overwrite alpha value of difficulty items of the original instructions
     for(int i = 0; i < SELECT_DIFFICULTY_COUNT; i++) {
         if(m_CurrentState == SelectState::Difficulty) {
             if(i == m_SelectedDifficultyItemIdx) {
-                m_DifficultyItemObjs[i]->SetAlpha(1.0f);
+                m_DifficultyItemVms[i]->obj->SetAlpha(1.0f);
             } else {
-                m_DifficultyItemObjs[i]->SetAlpha(0.5f);
+                m_DifficultyItemVms[i]->obj->SetAlpha(0.5f);
             }
         }
     }
@@ -206,7 +202,7 @@ std::unique_ptr<Scene> Select::NextScene() {
             case SelectState::Character:
                 break;
             case SelectState::SpellCard: {
-                return std::make_unique<Stage1>(m_SelectedCharacterItem, m_SelectedSpellCardItemIdx);
+                return std::make_unique<Stage1>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
             }
         }
     }

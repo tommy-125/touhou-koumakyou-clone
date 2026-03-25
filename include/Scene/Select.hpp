@@ -78,12 +78,10 @@ private:
     Anm::Manager m_Anm;
 
     std::vector<Anm::Vm> m_Vms;
-    std::vector<std::shared_ptr<Util::GameObject>> m_Objs;
 
     Anm::Vm* m_DifficultyTitleVm;
 
     std::vector<Anm::Vm*> m_DifficultyItemVms;
-    std::vector<std::shared_ptr<Util::GameObject>> m_DifficultyItemObjs;
 
     Anm::Vm* m_CharacterTitleVm;
 

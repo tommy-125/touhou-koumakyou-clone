@@ -48,10 +48,8 @@ private:
     Anm::Manager m_Anm;
 
     std::vector<Anm::Vm> m_Vms;
-    std::vector<std::shared_ptr<Util::GameObject>> m_Objs;
 
     std::vector<Anm::Vm*> m_UnselectedMenuItemVms;
-    std::vector<std::shared_ptr<Util::GameObject>> m_UnselectedMenuItemObjs;
 
     std::shared_ptr<Util::GameObject> m_BgObj;
     Util::BlackMask m_MainMenuBlackMask;

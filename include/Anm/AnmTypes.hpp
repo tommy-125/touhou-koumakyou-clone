@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "Util/Image.hpp"
+#include "Util/GameObject.hpp"
 
 namespace Anm {
 
@@ -111,6 +112,9 @@ struct Vm {
     glm::vec2 scaleInterpEnd      = {1, 1};
     int       scaleInterpDuration = 0;
     int       scaleInterpTimer    = 0;
+
+    // Rendering
+    std::shared_ptr<Util::GameObject> obj;
 };
 
 } // namespace Anm

@@ -26,10 +26,8 @@ Title::Title() : m_MainMenuBlackMask(0.5f, 0.0f), m_LeaveMainMenuBlackMask(2.0f,
     int total = 0;
     for (auto &e : loaded) total += e.scriptCount;
     m_Vms.resize(total);
-    m_Objs.resize(total);
 
     m_UnselectedMenuItemVms.resize(loaded[0].scriptCount);
-    m_UnselectedMenuItemObjs.resize(loaded[0].scriptCount);
 
     // Init each VM and GameObject, then queue interrupt 1 to start the animation
     int vmIdx = 0;
@@ -37,14 +35,13 @@ Title::Title() : m_MainMenuBlackMask(0.5f, 0.0f), m_LeaveMainMenuBlackMask(2.0f,
         for (int i = 0; i < e.scriptCount; i++, vmIdx++) {
             m_Anm.SetScript(m_Vms[vmIdx], e.entry->offset + i, e.entry->offset);
 
-            m_Objs[vmIdx] = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
-            m_Renderer.AddChild(m_Objs[vmIdx]);
+            m_Vms[vmIdx].obj = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
+            m_Renderer.AddChild(m_Vms[vmIdx].obj);
 
             m_Anm.SendInterrupt(m_Vms[vmIdx], 1);
 
             if(e.entry == &Anm::TITLE01) {
                 m_UnselectedMenuItemVms[i] = &m_Vms[vmIdx];
-                m_UnselectedMenuItemObjs[i] = m_Objs[vmIdx];
 
                 m_UnselectedMenuItemVms[i]->alpha = 0.5f; // dim unselected menu items
             }
@@ -116,15 +113,15 @@ void Title::Update() {
         }
     }
 
-    m_Anm.UpdateObjects(m_Vms, m_Objs);
+    m_Anm.UpdateObjects(m_Vms);
 
     for(int i = 0; i < TITLE_MENU_COUNT; i++) {
         int selectedMenuSpriteIdx = m_UnselectedMenuItemVms[i]->spriteIdx - Anm::TITLE01.offset + Anm::TITLE01S.offset; // calculate selected menu item sprite index
         
         if(i == m_SelectedMenuItemIdx) {
             if (m_Anm.sprites[selectedMenuSpriteIdx].image) {
-                m_UnselectedMenuItemObjs[i]->SetDrawable(m_Anm.sprites[selectedMenuSpriteIdx].image); // show the currently selected menu item
-                m_UnselectedMenuItemObjs[i]->SetAlpha(1.0f);
+                m_UnselectedMenuItemVms[i]->obj->SetDrawable(m_Anm.sprites[selectedMenuSpriteIdx].image); // show the currently selected menu item
+                m_UnselectedMenuItemVms[i]->obj->SetAlpha(1.0f);
             }
         }
     }

@@ -1,7 +1,7 @@
 #include "Scene/Stage1.hpp"
 
-Stage1::Stage1(CharacterItem character, int spellCardIdx)
-    : m_Player(character, spellCardIdx) {}
+Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
+    : m_Player(character, spellCard) {}
 
 void Stage1::Update() {
     m_Player.Update();

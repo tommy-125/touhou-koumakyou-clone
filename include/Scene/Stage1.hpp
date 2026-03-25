@@ -6,7 +6,7 @@
 
 class Stage1 : public Scene {
 public:
-    Stage1(CharacterItem character, int spellCardIdx);
+    Stage1(CharacterItem character, SpellCardItem spellCard);
     void Update() override;
 
 private:

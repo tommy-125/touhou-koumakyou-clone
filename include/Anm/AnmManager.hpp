@@ -2,7 +2,6 @@
 #define ANM_MANAGER_HPP
 
 #include <array>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -10,8 +9,6 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmTypes.hpp"
-#include "Util/GameObject.hpp"
-
 namespace Anm {
 
 struct LoadedEntry {
@@ -45,8 +42,7 @@ public:
     void ExecuteScript(Vm &vm);
 
     /** Execute scripts and sync all VM states to their corresponding GameObjects. */
-    void UpdateObjects(std::vector<Vm> &vms,
-                       std::vector<std::shared_ptr<Util::GameObject>> &objs);
+    void UpdateObjects(std::vector<Vm> &vms);
 
     /**
      * Send an interrupt to a VM.
