@@ -88,9 +88,8 @@ struct CharacterPowerBulletData { // Bullet data for one bullet
     int m_Damage;
     int m_SpawnPositionIdx; // 0 for body, 1 for left orb, 2 for right orb
     BulletType m_BulletType;
-    int m_ScriptGlobalOffset; // Offset in the global script space
-    int m_ScriptLocalOffset; // Offset of bullet script in the character's script space
-    // int m_BulletSoundIdx; 
+    int m_SpriteOffset; // Base sprite offset for the ANM entry
+    int m_ScriptIdx;    // Global script index for this bullet
 };
 
 struct CharacterPowerData { // Record bullet data depending on power level

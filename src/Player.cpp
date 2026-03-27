@@ -1,5 +1,5 @@
 #include "Player.hpp"
-#include "BulletData.cpp"
+#include "BulletData.hpp"
 #include "Util/Input.hpp"
 #include "Util/Math.hpp"
 
@@ -228,7 +228,7 @@ FireBulletResult Player::FireSingleBullet(PlayerBullet *bullet, int bulletIdx, c
     if (bulletData->m_BulletType == BulletType::LASER) {
         // TODO: implement laser bullets
     } else if (m_FireBulletTimer % bulletData->m_BulletsInterval == bulletData->m_FireBulletOffset) {
-        m_Anm.SetScript(bullet->m_Vm, bulletData->m_ScriptLocalOffset, bulletData->m_ScriptGlobalOffset);
+        m_Anm.SetScript(bullet->m_Vm, bulletData->m_ScriptIdx, bulletData->m_SpriteOffset);
 
         if(!bulletData->m_SpawnPositionIdx) { // spawn from body
             bullet->m_Vm.pos = this->m_BodyPos + bulletData->m_SpawnOffset;
