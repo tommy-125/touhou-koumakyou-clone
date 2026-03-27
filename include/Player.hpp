@@ -4,13 +4,10 @@
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
 #include "Anm/AnmTypes.hpp"
-#include "Util/GameObject.hpp"
 #include "Util/Renderer.hpp"
-#include "Util/Math.hpp"
 
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
-#include <memory>
 #include <vector>
 
 enum class CharacterItem {
@@ -39,7 +36,7 @@ enum class MoveState {
     MoveLeft,
 };
 
-enum class PlayerScript {
+enum class PlayerMovementScript {
     Idle            = 0,
     MoveLeft        = 1,
     ReturnFromLeft  = 2,
@@ -67,6 +64,12 @@ enum class BulletState
     COLLIDED,
 };
 
+enum class FireBulletResult {
+    FIRED,
+    CONTINUE_SPAWNING,
+    END_SPAWNING,
+    FIRED_AND_LAST,
+};
 enum class PlayerState
 {
     ALIVE,
@@ -76,16 +79,17 @@ enum class PlayerState
 };
 
 struct CharacterPowerBulletData { // Bullet data for one bullet
-    int m_WaitBetweenBullets;
-    int m_BulletFrame;
-    glm::vec2 m_motion;
-    glm::vec2 m_size;
-    float m_Direction;
-    float m_Velocity;
+    int m_BulletsInterval;
+    int m_FireBulletOffset;
+    glm::vec2 m_SpawnOffset;
+    glm::vec2 m_Size;
+    float m_Angle; // in radians
+    float m_Speed;
     int m_Damage;
-    int m_SpawnPositionIdx;
+    int m_SpawnPositionIdx; // 0 for body, 1 for left orb, 2 for right orb
     BulletType m_BulletType;
-    int m_AnmFileIdx;
+    int m_ScriptGlobalOffset; // Offset in the global script space
+    int m_ScriptLocalOffset; // Offset of bullet script in the character's script space
     // int m_BulletSoundIdx; 
 };
 
@@ -105,6 +109,14 @@ constexpr float PLAY_AREA_RIGHT = 416.0f;
 constexpr float PLAY_AREA_TOP   = 16.0f;
 constexpr float PLAY_AREA_BOTTOM = 464.0f;
 
+// player hitbox size
+constexpr float PLAYER_HITBOX_X = 1.25f;
+constexpr float PLAYER_HITBOX_Y = 1.25f;
+
+// grab item size
+constexpr float GRAB_ITEM_X = 12.0f;
+constexpr float GRAB_ITEM_Y = 12.0f;
+
 struct PlayerData {
     float              m_OrthogonalMovementSpeed;
     float              m_OrthogonalMovementSpeedFocus;
@@ -114,48 +126,74 @@ struct PlayerData {
 };
 
 struct PlayerBullet {
-    Anm::Vm m_Sprite;
-    glm::vec2 m_Position;
-    glm::vec2 m_Size;
-    glm::vec2 m_Velocity;
-    float m_SidewaysMotion;
-    int m_Damage;
-    BulletState m_BulletState;
-    BulletType m_BulletType;
-    int m_SpawnPositionIdx;
+    Anm::Vm             m_Vm;
+    glm::vec2           m_Size;
+    float               m_Angle; // in radians
+    float               m_Speed;
+    glm::vec2           m_Velocity;
+    int                 m_Damage;
+    BulletState         m_BulletState = BulletState::UNUSED;
+    BulletType          m_BulletType;
+    float               m_LaserOffset;
+    int                 m_LaserSpawnPositionIdx;
+    int                 m_AliveTimer;
 };
 
-
+constexpr float INV_SQRT2 = 0.70711f; // Inverse of SQRT(2)
 constexpr PlayerData REIMU_DATA  = { 4.0f, 2.0f, 4.0f * INV_SQRT2, 2.0f * INV_SQRT2, &Anm::PLAYER00 };
 constexpr PlayerData MARISA_DATA = { 5.0f, 2.5f, 5.0f * INV_SQRT2, 2.5f * INV_SQRT2, &Anm::PLAYER01 };
 
+using FireBulletCallback = std::function<FireBulletResult(PlayerBullet* bullet, int bulletIdx)>;
+
 class Player {
 public:
-    Player(CharacterItem character, int spellCardIdx);
+    Player(CharacterItem character, SpellCardItem spellCard);
     void Update();
 
 private:
     void SetMoveState(MoveState newState);
-    void SetMoveScript(PlayerScript script);
+    void SetMoveScript(PlayerMovementScript script);
     void HandlePlayerInput();
     void HandleMovement();
-    void HandleStateMachine();
+
+    void UpdateFireBulletsTimer();
+    void SpawnBullets();
+    FireBulletResult FireSingleBullet(PlayerBullet *bullet, int bulletIdx, const CharacterPowerData *powerData);
+    void UpdatePlayerBullets();
+
+    FireBulletCallback m_FireBulletCallback;
+
     const PlayerData *m_Data;
-    int                  m_SpellCardIdx;
+    int m_Power = 0;
+
+    CharacterItem      m_Character;
+    SpellCardItem      m_SpellCard;
+
+    PlayerState          m_PlayerState     = PlayerState::ALIVE;
     MoveState            m_MoveState       = MoveState::Idle;
     int                  m_ReturnFramesLeft = 0;
     glm::vec2            m_BodyPos   = {PLAYER_SPAWN_X, PLAYER_SPAWN_Y};
+
     glm::vec2            m_HitboxTopLeft;
     glm::vec2            m_HitboxBottomRight;
+    glm::vec2            m_HitboxSize = {PLAYER_HITBOX_X, PLAYER_HITBOX_Y};
+
     glm::vec2            m_GrabItemTopLeft;
     glm::vec2            m_GrabItemBottomRight;
-    glm::vec2            m_HitboxSize;
-    glm::vec2            m_GrabItemSize;
+    glm::vec2            m_GrabItemSize = {GRAB_ITEM_X, GRAB_ITEM_Y};
+
+    bool                 m_OrbVisible;
+    Anm::Vm*             m_OrbVms[2];
+    
+    bool m_IsFocus = 0; // 0 for unfocused, 1 for focused
+    int m_FocusTimer = 0; // counts frames since focus state changed, used for animating orbs
+
+    int m_FireBulletTimer = -1;
+    PlayerBullet m_Bullets[100]; // Object pool for bullets
 
     Anm::Manager  m_Anm;
 
-    std::vector<Anm::Vm>                           m_Vms;
-    std::vector<std::shared_ptr<Util::GameObject>> m_Objs;
+    std::vector<Anm::Vm>  m_Vms;
 
     Anm::Vm*      m_BodyVm = nullptr;
 
