@@ -93,19 +93,23 @@ constexpr Entry PLAYER00 = { // Reimu sprite
     GA_RESOURCE_DIR "/th06c/th06c_CM_output/player00/player00.txt",
     135+5,
 };
-constexpr int ANM_SCRIPT_PLAYER_BULLET = (PLAYER00.offset + 64); // Basic player bullet script for both character 
-
-constexpr int ANM_SCRIPT_PLAYER_REIMU_A_ORB_BULLET = (PLAYER00.offset + 65);
-constexpr int ANM_SCRIPT_PLAYER_REIMU_A_ORB_BULLET_COLLISION = (PLAYER00.offset + 97);
-constexpr int ANM_SCRIPT_PLAYER_REIMU_B_ORB_BULLET = (PLAYER00.offset + 66);
-constexpr int ANM_SCRIPT_PLAYER_REIMU_B_ORB_BULLET_COLLISION = (PLAYER00.offset + 98);
-constexpr int ANM_SCRIPT_PLAYER_REIMU_BULLET_COLLISION = (PLAYER00.offset + 96);
 
 constexpr Entry PLAYER01 = { // Marisa sprite
     GA_RESOURCE_DIR "/th06c/th06c_CM_output/player01",
     GA_RESOURCE_DIR "/th06c/th06c_CM_output/player01/player01.txt",
     140+200,
 };
+
+constexpr int SCRIPT_REIMU_LEFT_ORB = (PLAYER00.offset + 128);
+constexpr int SCRIPT_REIMU_RIGHT_ORB = (PLAYER00.offset + 129);
+
+constexpr int SCRIPT_PLAYER_BULLET = (PLAYER00.offset + 64); // Basic player bullet script for both character 
+
+constexpr int SCRIPT_PLAYER_REIMU_A_ORB_BULLET = (PLAYER00.offset + 65);
+constexpr int SCRIPT_PLAYER_REIMU_A_ORB_BULLET_COLLISION = (PLAYER00.offset + 97);
+constexpr int SCRIPT_PLAYER_REIMU_B_ORB_BULLET = (PLAYER00.offset + 66);
+constexpr int SCRIPT_PLAYER_REIMU_B_ORB_BULLET_COLLISION = (PLAYER00.offset + 98);
+constexpr int SCRIPT_PLAYER_REIMU_BULLET_COLLISION = (PLAYER00.offset + 96);
 
 } // namespace Anm
 
