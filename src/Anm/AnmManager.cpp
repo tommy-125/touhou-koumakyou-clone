@@ -115,6 +115,25 @@ void Manager::SetScript(Vm &vm, int globalScriptIdx, int spriteOffset) { // set 
     vm.instrIdx     = 0;
     vm.currentTime  = 0;
     vm.isStopped    = false;
+
+    // Reset visual state so recycled VMs don't carry over stale values
+    vm.rotation     = 0;
+    vm.angleVel     = 0;
+    vm.scale        = {1, 1};
+    vm.scaleSpeed   = {0, 0};
+    vm.alpha        = 1.0f;
+    vm.flipX        = false;
+    vm.flipY        = false;
+    vm.anchorTopLeft = false;
+
+    // Reset interpolation state
+    vm.posInterp    = false;
+    vm.fadeInterp   = false;
+    vm.scaleInterp  = false;
+
+    if (!vm.obj) {
+        vm.obj = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
+    }
     ExecuteScript(vm); // immediately execute for initial state
 }
 
@@ -382,6 +401,33 @@ void Manager::UpdateObjects(std::vector<Vm> &vms) {
         };
         obj.m_Transform.rotation    = vm.rotation;
     }
+}
+
+void Manager::UpdateObjects(Vm &vm) {
+    ExecuteScript(vm);
+
+    if (!vm.obj) return;
+    auto &obj = *vm.obj;
+
+    obj.SetVisible(vm.isVisible);
+    obj.SetAlpha(vm.alpha);
+    obj.SetZIndex(vm.zIndex);
+
+    if (vm.spriteIdx >= 0 && sprites[vm.spriteIdx].image) {
+        obj.SetDrawable(sprites[vm.spriteIdx].image);
+    }
+
+    glm::vec2 translation = ToPtsd(vm.pos);
+    if (vm.anchorTopLeft) {
+        const auto &spr = sprites[vm.spriteIdx];
+        translation += glm::vec2{spr.width / 2.0f, -spr.height / 2.0f};
+    }
+    obj.m_Transform.translation = translation;
+    obj.m_Transform.scale       = glm::vec2{
+        vm.flipX ? -vm.scale.x : vm.scale.x,
+        vm.flipY ? -vm.scale.y : vm.scale.y,
+    };
+    obj.m_Transform.rotation    = vm.rotation;
 }
 
 void Manager::SendInterrupt(Vm &vm, int interrupt) {

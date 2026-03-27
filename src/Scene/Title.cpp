@@ -35,7 +35,6 @@ Title::Title() : m_MainMenuBlackMask(0.5f, 0.0f), m_LeaveMainMenuBlackMask(2.0f,
         for (int i = 0; i < e.scriptCount; i++, vmIdx++) {
             m_Anm.SetScript(m_Vms[vmIdx], e.entry->offset + i, e.entry->offset);
 
-            m_Vms[vmIdx].obj = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
             m_Renderer.AddChild(m_Vms[vmIdx].obj);
 
             m_Anm.SendInterrupt(m_Vms[vmIdx], 1);

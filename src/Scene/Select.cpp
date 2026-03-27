@@ -56,7 +56,6 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
         for (int i = 0; i < e.scriptCount; i++, vmIdx++) {
             m_Anm.SetScript(m_Vms[vmIdx], e.entry->offset + i, e.entry->offset);
 
-            m_Vms[vmIdx].obj = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
             m_Renderer.AddChild(m_Vms[vmIdx].obj);
 
             if(e.entry == &Anm::SELECT01 || e.entry == &Anm::SELECT02) { // skip idx of 0 since it is difficulty select title

@@ -43,6 +43,7 @@ public:
 
     /** Execute scripts and sync all VM states to their corresponding GameObjects. */
     void UpdateObjects(std::vector<Vm> &vms);
+    void UpdateObjects(Vm &vm);
 
     /**
      * Send an interrupt to a VM.
