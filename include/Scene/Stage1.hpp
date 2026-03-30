@@ -1,6 +1,7 @@
 #ifndef SCENE_STAGE1_HPP
 #define SCENE_STAGE1_HPP
 
+#include "Enemy/EnemyManager.hpp"
 #include "Player.hpp"
 #include "Scene/Scene.hpp"
 
@@ -10,6 +11,7 @@ public:
     void Update() override;
 
 private:
+    EnemyManager m_EnemyManager;
     Player m_Player;
 };
 

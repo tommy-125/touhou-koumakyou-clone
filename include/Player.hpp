@@ -148,6 +148,7 @@ class Player {
 public:
     Player(CharacterItem character, SpellCardItem spellCard);
     void Update();
+    const glm::vec2 &GetPos() const { return m_BodyPos; }
 
 private:
     void SetMoveState(MoveState newState);

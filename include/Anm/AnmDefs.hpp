@@ -103,13 +103,35 @@ constexpr Entry PLAYER01 = { // Marisa sprite
 constexpr int SCRIPT_REIMU_LEFT_ORB = (PLAYER00.offset + 128);
 constexpr int SCRIPT_REIMU_RIGHT_ORB = (PLAYER00.offset + 129);
 
-constexpr int SCRIPT_PLAYER_BULLET = (PLAYER00.offset + 64); // Basic player bullet script for both character 
+constexpr int SCRIPT_PLAYER_BULLET = (PLAYER00.offset + 64); // Basic player bullet script for both character
 
 constexpr int SCRIPT_PLAYER_REIMU_A_ORB_BULLET = (PLAYER00.offset + 65);
 constexpr int SCRIPT_PLAYER_REIMU_A_ORB_BULLET_COLLISION = (PLAYER00.offset + 97);
 constexpr int SCRIPT_PLAYER_REIMU_B_ORB_BULLET = (PLAYER00.offset + 66);
 constexpr int SCRIPT_PLAYER_REIMU_B_ORB_BULLET_COLLISION = (PLAYER00.offset + 98);
 constexpr int SCRIPT_PLAYER_REIMU_BULLET_COLLISION = (PLAYER00.offset + 96);
+
+// ── Stage 1 enemy sprites ────────────────────────────────────────────────────
+// stg1enm (small/medium fairies) and stg1enm2 (boss Rumia) share the same offset
+// because their sprite/script IDs don't overlap (enm: 0-23, enm2: 128-138)
+constexpr Entry STG1ENM = {
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg1enm",
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg1enm/stg1enm.txt",
+    340+200, // 540
+};
+
+constexpr Entry STG1ENM2 = { // Boss Rumia sprites (scripts 128+)
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg1enm2",
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg1enm2/stg1enm2.txt",
+    340+200, // 540 (same offset as STG1ENM)
+};
+
+// ── Enemy bullet sprites ─────────────────────────────────────────────────────
+constexpr Entry ETAMA3 = {
+    GA_RESOURCE_DIR "/th06c/th06c_CM_output/etama3",
+    GA_RESOURCE_DIR "/th06c/th06c_CM_output/etama3/etama3.txt",
+    540+200, // 740
+};
 
 } // namespace Anm
 
