@@ -3,7 +3,7 @@
 
 int main(int, char**) {
     auto context = Core::Context::GetInstance();
-    App app;
+    App  app;
 
     app.Start();
 

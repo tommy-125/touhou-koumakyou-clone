@@ -6,13 +6,13 @@
 #include "Scene/Scene.hpp"
 
 class Stage1 : public Scene {
-public:
+   public:
     Stage1(CharacterItem character, SpellCardItem spellCard);
     void Update() override;
 
-private:
+   private:
     EnemyManager m_EnemyManager;
-    Player m_Player;
+    Player       m_Player;
 };
 
-#endif // SCENE_STAGE1_HPP
+#endif  // SCENE_STAGE1_HPP

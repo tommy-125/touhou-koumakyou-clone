@@ -6,32 +6,31 @@
 
 #include "Anm/AnmManager.hpp"
 #include "Anm/AnmTypes.hpp"
-#include "Util/GameObject.hpp"
-#include "Util/BlackMask.hpp"
 #include "Player.hpp"
-
 #include "Scene/Scene.hpp"
+#include "Util/BlackMask.hpp"
+#include "Util/GameObject.hpp"
 
 // Difficulty select
-constexpr int SELECT_INTERRUPT_ENTER_DIFFICULTY_SELECT = 6;
-constexpr int SELECT_INTERRUPT_SELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT = 8;
+constexpr int SELECT_INTERRUPT_ENTER_DIFFICULTY_SELECT                       = 6;
+constexpr int SELECT_INTERRUPT_SELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT   = 8;
 constexpr int SELECT_INTERRUPT_UNSELECTED_DIFFICULTY_ITEM_ENTER_CHARA_SELECT = 18;
-constexpr int SELECT_INTERRUPT_RETURN_TITLE = 4;
-constexpr int SELECT_INTERRUPT_DIFFICULTY_TITLE_ENTER_CHARA_SELECT = 7;
+constexpr int SELECT_INTERRUPT_RETURN_TITLE                                  = 4;
+constexpr int SELECT_INTERRUPT_DIFFICULTY_TITLE_ENTER_CHARA_SELECT           = 7;
 
 // Character select
-constexpr int SELECT_INTERRUPT_ENTER_CHARA_SELECT = 7;
-constexpr int SELECT_INTERRUPT_CHARA_ENTER_FROM_RIGHT = 10;
-constexpr int SELECT_INTERRUPT_CHARA_ENTER_FROM_LEFT = 9;
-constexpr int SELECT_INTERRUPT_CHARA_LEAVE_FROM_RIGHT = 12;
-constexpr int SELECT_INTERRUPT_CHARA_LEAVE_FROM_LEFT = 11;
+constexpr int SELECT_INTERRUPT_ENTER_CHARA_SELECT                         = 7;
+constexpr int SELECT_INTERRUPT_CHARA_ENTER_FROM_RIGHT                     = 10;
+constexpr int SELECT_INTERRUPT_CHARA_ENTER_FROM_LEFT                      = 9;
+constexpr int SELECT_INTERRUPT_CHARA_LEAVE_FROM_RIGHT                     = 12;
+constexpr int SELECT_INTERRUPT_CHARA_LEAVE_FROM_LEFT                      = 11;
 constexpr int SELECT_INTERRUPT_SELECTED_CHARA_ITEM_ENTER_SPELLCARD_SELECT = 19;
-constexpr int SELECT_INTERRUPT_CHARA_ITEM_RETURN_DIFFICULTY_SELECT = 6;
-constexpr int SELECT_INTERRUPT_CHARA_TITLE_LEAVE_CHARA_SELECT = -1;
+constexpr int SELECT_INTERRUPT_CHARA_ITEM_RETURN_DIFFICULTY_SELECT        = 6;
+constexpr int SELECT_INTERRUPT_CHARA_TITLE_LEAVE_CHARA_SELECT             = -1;
 
 // Spell card select
 constexpr int SELECT_INTERRUPT_SPELLCARD_ALL_ITEM_ENTER_SPELLCARD_SELECT = 13;
-constexpr int SELECT_INTERRUPT_SPELLCARD_ALL_ITEM_LEAVE_SPELLCARD_SELECT = -1; // include title
+constexpr int SELECT_INTERRUPT_SPELLCARD_ALL_ITEM_LEAVE_SPELLCARD_SELECT = -1;  // include title
 
 enum class SelectEvent {
     EnterDifficultySelect,
@@ -58,22 +57,24 @@ enum class DifficultyItem {
 };
 
 constexpr int SELECT_DIFFICULTY_COUNT = static_cast<int>(DifficultyItem::Lunatic) + 1;
-constexpr int SELECT_CHARACTER_COUNT = static_cast<int>(CharacterItem::Marisa) + 1;
-constexpr int SELECT_CHARACTER_PART_COUNT = 2; // each character has 2 parts in the ANM (upper and lower)
+constexpr int SELECT_CHARACTER_COUNT  = static_cast<int>(CharacterItem::Marisa) + 1;
+constexpr int SELECT_CHARACTER_PART_COUNT =
+    2;  // each character has 2 parts in the ANM (upper and lower)
 constexpr int SELECT_SPELLCARD_COUNT = static_cast<int>(SpellCardItem::Shot_Type_B) + 1;
 
 class Select : public Scene {
-public:
+   public:
     Select();
 
-    void Update() override;
+    void                   Update() override;
     std::unique_ptr<Scene> NextScene() override;
-    void HandleInterruptEvent(SelectEvent event);
-private:
-    SelectState m_CurrentState = SelectState::Difficulty;
+    void                   HandleInterruptEvent(SelectEvent event);
+
+   private:
+    SelectState    m_CurrentState           = SelectState::Difficulty;
     DifficultyItem m_SelectedDifficultyItem = DifficultyItem::Normal;
-    CharacterItem m_SelectedCharacterItem = CharacterItem::Reimu;
-    SpellCardItem m_SelectedSpellCardItem = SpellCardItem::Shot_Type_A;
+    CharacterItem  m_SelectedCharacterItem  = CharacterItem::Reimu;
+    SpellCardItem  m_SelectedSpellCardItem  = SpellCardItem::Shot_Type_A;
 
     Anm::Manager m_Anm;
 
@@ -90,15 +91,15 @@ private:
     Anm::Vm* m_SpellCardTitleVm;
 
     std::vector<std::vector<Anm::Vm*>> m_SpellCardItemVms;
-    std::shared_ptr<Util::GameObject> m_BgObj;
-    Util::BlackMask m_EnterSelectBlackMask;
+    std::shared_ptr<Util::GameObject>  m_BgObj;
+    Util::BlackMask                    m_EnterSelectBlackMask;
 
-    int m_SelectedDifficultyItemIdx = 1; // default to Normal
-    int m_SelectedCharacterItemIdx = 0; // default to Reimu
-    int m_SelectedSpellCardItemIdx = 0; // default to first spell card for each character
+    int m_SelectedDifficultyItemIdx = 1;  // default to Normal
+    int m_SelectedCharacterItemIdx  = 0;  // default to Reimu
+    int m_SelectedSpellCardItemIdx  = 0;  // default to first spell card for each character
 
-    bool m_Quitting = false;
-    int m_QuitTimer = 0; // quit timer for animation
+    bool m_Quitting  = false;
+    int  m_QuitTimer = 0;  // quit timer for animation
 };
 
 #endif

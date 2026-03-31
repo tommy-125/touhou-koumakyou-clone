@@ -1,13 +1,12 @@
 #ifndef ANM_TYPES_HPP
 #define ANM_TYPES_HPP
 
+#include <glm/glm.hpp>
 #include <memory>
 #include <vector>
 
-#include <glm/glm.hpp>
-
-#include "Util/Image.hpp"
 #include "Util/GameObject.hpp"
+#include "Util/Image.hpp"
 
 namespace Anm {
 
@@ -49,14 +48,14 @@ constexpr int SetZWriteDisable = 31;
 
 struct Sprite {
     std::shared_ptr<Util::Image> image;
-    float width  = 0;
-    float height = 0;
+    float                        width  = 0;
+    float                        height = 0;
 };
 
 struct Instr {
-    int time       = 0;
-    int opcode     = 0;
-    int byteOffset = 0;  // byte offset from start of script's first instruction
+    int                time       = 0;
+    int                opcode     = 0;
+    int                byteOffset = 0;  // byte offset from start of script's first instruction
     std::vector<float> args;
 };
 
@@ -67,44 +66,44 @@ struct Script {
 // ── VM ────────────────────────────────────────────────────────────────────────
 
 struct Vm {
-    int scriptIdx   = -1;  // global index into AnmManager::scripts[]
-    int instrIdx    = 0;
-    int currentTime = 0;
+    int scriptIdx    = -1;  // global index into AnmManager::scripts[]
+    int instrIdx     = 0;
+    int currentTime  = 0;
     int spriteOffset = 0;  // spriteIdxOffset for this ANM entry
 
-    int       spriteIdx = -1;      // global index into AnmManager::sprites[]
-    glm::vec2 pos       = {0, 0};  // th06 coords: (0,0) = top-left, y-down
-    float     rotation  = 0;
-    glm::vec2 scale     = {1, 1};
-    float     alpha     = 1.0f;
-    float     zIndex    = 1.0f;
-    bool      isVisible = false;
-    bool      isStopped = false;
-    bool      anchorTopLeft = false;
-    bool      flipX     = false;
-    bool      flipY     = false;
+    int       spriteIdx        = -1;      // global index into AnmManager::sprites[]
+    glm::vec2 pos              = {0, 0};  // th06 coords: (0,0) = top-left, y-down
+    float     rotation         = 0;
+    glm::vec2 scale            = {1, 1};
+    float     alpha            = 1.0f;
+    float     zIndex           = 1.0f;
+    bool      isVisible        = false;
+    bool      isStopped        = false;
+    bool      anchorTopLeft    = false;
+    bool      flipX            = false;
+    bool      flipY            = false;
     int       pendingInterrupt = 0;
 
     // Angle velocity (per frame)
-    float     angleVel         = 0;
+    float angleVel = 0;
 
     // Scale velocity (per frame)
-    glm::vec2 scaleSpeed       = {0, 0};
+    glm::vec2 scaleSpeed = {0, 0};
 
     // Position interpolation
-    bool      posInterp        = false;
-    int       posInterpMode    = 0;  // 0=linear 1=decel 2=accel
-    glm::vec2 posInterpStart   = {0, 0};
-    glm::vec2 posInterpEnd     = {0, 0};
+    bool      posInterp         = false;
+    int       posInterpMode     = 0;  // 0=linear 1=decel 2=accel
+    glm::vec2 posInterpStart    = {0, 0};
+    glm::vec2 posInterpEnd      = {0, 0};
     int       posInterpDuration = 0;
     int       posInterpTimer    = 0;
 
     // Alpha fade interpolation
-    bool      fadeInterp       = false;
-    float     fadeStart        = 0;
-    float     fadeTarget       = 1.0f;
-    int       fadeDuration     = 0;
-    int       fadeTimer        = 0;
+    bool  fadeInterp   = false;
+    float fadeStart    = 0;
+    float fadeTarget   = 1.0f;
+    int   fadeDuration = 0;
+    int   fadeTimer    = 0;
 
     // Scale interpolation
     bool      scaleInterp         = false;
@@ -117,6 +116,6 @@ struct Vm {
     std::shared_ptr<Util::GameObject> obj;
 };
 
-} // namespace Anm
+}  // namespace Anm
 
-#endif // ANM_TYPES_HPP
+#endif  // ANM_TYPES_HPP

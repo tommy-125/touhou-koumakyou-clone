@@ -1,13 +1,11 @@
 #include "Anm/AnmManager.hpp"
 
 #include <fstream>
+#include <glm/glm.hpp>
 #include <memory>
-#include <vector>
-
 #include <sstream>
 #include <string>
-
-#include <glm/glm.hpp>
+#include <vector>
 
 #include "Util/Logger.hpp"
 
@@ -16,15 +14,13 @@ namespace Anm {
 // ── Parsing helpers ───────────────────────────────────────────────────────────
 // Take parameter out of the ANM txt file, and covert to float
 // Ex: "1.0f" -> 1.0, "100" -> 100.0
-static float ParseArg(const std::string &token) {
+static float ParseArg(const std::string& token) {
     std::string s = token;
     if (!s.empty() && s.back() == 'f') s.pop_back();
     return std::stof(s);
 }
 
-
-int Manager::LoadAnm(const std::string &spriteFolder,
-                     const std::string &txtPath,
+int Manager::LoadAnm(const std::string& spriteFolder, const std::string& txtPath,
                      int spriteIdxOffset) {
     // Open the ANM txt file
     std::ifstream file(txtPath);
@@ -46,8 +42,8 @@ int Manager::LoadAnm(const std::string &spriteFolder,
             // Take the parameters out of the line
             std::istringstream ss(line.substr(8));
 
-            int id;
-            char sep1, sep2, sep3;
+            int   id;
+            char  sep1, sep2, sep3;
             float w, h, x, y;
             // format: id W*H+X+Y
             ss >> id >> w >> sep1 >> h >> sep2 >> x >> sep3 >> y;
@@ -56,7 +52,7 @@ int Manager::LoadAnm(const std::string &spriteFolder,
             int globalId = id + spriteIdxOffset;
 
             // load the sprite image
-            std::string path = spriteFolder + "/sprite_" + std::to_string(id) + ".png";
+            std::string path         = spriteFolder + "/sprite_" + std::to_string(id) + ".png";
             sprites[globalId].image  = std::make_shared<Util::Image>(path);
             sprites[globalId].width  = w;
             sprites[globalId].height = h;
@@ -65,7 +61,7 @@ int Manager::LoadAnm(const std::string &spriteFolder,
 
         // Script: N
         if (line.rfind("Script: ", 0) == 0) {
-            currentScriptId = std::stoi(line.substr(8)) + spriteIdxOffset;
+            currentScriptId          = std::stoi(line.substr(8)) + spriteIdxOffset;
             scripts[currentScriptId] = Script{};
             scriptCount++;
             scriptByteOffset = 0;
@@ -78,17 +74,18 @@ int Manager::LoadAnm(const std::string &spriteFolder,
             if (colonPos == std::string::npos) continue;
 
             std::istringstream ss(line.substr(colonPos + 1));
-            Instr instr;
-            int unk;
+            Instr              instr;
+            int                unk;
             ss >> instr.time >> unk >> instr.opcode;
 
             std::string token;
             while (ss >> token) {
                 try {
                     instr.args.emplace_back(ParseArg(token));
-                } catch (...) {}
+                } catch (...) {
+                }
             }
-            instr.byteOffset  = scriptByteOffset;
+            instr.byteOffset = scriptByteOffset;
             scriptByteOffset += 4 + static_cast<int>(instr.args.size()) * 4;
             scripts[currentScriptId].instrs.emplace_back(std::move(instr));
             continue;
@@ -103,13 +100,18 @@ static float Easing(float t, int mode) {
     t = glm::clamp(t, 0.0f, 1.0f);
 
     switch (mode) {
-        case 1: return 1.0f - (1.0f - t) * (1.0f - t); // decel (ease-out)
-        case 2: return t * t;                            // accel (ease-in)
-        default: return t;                               // linear
+        case 1:
+            return 1.0f - (1.0f - t) * (1.0f - t);  // decel (ease-out)
+        case 2:
+            return t * t;  // accel (ease-in)
+        default:
+            return t;  // linear
     }
 }
 
-void Manager::SetScript(Vm &vm, int globalScriptIdx, int spriteOffset) { // set script and immediately execute time=0 instructions to set initial state
+void Manager::SetScript(Vm& vm, int globalScriptIdx,
+                        int spriteOffset) {  // set script and immediately execute time=0
+                                             // instructions to set initial state
     vm.scriptIdx    = globalScriptIdx;
     vm.spriteOffset = spriteOffset;
     vm.instrIdx     = 0;
@@ -117,39 +119,39 @@ void Manager::SetScript(Vm &vm, int globalScriptIdx, int spriteOffset) { // set 
     vm.isStopped    = false;
 
     // Reset visual state so recycled VMs don't carry over stale values
-    vm.rotation     = 0;
-    vm.angleVel     = 0;
-    vm.scale        = {1, 1};
-    vm.scaleSpeed   = {0, 0};
-    vm.alpha        = 1.0f;
-    vm.flipX        = false;
-    vm.flipY        = false;
+    vm.rotation      = 0;
+    vm.angleVel      = 0;
+    vm.scale         = {1, 1};
+    vm.scaleSpeed    = {0, 0};
+    vm.alpha         = 1.0f;
+    vm.flipX         = false;
+    vm.flipY         = false;
     vm.anchorTopLeft = false;
 
     // Reset interpolation state
-    vm.posInterp    = false;
-    vm.fadeInterp   = false;
-    vm.scaleInterp  = false;
+    vm.posInterp   = false;
+    vm.fadeInterp  = false;
+    vm.scaleInterp = false;
 
     if (!vm.obj) {
         vm.obj = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
     }
-    ExecuteScript(vm); // immediately execute for initial state
+    ExecuteScript(vm);  // immediately execute for initial state
 }
 
-// Execute sequence: handle interrupts -> if stopped, do nothing -> otherwise, execute instructions whose time has come -> update interpolation
-void Manager::ExecuteScript(Vm &vm) {
+// Execute sequence: handle interrupts -> if stopped, do nothing -> otherwise, execute instructions
+// whose time has come -> update interpolation
+void Manager::ExecuteScript(Vm& vm) {
     if (vm.scriptIdx < 0) return;
-    const Script &script = scripts[vm.scriptIdx];
+    const Script& script = scripts[vm.scriptIdx];
 
     // ── Interrupt handling ────────────────────────────────────────────────────
     if (vm.pendingInterrupt != 0) {
         int target = -1;
 
         for (int i = 0; i < static_cast<int>(script.instrs.size()); i++) {
-            const Instr &label = script.instrs[i];
-            if (label.opcode == InterruptLabel &&
-                !label.args.empty() &&
+            const Instr& label = script.instrs[i];
+            if (label.opcode == InterruptLabel && !label.args.empty() &&
                 static_cast<int>(label.args[0]) == vm.pendingInterrupt) {
                 target = i;
                 break;
@@ -172,155 +174,150 @@ void Manager::ExecuteScript(Vm &vm) {
 
     // Dispatch instructions whose time has come
     while (vm.instrIdx < static_cast<int>(script.instrs.size())) {
-        const Instr &instr = script.instrs[vm.instrIdx];
+        const Instr& instr = script.instrs[vm.instrIdx];
 
         if (instr.time > vm.currentTime) break;
 
         vm.instrIdx++;
 
         switch (instr.opcode) {
-        case Exit:
-            vm.scriptIdx = -1;
-            return;
+            case Exit:
+                vm.scriptIdx = -1;
+                return;
 
-        case ExitHide:
-            vm.scriptIdx = -1;
-            vm.isVisible = false;
-            return;
+            case ExitHide:
+                vm.scriptIdx = -1;
+                vm.isVisible = false;
+                return;
 
-        case Stop:
-        case StopHide:
-            if (instr.opcode == StopHide) vm.isVisible = false;
-            vm.isStopped = true;
+            case Stop:
+            case StopHide:
+                if (instr.opcode == StopHide) vm.isVisible = false;
+                vm.isStopped = true;
 
-            if (vm.pendingInterrupt != 0) {
-                for (int j = 0; j < static_cast<int>(script.instrs.size()); j++) { // search for the interrupt label
-                    const Instr &label = script.instrs[j];
-                    if (label.opcode == InterruptLabel &&
-                        !label.args.empty() &&
-                        static_cast<int>(label.args[0]) == vm.pendingInterrupt) {
-                        vm.instrIdx         = j;
-                        vm.currentTime      = label.time;
-                        vm.isStopped        = false;
-                        vm.isVisible        = true;
-                        vm.pendingInterrupt = 0;
-                        break;
+                if (vm.pendingInterrupt != 0) {
+                    for (int j = 0; j < static_cast<int>(script.instrs.size());
+                         j++) {  // search for the interrupt label
+                        const Instr& label = script.instrs[j];
+                        if (label.opcode == InterruptLabel && !label.args.empty() &&
+                            static_cast<int>(label.args[0]) == vm.pendingInterrupt) {
+                            vm.instrIdx         = j;
+                            vm.currentTime      = label.time;
+                            vm.isStopped        = false;
+                            vm.isVisible        = true;
+                            vm.pendingInterrupt = 0;
+                            break;
+                        }
                     }
                 }
-            }
-            if (vm.isStopped) goto update_interp;
-            continue; // resume dispatch from new instrIdx
+                if (vm.isStopped) goto update_interp;
+                continue;  // resume dispatch from new instrIdx
 
-        case SetActiveSprite:
-            if (!instr.args.empty()) {
-                vm.spriteIdx = static_cast<int>(instr.args[0]) + vm.spriteOffset;
-                vm.isVisible = true;
-            }
-            break;
-
-        case SetPosition:
-            if (instr.args.size() >= 2)
-                vm.pos = {instr.args[0], instr.args[1]};
-            break;
-
-        case PosTimeLinear:
-        case PosTimeDecel:
-        case PosTimeAccel:
-            if (instr.args.size() >= 4) {
-                vm.posInterp        = true;
-                vm.posInterpMode    = instr.opcode - PosTimeLinear;
-                vm.posInterpStart   = vm.pos;
-                vm.posInterpEnd     = {instr.args[0], instr.args[1]};
-                vm.posInterpDuration = static_cast<int>(instr.args[3]);
-                vm.posInterpTimer   = 0;
-            }
-            break;
-
-        case Jump:
-            if (!instr.args.empty()) {
-                int targetOffset = static_cast<int>(instr.args[0]);
-
-                for (int j = 0; j < static_cast<int>(script.instrs.size()); j++) {
-                    if (script.instrs[j].byteOffset == targetOffset) {
-                        vm.instrIdx    = j;
-                        vm.currentTime = script.instrs[j].time;
-                        break;
-                    }
+            case SetActiveSprite:
+                if (!instr.args.empty()) {
+                    vm.spriteIdx = static_cast<int>(instr.args[0]) + vm.spriteOffset;
+                    vm.isVisible = true;
                 }
-                continue;
-            }
-            break;
+                break;
 
-        case InterruptLabel:
-            // nop — only meaningful as a jump target
-            break;
+            case SetPosition:
+                if (instr.args.size() >= 2) vm.pos = {instr.args[0], instr.args[1]};
+                break;
 
-        case SetAlpha:
-            if (!instr.args.empty()) {
-                vm.alpha      = instr.args[0] / 255.0f;
-                vm.fadeInterp = false;
-            }
-            break;
+            case PosTimeLinear:
+            case PosTimeDecel:
+            case PosTimeAccel:
+                if (instr.args.size() >= 4) {
+                    vm.posInterp         = true;
+                    vm.posInterpMode     = instr.opcode - PosTimeLinear;
+                    vm.posInterpStart    = vm.pos;
+                    vm.posInterpEnd      = {instr.args[0], instr.args[1]};
+                    vm.posInterpDuration = static_cast<int>(instr.args[3]);
+                    vm.posInterpTimer    = 0;
+                }
+                break;
 
-        case Fade:
-            if (instr.args.size() >= 2) {
-                vm.fadeInterp    = true;
-                vm.fadeStart     = vm.alpha;
-                vm.fadeTarget    = instr.args[0] / 255.0f;
-                vm.fadeDuration  = static_cast<int>(instr.args[1]);
-                vm.fadeTimer     = 0;
-            }
-            break;
+            case Jump:
+                if (!instr.args.empty()) {
+                    int targetOffset = static_cast<int>(instr.args[0]);
 
-        case SetAngleVel:
-            if (instr.args.size() >= 3)
-                vm.angleVel = instr.args[2];
-            break;
+                    for (int j = 0; j < static_cast<int>(script.instrs.size()); j++) {
+                        if (script.instrs[j].byteOffset == targetOffset) {
+                            vm.instrIdx    = j;
+                            vm.currentTime = script.instrs[j].time;
+                            break;
+                        }
+                    }
+                    continue;
+                }
+                break;
 
-        case SetScale:
-            if (instr.args.size() >= 2)
-                vm.scale = {instr.args[0], instr.args[1]};
-            break;
+            case InterruptLabel:
+                // nop — only meaningful as a jump target
+                break;
 
-        case SetRotation:
-            if (instr.args.size() >= 3)
-                vm.rotation = instr.args[2];
-            break;
+            case SetAlpha:
+                if (!instr.args.empty()) {
+                    vm.alpha      = instr.args[0] / 255.0f;
+                    vm.fadeInterp = false;
+                }
+                break;
 
-        case AnchorTopLeft:
-            vm.anchorTopLeft = true;
-            break;
+            case Fade:
+                if (instr.args.size() >= 2) {
+                    vm.fadeInterp   = true;
+                    vm.fadeStart    = vm.alpha;
+                    vm.fadeTarget   = instr.args[0] / 255.0f;
+                    vm.fadeDuration = static_cast<int>(instr.args[1]);
+                    vm.fadeTimer    = 0;
+                }
+                break;
 
-        case ScaleTime:
-            if (instr.args.size() >= 3) {
-                vm.scaleInterp         = true;
-                vm.scaleInterpStart    = vm.scale;
-                vm.scaleInterpEnd      = {instr.args[0], instr.args[1]};
-                vm.scaleInterpDuration = static_cast<int>(instr.args[2]);
-                vm.scaleInterpTimer    = 0;
-            }
-            break;
+            case SetAngleVel:
+                if (instr.args.size() >= 3) vm.angleVel = instr.args[2];
+                break;
 
-        case FlipX:
-            vm.flipX = !vm.flipX;
-            break;
+            case SetScale:
+                if (instr.args.size() >= 2) vm.scale = {instr.args[0], instr.args[1]};
+                break;
 
-        case FlipY:
-            vm.flipY = !vm.flipY;
-            break;
+            case SetRotation:
+                if (instr.args.size() >= 3) vm.rotation = instr.args[2];
+                break;
 
-        case SetScaleSpeed:
-            if (instr.args.size() >= 2)
-                vm.scaleSpeed = {instr.args[0], instr.args[1]};
-            break;
+            case AnchorTopLeft:
+                vm.anchorTopLeft = true;
+                break;
 
-        case SetBlendAdditive:
-        case SetBlendDefault:
-        case SetZWriteDisable:
-        case SetAutoRotate:
-        case Nop:
-        default:
-            break;
+            case ScaleTime:
+                if (instr.args.size() >= 3) {
+                    vm.scaleInterp         = true;
+                    vm.scaleInterpStart    = vm.scale;
+                    vm.scaleInterpEnd      = {instr.args[0], instr.args[1]};
+                    vm.scaleInterpDuration = static_cast<int>(instr.args[2]);
+                    vm.scaleInterpTimer    = 0;
+                }
+                break;
+
+            case FlipX:
+                vm.flipX = !vm.flipX;
+                break;
+
+            case FlipY:
+                vm.flipY = !vm.flipY;
+                break;
+
+            case SetScaleSpeed:
+                if (instr.args.size() >= 2) vm.scaleSpeed = {instr.args[0], instr.args[1]};
+                break;
+
+            case SetBlendAdditive:
+            case SetBlendDefault:
+            case SetZWriteDisable:
+            case SetAutoRotate:
+            case Nop:
+            default:
+                break;
         }
     }
 
@@ -335,9 +332,7 @@ update_interp:
 
     // Alpha fade interpolation
     if (vm.fadeInterp) {
-        float t = (vm.fadeDuration > 0)
-                      ? (float)vm.fadeTimer / vm.fadeDuration
-                      : 1.0f;
+        float t  = (vm.fadeDuration > 0) ? (float)vm.fadeTimer / vm.fadeDuration : 1.0f;
         vm.alpha = glm::mix(vm.fadeStart, vm.fadeTarget, t);
         vm.fadeTimer++;
         if (vm.fadeTimer > vm.fadeDuration) {
@@ -348,9 +343,8 @@ update_interp:
 
     // Scale interpolation
     if (vm.scaleInterp) {
-        float t = (vm.scaleInterpDuration > 0)
-                      ? (float)vm.scaleInterpTimer / vm.scaleInterpDuration
-                      : 1.0f;
+        float t = (vm.scaleInterpDuration > 0) ? (float)vm.scaleInterpTimer / vm.scaleInterpDuration
+                                               : 1.0f;
         vm.scale = glm::mix(vm.scaleInterpStart, vm.scaleInterpEnd, t);
         vm.scaleInterpTimer++;
         if (vm.scaleInterpTimer > vm.scaleInterpDuration) {
@@ -361,9 +355,8 @@ update_interp:
 
     // Position interpolation (runs even when script is stopped mid-tween)
     if (vm.posInterp) {
-        float t = (vm.posInterpDuration > 0)
-                      ? (float)vm.posInterpTimer / vm.posInterpDuration
-                      : 1.0f;
+        float t =
+            (vm.posInterpDuration > 0) ? (float)vm.posInterpTimer / vm.posInterpDuration : 1.0f;
         vm.pos = glm::mix(vm.posInterpStart, vm.posInterpEnd, Easing(t, vm.posInterpMode));
         vm.posInterpTimer++;
         if (vm.posInterpTimer > vm.posInterpDuration) {
@@ -373,13 +366,13 @@ update_interp:
     }
 }
 
-void Manager::UpdateObjects(std::vector<Vm> &vms) {
+void Manager::UpdateObjects(std::vector<Vm>& vms) {
     for (int i = 0; i < static_cast<int>(vms.size()); i++) {
         ExecuteScript(vms[i]);
 
-        const auto &vm  = vms[i];
+        const auto& vm = vms[i];
         if (!vm.obj) continue;
-        auto       &obj = *vm.obj;
+        auto& obj = *vm.obj;
 
         obj.SetVisible(vm.isVisible);
         obj.SetAlpha(vm.alpha);
@@ -391,7 +384,7 @@ void Manager::UpdateObjects(std::vector<Vm> &vms) {
 
         glm::vec2 translation = ToPtsd(vm.pos);
         if (vm.anchorTopLeft) {
-            const auto &spr = sprites[vm.spriteIdx];
+            const auto& spr = sprites[vm.spriteIdx];
             translation += glm::vec2{spr.width / 2.0f, -spr.height / 2.0f};
         }
         obj.m_Transform.translation = translation;
@@ -399,15 +392,15 @@ void Manager::UpdateObjects(std::vector<Vm> &vms) {
             vm.flipX ? -vm.scale.x : vm.scale.x,
             vm.flipY ? -vm.scale.y : vm.scale.y,
         };
-        obj.m_Transform.rotation    = vm.rotation;
+        obj.m_Transform.rotation = vm.rotation;
     }
 }
 
-void Manager::UpdateObjects(Vm &vm) {
+void Manager::UpdateObjects(Vm& vm) {
     ExecuteScript(vm);
 
     if (!vm.obj) return;
-    auto &obj = *vm.obj;
+    auto& obj = *vm.obj;
 
     obj.SetVisible(vm.isVisible);
     obj.SetAlpha(vm.alpha);
@@ -419,7 +412,7 @@ void Manager::UpdateObjects(Vm &vm) {
 
     glm::vec2 translation = ToPtsd(vm.pos);
     if (vm.anchorTopLeft) {
-        const auto &spr = sprites[vm.spriteIdx];
+        const auto& spr = sprites[vm.spriteIdx];
         translation += glm::vec2{spr.width / 2.0f, -spr.height / 2.0f};
     }
     obj.m_Transform.translation = translation;
@@ -427,10 +420,10 @@ void Manager::UpdateObjects(Vm &vm) {
         vm.flipX ? -vm.scale.x : vm.scale.x,
         vm.flipY ? -vm.scale.y : vm.scale.y,
     };
-    obj.m_Transform.rotation    = vm.rotation;
+    obj.m_Transform.rotation = vm.rotation;
 }
 
-void Manager::SendInterrupt(Vm &vm, int interrupt) {
+void Manager::SendInterrupt(Vm& vm, int interrupt) {
     vm.pendingInterrupt = interrupt;
 }
 
@@ -438,4 +431,4 @@ glm::vec2 Manager::ToPtsd(glm::vec2 th06pos) {
     return {th06pos.x - 320.0f, 240.0f - th06pos.y};
 }
 
-} // namespace Anm
+}  // namespace Anm

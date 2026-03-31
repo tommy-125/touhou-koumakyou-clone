@@ -6,16 +6,16 @@
 #include "Scene/Scene.hpp"
 
 class App {
-public:
+   public:
     void Start();
     void Update();
-    void End(); // NOLINT(readability-convert-member-functions-to-static)
+    void End();  // NOLINT(readability-convert-member-functions-to-static)
 
     bool IsDone() const { return m_Done; }
 
-private:
+   private:
     std::unique_ptr<Scene> m_Scene;
-    bool m_Done = false;
+    bool                   m_Done = false;
 };
 
-#endif // APP_HPP
+#endif  // APP_HPP

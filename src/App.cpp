@@ -1,4 +1,5 @@
 #include "App.hpp"
+
 #include "Scene/Loading.hpp"
 #include "Util/Input.hpp"
 #include "Util/Logger.hpp"

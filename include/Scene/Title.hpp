@@ -6,14 +6,13 @@
 
 #include "Anm/AnmManager.hpp"
 #include "Anm/AnmTypes.hpp"
-#include "Util/GameObject.hpp"
-#include "Util/BlackMask.hpp"
-
 #include "Scene/Scene.hpp"
+#include "Util/BlackMask.hpp"
+#include "Util/GameObject.hpp"
 
-constexpr int TITLE_INTERRUPT_ENTER_TITLE = 1;
+constexpr int TITLE_INTERRUPT_ENTER_TITLE    = 1;
 constexpr int TITLE_INTERRUPT_ENTER_MAINMENU = 2;
-constexpr int TITLE_INTERRUPT_ENTER_OPTION = 3;
+constexpr int TITLE_INTERRUPT_ENTER_OPTION   = 3;
 constexpr int TITLE_INTERRUPT_LEAVE_MAINMENU = 4;
 
 enum class TitleState {
@@ -35,14 +34,15 @@ enum class TitleMenuItem {
 constexpr int TITLE_MENU_COUNT = static_cast<int>(TitleMenuItem::Quit) + 1;
 
 class Title : public Scene {
-public:
+   public:
     Title();
 
-    void Update() override;
+    void                   Update() override;
     std::unique_ptr<Scene> NextScene() override;
-    void LeaveMainMenu(bool quitGame);
-private:
-    TitleState m_CurrentState = TitleState::Title;
+    void                   LeaveMainMenu(bool quitGame);
+
+   private:
+    TitleState    m_CurrentState     = TitleState::Title;
     TitleMenuItem m_SelectedMenuItem = TitleMenuItem::Start;
 
     Anm::Manager m_Anm;
@@ -52,13 +52,13 @@ private:
     std::vector<Anm::Vm*> m_UnselectedMenuItemVms;
 
     std::shared_ptr<Util::GameObject> m_BgObj;
-    Util::BlackMask m_MainMenuBlackMask;
-    Util::BlackMask m_LeaveMainMenuBlackMask;
+    Util::BlackMask                   m_MainMenuBlackMask;
+    Util::BlackMask                   m_LeaveMainMenuBlackMask;
 
     int m_SelectedMenuItemIdx = 0;
 
-    bool m_Quitting = false;
-    int m_QuitTimer = 0; // quit timer for animating leave main menu transition
+    bool m_Quitting  = false;
+    int  m_QuitTimer = 0;  // quit timer for animating leave main menu transition
 };
 
 #endif

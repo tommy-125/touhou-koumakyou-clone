@@ -1,5 +1,7 @@
-#include "Player.hpp"
 #include "Anm/AnmDefs.hpp"
+#include "Player.hpp"
+
+// clang-format off
 
 /* ----------ReimuB---------- */
 
@@ -103,3 +105,4 @@ constexpr CharacterPowerData CharacterPowerDataReimuB[] = {
     {11, 127, CharacterPowerBulletDataReimuBRank8},
     {11, 999, CharacterPowerBulletDataReimuBRank9},
 };
+// clang-format on

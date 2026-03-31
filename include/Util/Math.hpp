@@ -12,6 +12,6 @@ constexpr float GAME_BOUNDS_BOTTOM = 464.0f;
 bool IsInGameBounds(float x, float y, float width, float height,
                     float boundsLeft = GAME_BOUNDS_LEFT, float boundsTop = GAME_BOUNDS_TOP,
                     float boundsRight = GAME_BOUNDS_RIGHT, float boundsBottom = GAME_BOUNDS_BOTTOM);
-}
+}  // namespace Util
 
-#endif // UTIL_MATH_HPP
+#endif  // UTIL_MATH_HPP

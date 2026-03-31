@@ -1,24 +1,24 @@
 #include "Player.hpp"
+
+#include <glm/glm.hpp>
+
 #include "BulletData.hpp"
 #include "Util/Input.hpp"
 #include "Util/Math.hpp"
 
-#include <glm/glm.hpp>
-
 Player::Player(CharacterItem character, SpellCardItem spellCard)
     : m_Data(character == CharacterItem::Reimu ? &REIMU_DATA : &MARISA_DATA),
       m_SpellCard(spellCard) {
-    
-    const Anm::Entry &entry = *m_Data->m_AnmEntry;
+    const Anm::Entry& entry = *m_Data->m_AnmEntry;
     // Load ANM
     m_Anm.LoadAnm(entry.folder, entry.txt, entry.offset);
 
     // Set up body VM
     m_Vms.resize(3);
 
-    m_BodyVm                = &m_Vms[0];
-    m_BodyVm->spriteOffset  = entry.offset;
-    m_BodyVm->pos           = m_BodyPos;
+    m_BodyVm               = &m_Vms[0];
+    m_BodyVm->spriteOffset = entry.offset;
+    m_BodyVm->pos          = m_BodyPos;
     SetMoveScript(PlayerMovementScript::Idle);
 
     m_OrbVms[0] = &m_Vms[1];
@@ -26,34 +26,34 @@ Player::Player(CharacterItem character, SpellCardItem spellCard)
     m_OrbVms[1] = &m_Vms[2];
     m_Anm.SetScript(*m_OrbVms[1], Anm::SCRIPT_REIMU_RIGHT_ORB, entry.offset);
 
-    for(int i = 0; i < static_cast<int>(m_Vms.size()); i++) {
+    for (int i = 0; i < static_cast<int>(m_Vms.size()); i++) {
         if (m_Vms[i].obj) {
             m_Renderer.AddChild(m_Vms[i].obj);
         }
     }
 
-    m_FireBulletCallback = [this](PlayerBullet *bullet, int bulletIdx) {
+    m_FireBulletCallback = [this](PlayerBullet* bullet, int bulletIdx) {
         return FireSingleBullet(bullet, bulletIdx, CharacterPowerDataReimuB);
     };
 }
 
 void Player::Update() {
     HandlePlayerInput();
-    m_HitboxTopLeft = m_BodyPos - m_HitboxSize;
+    m_HitboxTopLeft     = m_BodyPos - m_HitboxSize;
     m_HitboxBottomRight = m_BodyPos + m_HitboxSize;
 
-    m_GrabItemTopLeft = m_BodyPos - m_GrabItemSize;
+    m_GrabItemTopLeft     = m_BodyPos - m_GrabItemSize;
     m_GrabItemBottomRight = m_BodyPos + m_GrabItemSize;
 
     m_OrbVms[0]->pos = m_BodyPos;
     m_OrbVms[1]->pos = m_BodyPos;
 
     float horizontalOrbOffset = 0.0f;
-    float verticalOrbOffset = 0.0f;
-    
+    float verticalOrbOffset   = 0.0f;
+
     float intermediateRatio;
 
-    if(m_Power < 8) {
+    if (m_Power < 8) {
         m_OrbVisible = false;
     } else {
         m_OrbVisible = true;
@@ -62,8 +62,8 @@ void Player::Update() {
         } else if (!m_IsFocus && m_FocusTimer > 0) {
             m_FocusTimer--;
         }
-        intermediateRatio = static_cast<float>(m_FocusTimer) / 8.0f;
-        verticalOrbOffset = -32.0f * intermediateRatio;
+        intermediateRatio   = static_cast<float>(m_FocusTimer) / 8.0f;
+        verticalOrbOffset   = -32.0f * intermediateRatio;
         horizontalOrbOffset = -16.0f * (intermediateRatio * intermediateRatio) + 24.0f;
     }
     m_OrbVms[0]->pos.x += horizontalOrbOffset;
@@ -77,7 +77,7 @@ void Player::Update() {
     m_Anm.UpdateObjects(m_Vms);
 
     // Override visibility after ANM update
-    if(m_OrbVisible) {
+    if (m_OrbVisible) {
         m_OrbVms[0]->obj->SetVisible(true);
         m_OrbVms[1]->obj->SetVisible(true);
     } else {
@@ -90,20 +90,20 @@ void Player::Update() {
 
 void Player::SetMoveScript(PlayerMovementScript script) {
     m_BodyVm->flipX = false;
-    m_Anm.SetScript(*m_BodyVm, m_Data->m_AnmEntry->offset + static_cast<int>(script), m_Data->m_AnmEntry->offset);
+    m_Anm.SetScript(*m_BodyVm, m_Data->m_AnmEntry->offset + static_cast<int>(script),
+                    m_Data->m_AnmEntry->offset);
 }
 
 void Player::SetMoveState(MoveState newState) {
     if (newState == m_MoveState) return;
 
     if (newState == MoveState::Idle) {
-        if (m_MoveState == MoveState::MoveRight) { 
-            SetMoveScript(PlayerMovementScript::ReturnFromRight); 
-            m_ReturnFramesLeft = 49; 
-        }
-        else if (m_MoveState == MoveState::MoveLeft) { 
-            SetMoveScript(PlayerMovementScript::ReturnFromLeft); 
-            m_ReturnFramesLeft = 49; 
+        if (m_MoveState == MoveState::MoveRight) {
+            SetMoveScript(PlayerMovementScript::ReturnFromRight);
+            m_ReturnFramesLeft = 49;
+        } else if (m_MoveState == MoveState::MoveLeft) {
+            SetMoveScript(PlayerMovementScript::ReturnFromLeft);
+            m_ReturnFramesLeft = 49;
         }
     } else if (newState == MoveState::MoveRight) {
         SetMoveScript(PlayerMovementScript::MoveRight);
@@ -114,27 +114,30 @@ void Player::SetMoveState(MoveState newState) {
     m_MoveState = newState;
 }
 
-void Player::HandleMovement() { // TODO: add spell card specific movement behavior
+void Player::HandleMovement() {  // TODO: add spell card specific movement behavior
     // ── Movement ──────────────────────────────────────────────────────────────
-    bool focused = Util::Input::IsKeyPressed(Util::Keycode::LSHIFT);
-    bool movingDiag = (Util::Input::IsKeyPressed(Util::Keycode::UP) || Util::Input::IsKeyPressed(Util::Keycode::DOWN)) &&
-                      (Util::Input::IsKeyPressed(Util::Keycode::LEFT) || Util::Input::IsKeyPressed(Util::Keycode::RIGHT));
+    bool focused    = Util::Input::IsKeyPressed(Util::Keycode::LSHIFT);
+    bool movingDiag = (Util::Input::IsKeyPressed(Util::Keycode::UP) ||
+                       Util::Input::IsKeyPressed(Util::Keycode::DOWN)) &&
+                      (Util::Input::IsKeyPressed(Util::Keycode::LEFT) ||
+                       Util::Input::IsKeyPressed(Util::Keycode::RIGHT));
 
     float speed;
     if (movingDiag)
         speed = focused ? m_Data->m_DiagonalMovementSpeedFocus : m_Data->m_DiagonalMovementSpeed;
     else
-        speed = focused ? m_Data->m_OrthogonalMovementSpeedFocus : m_Data->m_OrthogonalMovementSpeed;
+        speed =
+            focused ? m_Data->m_OrthogonalMovementSpeedFocus : m_Data->m_OrthogonalMovementSpeed;
 
     glm::vec2 delta = {0, 0};
-    if (Util::Input::IsKeyPressed(Util::Keycode::UP))    delta.y -= speed;
-    if (Util::Input::IsKeyPressed(Util::Keycode::DOWN))  delta.y += speed;
-    if (Util::Input::IsKeyPressed(Util::Keycode::LEFT))  delta.x -= speed;
+    if (Util::Input::IsKeyPressed(Util::Keycode::UP)) delta.y -= speed;
+    if (Util::Input::IsKeyPressed(Util::Keycode::DOWN)) delta.y += speed;
+    if (Util::Input::IsKeyPressed(Util::Keycode::LEFT)) delta.x -= speed;
     if (Util::Input::IsKeyPressed(Util::Keycode::RIGHT)) delta.x += speed;
 
     m_BodyPos += delta;
-    m_BodyPos.x = glm::clamp(m_BodyPos.x, PLAY_AREA_LEFT,  PLAY_AREA_RIGHT);
-    m_BodyPos.y = glm::clamp(m_BodyPos.y, PLAY_AREA_TOP,   PLAY_AREA_BOTTOM);
+    m_BodyPos.x = glm::clamp(m_BodyPos.x, PLAY_AREA_LEFT, PLAY_AREA_RIGHT);
+    m_BodyPos.y = glm::clamp(m_BodyPos.y, PLAY_AREA_TOP, PLAY_AREA_BOTTOM);
 
     // ── State machine (left/right only) ───────────────────────────────────────
     bool pressingRight = Util::Input::IsKeyPressed(Util::Keycode::RIGHT);
@@ -164,40 +167,41 @@ void Player::HandlePlayerInput() {
 
     if (Util::Input::IsKeyPressed(Util::Keycode::Z)) {
         // Initzialize bullet firing timer
-        if(m_FireBulletTimer < 0) {
+        if (m_FireBulletTimer < 0) {
             m_FireBulletTimer = 0;
         }
     }
-    
+
     if (Util::Input::IsKeyDown(Util::Keycode::X)) {
         m_Power += 8;
     }
 }
 
 void Player::UpdateFireBulletsTimer() {
-    if (m_FireBulletTimer >= 0) { // TODO: add spell card specific fire rule
+    if (m_FireBulletTimer >= 0) {  // TODO: add spell card specific fire rule
         SpawnBullets();
         m_FireBulletTimer++;
     }
 
-    if  (m_FireBulletTimer >= 30 || m_PlayerState == PlayerState::DEAD || m_PlayerState == PlayerState::SPAWNING) { // TODO: add spell card specific fire rule
+    if (m_FireBulletTimer >= 30 || m_PlayerState == PlayerState::DEAD ||
+        m_PlayerState == PlayerState::SPAWNING) {  // TODO: add spell card specific fire rule
         m_FireBulletTimer = -1;
     }
 }
 
 void Player::SpawnBullets() {
     FireBulletResult result;
-    int curBulletIdx = 0;
-    bool fireIsDone = false;
-    for(int i = 0 ; i < 100; i++) {
-        PlayerBullet *currBullet = &m_Bullets[i];
+    int              curBulletIdx = 0;
+    bool             fireIsDone   = false;
+    for (int i = 0; i < 100; i++) {
+        PlayerBullet* currBullet = &m_Bullets[i];
 
         if (currBullet->m_BulletState == BulletState::UNUSED) {
-
-            while(1) {
+            while (1) {
                 result = m_FireBulletCallback(currBullet, curBulletIdx);
 
-                if (result == FireBulletResult::FIRED || result == FireBulletResult::FIRED_AND_LAST) {
+                if (result == FireBulletResult::FIRED ||
+                    result == FireBulletResult::FIRED_AND_LAST) {
                     currBullet->m_BulletState = BulletState::FIRED;
                     m_Renderer.AddChild(currBullet->m_Vm.obj);
                     curBulletIdx++;
@@ -218,38 +222,43 @@ void Player::SpawnBullets() {
     }
 }
 
-FireBulletResult Player::FireSingleBullet(PlayerBullet *bullet, int bulletIdx, const CharacterPowerData *powerData) {
+FireBulletResult Player::FireSingleBullet(PlayerBullet* bullet, int bulletIdx,
+                                          const CharacterPowerData* powerData) {
     while (this->m_Power >= powerData->m_Power) {
-        powerData++; // Pushes pointer to next power level
+        powerData++;  // Pushes pointer to next power level
     }
 
-    const CharacterPowerBulletData *bulletData = powerData->m_Bullets + bulletIdx;
+    const CharacterPowerBulletData* bulletData = powerData->m_Bullets + bulletIdx;
 
     if (bulletData->m_BulletType == BulletType::LASER) {
         // TODO: implement laser bullets
-    } else if (m_FireBulletTimer % bulletData->m_BulletsInterval == bulletData->m_FireBulletOffset) {
+    } else if (m_FireBulletTimer % bulletData->m_BulletsInterval ==
+               bulletData->m_FireBulletOffset) {
         m_Anm.SetScript(bullet->m_Vm, bulletData->m_ScriptIdx, bulletData->m_SpriteOffset);
 
-        if(!bulletData->m_SpawnPositionIdx) { // spawn from body
+        if (!bulletData->m_SpawnPositionIdx) {  // spawn from body
             bullet->m_Vm.pos = this->m_BodyPos + bulletData->m_SpawnOffset;
-        } else {                              // spawn from orb
-            bullet->m_Vm.pos = this->m_OrbVms[bulletData->m_SpawnPositionIdx - 1]->pos + bulletData->m_SpawnOffset;
+        } else {  // spawn from orb
+            bullet->m_Vm.pos =
+                this->m_OrbVms[bulletData->m_SpawnPositionIdx - 1]->pos + bulletData->m_SpawnOffset;
         }
-        bullet->m_Size = bulletData->m_Size;
-        bullet->m_Speed = bulletData->m_Speed;
-        bullet->m_Angle = bulletData->m_Angle;
-        bullet->m_Damage = bulletData->m_Damage;
+        bullet->m_Size       = bulletData->m_Size;
+        bullet->m_Speed      = bulletData->m_Speed;
+        bullet->m_Angle      = bulletData->m_Angle;
+        bullet->m_Damage     = bulletData->m_Damage;
         bullet->m_BulletType = bulletData->m_BulletType;
-        bullet->m_Velocity = {bullet->m_Speed * cos(bullet->m_Angle), bullet->m_Speed * sin(bullet->m_Angle)};
-        return bulletIdx + 1 >= powerData->m_NumBullets ? FireBulletResult::FIRED_AND_LAST : FireBulletResult::FIRED;
+        bullet->m_Velocity   = {bullet->m_Speed * cos(bullet->m_Angle),
+                                bullet->m_Speed * sin(bullet->m_Angle)};
+        return bulletIdx + 1 >= powerData->m_NumBullets ? FireBulletResult::FIRED_AND_LAST
+                                                        : FireBulletResult::FIRED;
     }
 
-    return bulletIdx + 1 >= powerData->m_NumBullets ? FireBulletResult::END_SPAWNING : FireBulletResult::CONTINUE_SPAWNING;
+    return bulletIdx + 1 >= powerData->m_NumBullets ? FireBulletResult::END_SPAWNING
+                                                    : FireBulletResult::CONTINUE_SPAWNING;
 }
 
 void Player::UpdatePlayerBullets() {
-    
-    PlayerBullet *bullet;
+    PlayerBullet* bullet;
     // TODO: update laser timer
 
     for (int i = 0; i < 100; i++) {
@@ -269,7 +278,8 @@ void Player::UpdatePlayerBullets() {
 
             bullet->m_Vm.pos += bullet->m_Velocity;
             m_Anm.UpdateObjects(bullet->m_Vm);
-            if (!Util::IsInGameBounds(bullet->m_Vm.pos.x, bullet->m_Vm.pos.y, bullet->m_Size.x, bullet->m_Size.y)) {
+            if (!Util::IsInGameBounds(bullet->m_Vm.pos.x, bullet->m_Vm.pos.y, bullet->m_Size.x,
+                                      bullet->m_Size.y)) {
                 bullet->m_BulletState = BulletState::UNUSED;
                 m_Renderer.RemoveChild(bullet->m_Vm.obj);
             }
