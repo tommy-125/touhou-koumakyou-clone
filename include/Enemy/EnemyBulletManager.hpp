@@ -56,6 +56,8 @@ class EnemyBulletManager {
                        int count, float speed, float aimOffset, float spread);
 
     void Update();
+    bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
+    void ClearAll();
 
     static constexpr int MAX_BULLETS = 640;
 

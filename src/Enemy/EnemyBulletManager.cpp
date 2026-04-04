@@ -57,6 +57,30 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
     }
 }
 
+bool EnemyBulletManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive) continue;
+        float dx = std::abs(b.m_Pos.x - playerPos.x);
+        float dy = std::abs(b.m_Pos.y - playerPos.y);
+        if (dx < b.m_HitboxSize.x + playerHitboxSize.x &&
+            dy < b.m_HitboxSize.y + playerHitboxSize.y) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void EnemyBulletManager::ClearAll() {
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive) continue;
+        b.m_Alive = false;
+        if (b.m_Vm.obj) {
+            m_Renderer.RemoveChild(b.m_Vm.obj);
+            b.m_Vm.obj = nullptr;
+        }
+    }
+}
+
 void EnemyBulletManager::Update() {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;

@@ -1,5 +1,6 @@
 #include "Player.hpp"
 
+#include <cmath>
 #include <glm/glm.hpp>
 
 #include "BulletData.hpp"
@@ -37,7 +38,56 @@ Player::Player(CharacterItem character, SpellCardItem spellCard)
     };
 }
 
+void Player::Die() {
+    if (m_PlayerState != PlayerState::ALIVE) return;
+    m_PlayerState     = PlayerState::DEAD;
+    m_DeadTimer       = 0;
+    m_FireBulletTimer = -1;
+}
+
+int Player::CalcDamageToEnemy(glm::vec2 enemyPos, glm::vec2 enemyHitboxSize) {
+    int total = 0;
+    for (auto& b : m_Bullets) {
+        if (b.m_BulletState != BulletState::FIRED) continue;
+        float dx = std::abs(b.m_Vm.pos.x - enemyPos.x);
+        float dy = std::abs(b.m_Vm.pos.y - enemyPos.y);
+        if (dx < b.m_Size.x + enemyHitboxSize.x && dy < b.m_Size.y + enemyHitboxSize.y) {
+            b.m_BulletState = BulletState::COLLIDED;
+            total += b.m_Damage;
+        }
+    }
+    return total;
+}
+
+void Player::UpdateState() {
+    m_JustEnteredSpawning = false;
+    switch (m_PlayerState) {
+        case PlayerState::DEAD:
+            if (++m_DeadTimer >= 30) {
+                m_PlayerState         = PlayerState::SPAWNING;
+                m_SpawnTimer          = 0;
+                m_JustEnteredSpawning = true;
+            }
+            break;
+        case PlayerState::SPAWNING:
+            if (++m_SpawnTimer >= 30) {
+                m_PlayerState = PlayerState::INVULNERABLE;
+                m_InvulTimer  = 0;
+                m_BodyPos     = Util::GameFieldToScreen(PLAYER_SPAWN_FIELD_X, PLAYER_SPAWN_FIELD_Y);
+            }
+            break;
+        case PlayerState::INVULNERABLE:
+            if (++m_InvulTimer >= 240) {
+                m_PlayerState = PlayerState::ALIVE;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 void Player::Update() {
+    UpdateState();
     HandlePlayerInput();
     m_HitboxTopLeft     = m_BodyPos - m_HitboxSize;
     m_HitboxBottomRight = m_BodyPos + m_HitboxSize;
@@ -77,13 +127,17 @@ void Player::Update() {
     m_Anm.UpdateObjects(m_Vms);
 
     // Override visibility after ANM update
-    if (m_OrbVisible) {
-        m_OrbVms[0]->obj->SetVisible(true);
-        m_OrbVms[1]->obj->SetVisible(true);
-    } else {
-        m_OrbVms[0]->obj->SetVisible(false);
-        m_OrbVms[1]->obj->SetVisible(false);
+    bool bodyVisible = true;
+    if (m_PlayerState == PlayerState::DEAD || m_PlayerState == PlayerState::SPAWNING) {
+        bodyVisible = false;
+    } else if (m_PlayerState == PlayerState::INVULNERABLE) {
+        bodyVisible = (m_InvulTimer / 4) % 2 == 0;
     }
+    m_BodyVm->obj->SetVisible(bodyVisible);
+
+    bool orbsVisible = m_OrbVisible && bodyVisible;
+    m_OrbVms[0]->obj->SetVisible(orbsVisible);
+    m_OrbVms[1]->obj->SetVisible(orbsVisible);
 
     m_Renderer.Update();
 }
@@ -164,6 +218,7 @@ void Player::HandleMovement() {  // TODO: add spell card specific movement behav
     m_BodyVm->pos = m_BodyPos;
 }
 void Player::HandlePlayerInput() {
+    if (m_PlayerState == PlayerState::DEAD || m_PlayerState == PlayerState::SPAWNING) return;
     HandleMovement();
     m_IsFocus = Util::Input::IsKeyPressed(Util::Keycode::LSHIFT) ? true : false;
 
@@ -265,6 +320,11 @@ void Player::UpdatePlayerBullets() {
 
     for (int i = 0; i < 100; i++) {
         bullet = &m_Bullets[i];
+
+        if (bullet->m_BulletState == BulletState::COLLIDED) {
+            bullet->m_BulletState = BulletState::UNUSED;
+            m_Renderer.RemoveChild(bullet->m_Vm.obj);
+        }
 
         if (bullet->m_BulletState != BulletState::UNUSED) {
             switch (bullet->m_BulletType) {

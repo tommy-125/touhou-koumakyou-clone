@@ -146,12 +146,18 @@ class Player {
     Player(CharacterItem character, SpellCardItem spellCard);
     void             Update();
     const glm::vec2& GetPos() const { return m_BodyPos; }
+    int              CalcDamageToEnemy(glm::vec2 enemyPos, glm::vec2 enemyHitboxSize);
+    void             Die();
+    bool             IsVulnerable() const { return m_PlayerState == PlayerState::ALIVE; }
+    bool             JustEnteredSpawning() const { return m_JustEnteredSpawning; }
+    PlayerState      GetState() const { return m_PlayerState; }
 
    private:
     void SetMoveState(MoveState newState);
     void SetMoveScript(PlayerMovementScript script);
     void HandlePlayerInput();
     void HandleMovement();
+    void UpdateState();
 
     void             UpdateFireBulletsTimer();
     void             SpawnBullets();
@@ -185,6 +191,11 @@ class Player {
 
     bool m_IsFocus    = false;  // false for unfocused, true for focused
     int  m_FocusTimer = 0;      // counts frames since focus state changed, used for animating orbs
+
+    int  m_DeadTimer           = 0;
+    int  m_SpawnTimer          = 0;
+    int  m_InvulTimer          = 0;
+    bool m_JustEnteredSpawning = false;
 
     int          m_FireBulletTimer = -1;
     PlayerBullet m_Bullets[100];  // Object pool for bullets

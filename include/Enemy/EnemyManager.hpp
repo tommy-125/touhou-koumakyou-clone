@@ -9,6 +9,8 @@
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Util/Renderer.hpp"
 
+class Player;
+
 // Timeline entry for hand-coded stage script
 struct TimelineEntry {
     int   frame;
@@ -23,6 +25,9 @@ class EnemyManager {
    public:
     EnemyManager();
     void Update(const glm::vec2& playerPos);
+    void ApplyPlayerBulletDamage(Player& player);
+    bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
+    void ClearAllBullets();
 
    private:
     static constexpr int MAX_ENEMIES = 256;

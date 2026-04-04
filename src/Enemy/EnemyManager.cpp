@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "Anm/AnmDefs.hpp"
+#include "Player.hpp"
 #include "Util/Math.hpp"
 
 // ── Stage 1 timeline (Normal difficulty) ─────────────────────────────────────
@@ -255,4 +256,28 @@ void EnemyManager::Update(const glm::vec2& playerPos) {
     m_Renderer.Update();
     m_BulletManager.Update();
     m_Frame++;
+}
+
+void EnemyManager::ApplyPlayerBulletDamage(Player& player) {
+    for (auto& enemy : m_Enemies) {
+        if (!enemy.m_Alive) continue;
+        int dmg = player.CalcDamageToEnemy(enemy.m_Pos, enemy.m_HitboxSize);
+        if (dmg <= 0) continue;
+        enemy.m_Life -= dmg;
+        if (enemy.m_Life <= 0) {
+            enemy.m_Alive = false;
+            if (enemy.m_Vm.obj) {
+                m_Renderer.RemoveChild(enemy.m_Vm.obj);
+                enemy.m_Vm.obj = nullptr;
+            }
+        }
+    }
+}
+
+bool EnemyManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {
+    return m_BulletManager.CheckPlayerHit(playerPos, playerHitboxSize);
+}
+
+void EnemyManager::ClearAllBullets() {
+    m_BulletManager.ClearAll();
 }
