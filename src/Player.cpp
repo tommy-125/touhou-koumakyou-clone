@@ -136,8 +136,10 @@ void Player::HandleMovement() {  // TODO: add spell card specific movement behav
     if (Util::Input::IsKeyPressed(Util::Keycode::RIGHT)) delta.x += speed;
 
     m_BodyPos += delta;
-    m_BodyPos.x = glm::clamp(m_BodyPos.x, PLAY_AREA_LEFT, PLAY_AREA_RIGHT);
-    m_BodyPos.y = glm::clamp(m_BodyPos.y, PLAY_AREA_TOP, PLAY_AREA_BOTTOM);
+    auto areaMin = Util::GameFieldToScreen(PLAY_AREA_FIELD_LEFT, PLAY_AREA_FIELD_TOP);
+    auto areaMax = Util::GameFieldToScreen(PLAY_AREA_FIELD_RIGHT, PLAY_AREA_FIELD_BOTTOM);
+    m_BodyPos.x  = glm::clamp(m_BodyPos.x, areaMin.x, areaMax.x);
+    m_BodyPos.y  = glm::clamp(m_BodyPos.y, areaMin.y, areaMax.y);
 
     // ── State machine (left/right only) ───────────────────────────────────────
     bool pressingRight = Util::Input::IsKeyPressed(Util::Keycode::RIGHT);

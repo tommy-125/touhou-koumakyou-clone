@@ -85,7 +85,7 @@ Enemy* EnemyManager::SpawnEnemy(int subId, float x, float y, int life, int score
         enemy              = Enemy{};
         enemy.m_Alive      = true;
         enemy.m_SubId      = subId;
-        enemy.m_Pos        = {x, y};
+        enemy.m_Pos        = Util::GameFieldToScreen(x, y);
         enemy.m_Life       = life;
         enemy.m_Score      = score;
         enemy.m_Mirrored   = mirrored;

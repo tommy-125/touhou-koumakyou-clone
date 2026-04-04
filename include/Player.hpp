@@ -8,6 +8,7 @@
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
 #include "Anm/AnmTypes.hpp"
+#include "Util/Math.hpp"
 #include "Util/Renderer.hpp"
 
 enum class CharacterItem {
@@ -96,13 +97,13 @@ struct CharacterPowerData {  // Record bullet data depending on power level
     const CharacterPowerBulletData* m_Bullets;
 };
 
-// th06 screen coordinates (origin top-left, y-down)
-constexpr float PLAYER_SPAWN_X   = 192.0f;
-constexpr float PLAYER_SPAWN_Y   = 384.0f;
-constexpr float PLAY_AREA_LEFT   = 32.0f;
-constexpr float PLAY_AREA_RIGHT  = 416.0f;
-constexpr float PLAY_AREA_TOP    = 16.0f;
-constexpr float PLAY_AREA_BOTTOM = 464.0f;
+// field-relative (origin = game area top-left)
+constexpr float PLAYER_SPAWN_FIELD_X   = 192.0f;
+constexpr float PLAYER_SPAWN_FIELD_Y   = 384.0f;
+constexpr float PLAY_AREA_FIELD_LEFT   = 8.0f;
+constexpr float PLAY_AREA_FIELD_RIGHT  = 376.0f;
+constexpr float PLAY_AREA_FIELD_TOP    = 16.0f;
+constexpr float PLAY_AREA_FIELD_BOTTOM = 432.0f;
 
 // player hitbox size
 constexpr float PLAYER_HITBOX_X = 1.25f;
@@ -169,7 +170,7 @@ class Player {
     PlayerState m_PlayerState      = PlayerState::ALIVE;
     MoveState   m_MoveState        = MoveState::Idle;
     int         m_ReturnFramesLeft = 0;
-    glm::vec2   m_BodyPos          = {PLAYER_SPAWN_X, PLAYER_SPAWN_Y};
+    glm::vec2   m_BodyPos = Util::GameFieldToScreen(PLAYER_SPAWN_FIELD_X, PLAYER_SPAWN_FIELD_Y);
 
     glm::vec2 m_HitboxTopLeft;
     glm::vec2 m_HitboxBottomRight;
@@ -183,7 +184,7 @@ class Player {
     Anm::Vm* m_OrbVms[2];
 
     bool m_IsFocus    = false;  // false for unfocused, true for focused
-    int  m_FocusTimer = 0;  // counts frames since focus state changed, used for animating orbs
+    int  m_FocusTimer = 0;      // counts frames since focus state changed, used for animating orbs
 
     int          m_FireBulletTimer = -1;
     PlayerBullet m_Bullets[100];  // Object pool for bullets

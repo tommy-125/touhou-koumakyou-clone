@@ -2,6 +2,8 @@
 #define SCENE_STAGE1_HPP
 
 #include "Enemy/EnemyManager.hpp"
+#include "GameManager.hpp"
+#include "Gui.hpp"
 #include "Player.hpp"
 #include "Scene/Scene.hpp"
 
@@ -11,6 +13,8 @@ class Stage1 : public Scene {
     void Update() override;
 
    private:
+    GameManager  m_GameManager;
+    Gui          m_Gui;
     EnemyManager m_EnemyManager;
     Player       m_Player;
 };

@@ -149,6 +149,13 @@ constexpr Entry ETAMA3 = {
     540 + 200,  // 740
 };
 
+// ── HUD / front sprites ───────────────────────────────────────────────────────
+constexpr Entry FRONT = {
+    GA_RESOURCE_DIR "/th06c/th06c_CM_output/front",
+    GA_RESOURCE_DIR "/th06c/th06c_CM_output/front/front.txt",
+    740 + 200,  // 940
+};
+
 }  // namespace Anm
 
 #endif  // ANMDEFS_HPP

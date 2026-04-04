@@ -36,6 +36,10 @@ else()
     target_compile_definitions(${PROJECT_NAME} PRIVATE GA_RESOURCE_DIR="${CMAKE_INSTALL_PREFIX}/resources")
 endif()
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    PTSD_FONT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resources/黑体.ttf"
+)
+
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ${ptsd_SOURCE_DIR}/include)
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${DEPENDENCY_INCLUDE_DIRS})
