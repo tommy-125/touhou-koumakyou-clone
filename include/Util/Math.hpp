@@ -4,6 +4,8 @@
 #include <glm/glm.hpp>
 
 namespace Util {
+constexpr float HALF_PI = 1.5707964f;
+
 constexpr float GAME_BOUNDS_LEFT   = 32.0f;
 constexpr float GAME_BOUNDS_RIGHT  = 416.0f;
 constexpr float GAME_BOUNDS_TOP    = 16.0f;

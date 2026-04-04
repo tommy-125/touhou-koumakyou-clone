@@ -2,10 +2,13 @@
 
 #include <cmath>
 
+#include "Anm/AnmDefs.hpp"
+#include "Util/Math.hpp"
+
 // ── Stage 1 timeline (Normal difficulty) ─────────────────────────────────────
 // Transcribed from ecldata1.txt timeline0
 // Format: {frame, subId, x, y, life, score, mirrored}
-static const TimelineEntry STAGE1_TIMELINE[] = {
+const TimelineEntry STAGE1_TIMELINE[] = {
     // Wave 1: sub0 from left
     {128, 0, 60.0f, -32.0f, 8, 300, false},
     {144, 0, 68.0f, -32.0f, 32, 300, false},
@@ -63,7 +66,7 @@ static const TimelineEntry STAGE1_TIMELINE[] = {
     {1100, 2, 32.0f, -32.0f, 80, 700, false},
     {1110, 2, 240.0f, -32.0f, 80, 700, true},
 };
-static constexpr int TIMELINE_SIZE = sizeof(STAGE1_TIMELINE) / sizeof(STAGE1_TIMELINE[0]);
+constexpr int TIMELINE_SIZE = sizeof(STAGE1_TIMELINE) / sizeof(STAGE1_TIMELINE[0]);
 
 // ── Construction ─────────────────────────────────────────────────────────────
 
@@ -101,35 +104,34 @@ Enemy* EnemyManager::SpawnEnemy(int subId, float x, float y, int life, int score
 // ── Sub initialization (frame-0 actions) ─────────────────────────────────────
 
 void EnemyManager::InitSub(Enemy& enemy) {
-    static constexpr float HALF_PI = 1.5707964f;
-    int                    offset  = Anm::STG1ENM.offset;
+    int offset = Anm::STG1ENM.offset;
 
     switch (enemy.m_SubId) {
         case 0:  // Small fairy: move down + curve
             m_Anm.SetScript(enemy.m_Vm, offset + 0, offset);
             enemy.m_HitboxSize = {28, 28};
-            enemy.m_Angle      = HALF_PI;
+            enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
             break;
 
         case 1:  // Small fairy variant
             m_Anm.SetScript(enemy.m_Vm, offset + 0, offset);
             enemy.m_HitboxSize = {28, 28};
-            enemy.m_Angle      = HALF_PI;
+            enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
             break;
 
         case 2:  // Medium fairy: stops and shoots
             m_Anm.SetScript(enemy.m_Vm, offset + 3, offset);
             enemy.m_HitboxSize = {28, 28};
-            enemy.m_Angle      = HALF_PI;
+            enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
             break;
 
         case 3:  // Medium fairy: stops (no bullet on Normal)
             m_Anm.SetScript(enemy.m_Vm, offset + 3, offset);
             enemy.m_HitboxSize = {28, 28};
-            enemy.m_Angle      = HALF_PI;
+            enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
             break;
     }
@@ -141,16 +143,18 @@ void EnemyManager::RunSub(Enemy& enemy) {
     int t      = enemy.m_FrameTimer;
     int offset = Anm::STG1ENM.offset;
 
+    float dir = enemy.m_Mirrored ? -1.0f : 1.0f;
+
     switch (enemy.m_SubId) {
         case 0:
-            if (t == 40) enemy.m_AngularVelocity = -0.024543693f;
-            if (t == 120) enemy.m_AngularVelocity = 0.019634955f;
+            if (t == 40) enemy.m_AngularVelocity = dir * -0.024543693f;
+            if (t == 120) enemy.m_AngularVelocity = dir * 0.019634955f;
             if (t == 220) enemy.m_AngularVelocity = 0.0f;
             if (t >= 10000) enemy.m_Alive = false;
             break;
 
         case 1:
-            if (t == 100) enemy.m_AngularVelocity = 0.019634955f;
+            if (t == 100) enemy.m_AngularVelocity = dir * 0.019634955f;
             if (t == 200) enemy.m_AngularVelocity = 0.0f;
             if (t >= 10000) enemy.m_Alive = false;
             break;
@@ -160,10 +164,15 @@ void EnemyManager::RunSub(Enemy& enemy) {
                 m_Anm.SetScript(enemy.m_Vm, offset + 5, offset);
                 enemy.m_Speed = 0.0f;
             }
-            // TODO: t == 70: bullet_fan_aimed(RingBall, Red, 7, 1, 1.4, 0, 0, 0.628, 0x3)
+            if (t == 70) {
+                // bullet_fan_aimed(RingBall, Red, 7, 1, 1.4, 0, 0, 0.628, 0x3) — Normal: 7 bullets
+                glm::vec2 shootPos = enemy.m_Pos + glm::vec2{12.0f, -12.0f};
+                m_BulletManager.SpawnFanAimed(shootPos, m_PlayerPos, EBulletType::RingBall,
+                                              EBulletColor::Red, 7, 1.4f, 0.0f, 0.628f);
+            }
             if (t == 130) {
                 enemy.m_Acceleration    = 0.05f;
-                enemy.m_AngularVelocity = 0.05235988f;
+                enemy.m_AngularVelocity = dir * 0.05235988f;
             }
             if (t == 190) enemy.m_AngularVelocity = 0.0f;
             if (t >= 10000) enemy.m_Alive = false;
@@ -176,7 +185,7 @@ void EnemyManager::RunSub(Enemy& enemy) {
             }
             if (t == 130) {
                 enemy.m_Acceleration    = 0.05f;
-                enemy.m_AngularVelocity = 0.05235988f;
+                enemy.m_AngularVelocity = dir * 0.05235988f;
             }
             if (t == 190) enemy.m_AngularVelocity = 0.0f;
             if (t >= 10000) enemy.m_Alive = false;
@@ -234,8 +243,7 @@ void EnemyManager::Update(const glm::vec2& playerPos) {
         enemy.m_FrameTimer++;
 
         // Despawn if far off-screen (generous bounds)
-        if (enemy.m_Pos.x < -200 || enemy.m_Pos.x > 600 || enemy.m_Pos.y < -200 ||
-            enemy.m_Pos.y > 700) {
+        if (!Util::IsInGameBounds(enemy.m_Pos.x, enemy.m_Pos.y, 0, 0, -200, -200, 600, 700)) {
             enemy.m_Alive = false;
             if (enemy.m_Vm.obj) {
                 m_Renderer.RemoveChild(enemy.m_Vm.obj);
@@ -245,5 +253,6 @@ void EnemyManager::Update(const glm::vec2& playerPos) {
     }
 
     m_Renderer.Update();
+    m_BulletManager.Update();
     m_Frame++;
 }

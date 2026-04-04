@@ -187,7 +187,6 @@ void Manager::ExecuteScript(Vm& vm) {
 
             case ExitHide:
                 vm.scriptIdx = -1;
-                vm.isVisible = false;
                 return;
 
             case Stop:

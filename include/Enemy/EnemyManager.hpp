@@ -4,9 +4,9 @@
 #include <array>
 #include <glm/glm.hpp>
 
-#include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
 #include "Enemy/Enemy.hpp"
+#include "Enemy/EnemyBulletManager.hpp"
 #include "Util/Renderer.hpp"
 
 // Timeline entry for hand-coded stage script
@@ -35,8 +35,9 @@ class EnemyManager {
 
     std::array<Enemy, MAX_ENEMIES> m_Enemies{};
 
-    Anm::Manager   m_Anm;
-    Util::Renderer m_Renderer;
+    Anm::Manager       m_Anm;
+    Util::Renderer     m_Renderer;
+    EnemyBulletManager m_BulletManager;
 
     int       m_Frame       = 0;
     int       m_TimelineIdx = 0;
