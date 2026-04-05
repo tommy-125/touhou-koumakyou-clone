@@ -3,71 +3,20 @@
 #include <cmath>
 
 #include "Anm/AnmDefs.hpp"
+#include "GameManager.hpp"
 #include "Player.hpp"
 #include "Util/Math.hpp"
 
-// ── Stage 1 timeline (Normal difficulty) ─────────────────────────────────────
-// Transcribed from ecldata1.txt timeline0
-// Format: {frame, subId, x, y, life, score, mirrored}
-const TimelineEntry STAGE1_TIMELINE[] = {
-    // Wave 1: sub0 from left
-    {128, 0, 60.0f, -32.0f, 8, 300, false},
-    {144, 0, 68.0f, -32.0f, 32, 300, false},
-    {160, 0, 76.0f, -32.0f, 32, 300, false},
-    {176, 0, 84.0f, -32.0f, 32, 300, false},
-    {192, 0, 92.0f, -32.0f, 32, 300, false},
-
-    // Wave 1: sub0 from right (mirror)
-    {256, 0, 324.0f, -32.0f, 32, 300, true},
-    {272, 0, 316.0f, -32.0f, 32, 300, true},
-    {288, 0, 308.0f, -32.0f, 32, 300, true},
-    {304, 0, 300.0f, -32.0f, 32, 300, true},
-    {320, 0, 292.0f, -32.0f, 32, 300, true},
-    {336, 0, 284.0f, -32.0f, 32, 300, true},
-    {352, 0, 276.0f, -32.0f, 32, 300, true},
-    {368, 0, 268.0f, -32.0f, 32, 300, true},
-
-    // Wave 2: sub1 left + right pairs
-    {432, 1, 32.0f, -32.0f, 32, 300, false},
-    {432, 1, 352.0f, -32.0f, 32, 300, true},
-    {448, 1, 48.0f, -32.0f, 32, 300, false},
-    {448, 1, 336.0f, -32.0f, 32, 300, true},
-    {464, 1, 64.0f, -32.0f, 32, 300, false},
-    {464, 1, 320.0f, -32.0f, 32, 300, true},
-    {480, 1, 80.0f, -32.0f, 32, 300, false},
-    {480, 1, 304.0f, -32.0f, 32, 300, true},
-    {496, 1, 96.0f, -32.0f, 32, 300, false},
-    {496, 1, 288.0f, -32.0f, 32, 300, true},
-    {512, 1, 112.0f, -32.0f, 32, 300, false},
-    {512, 1, 272.0f, -32.0f, 32, 300, true},
-    {528, 1, 128.0f, -32.0f, 32, 300, false},
-    {528, 1, 256.0f, -32.0f, 32, 300, true},
-    {544, 1, 144.0f, -32.0f, 32, 300, false},
-    {544, 1, 240.0f, -32.0f, 32, 300, true},
-    {560, 1, 160.0f, -32.0f, 32, 300, false},
-    {560, 1, 224.0f, -32.0f, 32, 300, true},
-    {576, 1, 176.0f, -32.0f, 32, 300, false},
-    {576, 1, 208.0f, -32.0f, 8, 300, true},
-
-    // Wave 3: sub2/sub3 scattered
-    {640, 2, 32.0f, -32.0f, 80, 700, false},
-    {700, 3, 256.0f, -32.0f, 80, 700, true},
-    {750, 3, 128.0f, -32.0f, 80, 700, false},
-    {800, 2, 352.0f, -32.0f, 80, 700, true},
-    {850, 3, 24.0f, -32.0f, 80, 700, false},
-    {890, 3, 304.0f, -32.0f, 80, 700, true},
-    {930, 2, 144.0f, -32.0f, 80, 700, false},
-    {960, 3, 344.0f, -32.0f, 80, 700, true},
-    {990, 3, 32.0f, -32.0f, 80, 700, false},
-    {1020, 2, 240.0f, -32.0f, 80, 700, true},
-    {1040, 3, 24.0f, -32.0f, 80, 700, false},
-    {1060, 3, 304.0f, -32.0f, 80, 700, true},
-    {1080, 2, 144.0f, -32.0f, 80, 700, false},
-    {1090, 3, 344.0f, -32.0f, 80, 700, true},
-    {1100, 2, 32.0f, -32.0f, 80, 700, false},
-    {1110, 2, 240.0f, -32.0f, 80, 700, true},
+static constexpr ItemType RANDOM_ITEM_TABLE[32] = {
+    ItemType::PowerSmall, ItemType::PowerSmall, ItemType::Point,      ItemType::PowerSmall,
+    ItemType::Point,      ItemType::PowerSmall, ItemType::PowerSmall, ItemType::Point,
+    ItemType::Point,      ItemType::Point,      ItemType::PowerSmall, ItemType::PowerSmall,
+    ItemType::PowerSmall, ItemType::Point,      ItemType::Point,      ItemType::PowerSmall,
+    ItemType::Point,      ItemType::PowerSmall, ItemType::Point,      ItemType::PowerSmall,
+    ItemType::Point,      ItemType::PowerSmall, ItemType::Point,      ItemType::PowerSmall,
+    ItemType::Point,      ItemType::PowerSmall, ItemType::PowerSmall, ItemType::Point,
+    ItemType::Point,      ItemType::Point,      ItemType::PowerSmall, ItemType::Point,
 };
-constexpr int TIMELINE_SIZE = sizeof(STAGE1_TIMELINE) / sizeof(STAGE1_TIMELINE[0]);
 
 // ── Construction ─────────────────────────────────────────────────────────────
 
@@ -113,6 +62,7 @@ void EnemyManager::InitSub(Enemy& enemy) {
             enemy.m_HitboxSize = {28, 28};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
+            enemy.m_ItemDrop   = -1;
             break;
 
         case 1:  // Small fairy variant
@@ -120,6 +70,7 @@ void EnemyManager::InitSub(Enemy& enemy) {
             enemy.m_HitboxSize = {28, 28};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
+            enemy.m_ItemDrop   = -1;
             break;
 
         case 2:  // Medium fairy: stops and shoots
@@ -127,6 +78,7 @@ void EnemyManager::InitSub(Enemy& enemy) {
             enemy.m_HitboxSize = {28, 28};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
+            enemy.m_ItemDrop   = 0;  // PowerSmall (ECL PowerItem = ITEM_POWER_SMALL)
             break;
 
         case 3:  // Medium fairy: stops (no bullet on Normal)
@@ -134,6 +86,7 @@ void EnemyManager::InitSub(Enemy& enemy) {
             enemy.m_HitboxSize = {28, 28};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
+            enemy.m_ItemDrop   = 0;  // PowerSmall (ECL PowerItem = ITEM_POWER_SMALL)
             break;
     }
 }
@@ -205,9 +158,16 @@ void EnemyManager::UpdatePhysics(Enemy& enemy) {
 
 // ── Timeline ─────────────────────────────────────────────────────────────────
 
+void EnemyManager::SetTimeline(const TimelineEntry* entries, int count) {
+    m_Timeline     = entries;
+    m_TimelineSize = count;
+    m_TimelineIdx  = 0;
+}
+
 void EnemyManager::RunTimeline() {
-    while (m_TimelineIdx < TIMELINE_SIZE && STAGE1_TIMELINE[m_TimelineIdx].frame <= m_Frame) {
-        const auto& e = STAGE1_TIMELINE[m_TimelineIdx];
+    if (!m_Timeline) return;
+    while (m_TimelineIdx < m_TimelineSize && m_Timeline[m_TimelineIdx].frame <= m_Frame) {
+        const auto& e = m_Timeline[m_TimelineIdx];
         if (e.frame == m_Frame) {
             SpawnEnemy(e.subId, e.x, e.y, e.life, e.score, e.mirrored);
         }
@@ -217,7 +177,7 @@ void EnemyManager::RunTimeline() {
 
 // ── Main update ──────────────────────────────────────────────────────────────
 
-void EnemyManager::Update(const glm::vec2& playerPos) {
+void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
     m_PlayerPos = playerPos;
     RunTimeline();
 
@@ -255,23 +215,41 @@ void EnemyManager::Update(const glm::vec2& playerPos) {
 
     m_Renderer.Update();
     m_BulletManager.Update();
+    m_ItemManager.Update(playerPos, gm);
     m_Frame++;
 }
 
-void EnemyManager::ApplyPlayerBulletDamage(Player& player) {
+// deal damage to enemies based on player's bullets, return total score gained from kills
+int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
+    int totalScore = 0;
     for (auto& enemy : m_Enemies) {
         if (!enemy.m_Alive) continue;
+
         int dmg = player.CalcDamageToEnemy(enemy.m_Pos, enemy.m_HitboxSize);
+
         if (dmg <= 0) continue;
         enemy.m_Life -= dmg;
+
         if (enemy.m_Life <= 0) {
             enemy.m_Alive = false;
+            totalScore += enemy.m_Score;
+
+            if (enemy.m_ItemDrop >= 0) {
+                m_ItemManager.SpawnItem(enemy.m_Pos, static_cast<ItemType>(enemy.m_ItemDrop));
+            } else {
+                if (m_RandomItemSpawnIndex++ % 3 == 0) {
+                    m_ItemManager.SpawnItem(enemy.m_Pos, RANDOM_ITEM_TABLE[m_RandomItemTableIndex]);
+                    m_RandomItemTableIndex = (m_RandomItemTableIndex + 1) % 32;
+                }
+            }
+
             if (enemy.m_Vm.obj) {
                 m_Renderer.RemoveChild(enemy.m_Vm.obj);
                 enemy.m_Vm.obj = nullptr;
             }
         }
     }
+    return totalScore;
 }
 
 bool EnemyManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {

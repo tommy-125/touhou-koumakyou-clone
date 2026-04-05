@@ -10,7 +10,8 @@
 class Stage1 : public Scene {
    public:
     Stage1(CharacterItem character, SpellCardItem spellCard);
-    void Update() override;
+    void                   Update() override;
+    std::unique_ptr<Scene> NextScene() override;
 
    private:
     GameManager  m_GameManager;

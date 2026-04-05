@@ -7,25 +7,19 @@
 #include "Anm/AnmManager.hpp"
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
+#include "Enemy/Timeline.hpp"
+#include "Item/ItemManager.hpp"
 #include "Util/Renderer.hpp"
 
+struct GameManager;
 class Player;
-
-// Timeline entry for hand-coded stage script
-struct TimelineEntry {
-    int   frame;
-    int   subId;
-    float x, y;
-    int   life;
-    int   score;
-    bool  mirrored;
-};
 
 class EnemyManager {
    public:
     EnemyManager();
-    void Update(const glm::vec2& playerPos);
-    void ApplyPlayerBulletDamage(Player& player);
+    void SetTimeline(const TimelineEntry* entries, int count);
+    void Update(const glm::vec2& playerPos, GameManager& gm);
+    int  ApplyPlayerBulletDamage(Player& player);
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAllBullets();
 
@@ -43,10 +37,16 @@ class EnemyManager {
     Anm::Manager       m_Anm;
     Util::Renderer     m_Renderer;
     EnemyBulletManager m_BulletManager;
+    ItemManager        m_ItemManager;
 
-    int       m_Frame       = 0;
-    int       m_TimelineIdx = 0;
-    glm::vec2 m_PlayerPos   = {192, 384};
+    const TimelineEntry* m_Timeline     = nullptr;
+    int                  m_TimelineSize = 0;
+    int                  m_TimelineIdx  = 0;
+
+    int       m_Frame                = 0;
+    glm::vec2 m_PlayerPos            = {192, 384};
+    int       m_RandomItemSpawnIndex = 0;
+    int       m_RandomItemTableIndex = 0;
 };
 
 #endif  // ENEMY_MANAGER_HPP

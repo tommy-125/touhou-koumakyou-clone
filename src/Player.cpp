@@ -291,6 +291,7 @@ FireBulletResult Player::FireSingleBullet(PlayerBullet* bullet, int bulletIdx,
         // TODO: implement laser bullets
     } else if (m_FireBulletTimer % bulletData->m_BulletsInterval ==
                bulletData->m_FireBulletOffset) {
+        *bullet = PlayerBullet{};
         m_Anm.SetScript(bullet->m_Vm, bulletData->m_ScriptIdx, bulletData->m_SpriteOffset);
 
         if (!bulletData->m_SpawnPositionIdx) {  // spawn from body
