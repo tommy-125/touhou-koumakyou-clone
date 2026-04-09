@@ -78,7 +78,7 @@ void EnemyManager::InitSub(Enemy& enemy) {
             enemy.m_HitboxSize = {28, 28};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
-            enemy.m_ItemDrop   = 0;  // PowerSmall (ECL PowerItem = ITEM_POWER_SMALL)
+            enemy.m_ItemDrop   = 0;  // PowerSmall
             break;
 
         case 3:  // Medium fairy: stops (no bullet on Normal)
@@ -86,7 +86,7 @@ void EnemyManager::InitSub(Enemy& enemy) {
             enemy.m_HitboxSize = {28, 28};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
-            enemy.m_ItemDrop   = 0;  // PowerSmall (ECL PowerItem = ITEM_POWER_SMALL)
+            enemy.m_ItemDrop   = 0;  // PowerSmall
             break;
     }
 }

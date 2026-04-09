@@ -67,11 +67,21 @@ static const TimelineEntry STAGE1_TIMELINE[] = {
 Stage1::Stage1(CharacterItem character, SpellCardItem spellCard) : m_Player(character, spellCard) {
     m_EnemyManager.SetTimeline(STAGE1_TIMELINE,
                                sizeof(STAGE1_TIMELINE) / sizeof(STAGE1_TIMELINE[0]));
+
+    m_BgImage = std::make_shared<Util::Image>(GA_RESOURCE_DIR "/stage1_bg.png");
+    m_BgObj   = std::make_shared<Util::GameObject>(m_BgImage, -10.0f);
+    m_BgObj->m_Transform.translation = {-96.0f, 901.0f};
+    m_Renderer.AddChild(m_BgObj);
 }
 
 void Stage1::Update() {
+    ++m_StageFrame;
+    float scrollY = m_StageFrame * (BG_CANVAS_H - FIELD_H) / STAGE_TOTAL_FRAMES;
+    m_BgObj->m_Transform.translation.y = (BG_CANVAS_H / 2.0f - FIELD_H / 2.0f) - scrollY;
+    m_Renderer.Update();
+
     m_EnemyManager.Update(m_Player.GetPos(), m_GameManager);
-    m_Player.Update();
+    m_Player.Update(m_GameManager);
 
     int scoreGained = m_EnemyManager.ApplyPlayerBulletDamage(m_Player);
     if (scoreGained > 0) {

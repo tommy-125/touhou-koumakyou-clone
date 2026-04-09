@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "BulletData.hpp"
+#include "GameManager.hpp"
 #include "Util/Input.hpp"
 #include "Util/Math.hpp"
 
@@ -86,7 +87,8 @@ void Player::UpdateState() {
     }
 }
 
-void Player::Update() {
+void Player::Update(GameManager& gm) {
+    m_Power = gm.power;
     UpdateState();
     HandlePlayerInput();
     m_HitboxTopLeft     = m_BodyPos - m_HitboxSize;
@@ -140,6 +142,7 @@ void Player::Update() {
     m_OrbVms[1]->obj->SetVisible(orbsVisible);
 
     m_Renderer.Update();
+    gm.power = m_Power;
 }
 
 void Player::SetMoveScript(PlayerMovementScript script) {
@@ -227,10 +230,6 @@ void Player::HandlePlayerInput() {
         if (m_FireBulletTimer < 0) {
             m_FireBulletTimer = 0;
         }
-    }
-
-    if (Util::Input::IsKeyDown(Util::Keycode::X)) {
-        m_Power += 8;
     }
 }
 

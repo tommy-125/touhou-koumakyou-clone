@@ -8,6 +8,7 @@
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
 #include "Anm/AnmTypes.hpp"
+#include "GameManager.hpp"
 #include "Util/Math.hpp"
 #include "Util/Renderer.hpp"
 
@@ -144,7 +145,7 @@ using FireBulletCallback = std::function<FireBulletResult(PlayerBullet* bullet, 
 class Player {
    public:
     Player(CharacterItem character, SpellCardItem spellCard);
-    void             Update();
+    void             Update(GameManager& gm);
     const glm::vec2& GetPos() const { return m_BodyPos; }
     int              CalcDamageToEnemy(glm::vec2 enemyPos, glm::vec2 enemyHitboxSize);
     void             Die();
