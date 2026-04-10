@@ -57,6 +57,36 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
     }
 }
 
+void EnemyBulletManager::SpawnFanStack(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
+                                       EBulletColor color, int ways, int stacks, float baseSpeed,
+                                       float speedInc, float aimOffset, float spread) {
+    for (int s = 0; s < stacks; s++) {
+        float speed = baseSpeed + s * speedInc;
+        SpawnFanAimed(pos, playerPos, type, color, ways, speed, aimOffset, spread);
+    }
+}
+
+void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
+                                          EBulletColor color, int count, float speed) {
+    int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
+    int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
+    float aimAngle  = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x);
+    float step      = 2.0f * Util::HALF_PI * 2.0f / count;
+
+    for (int i = 0; i < count; i++) {
+        EnemyBullet* b = AllocBullet();
+        *b             = EnemyBullet{};
+        b->m_Alive     = true;
+        b->m_Pos       = pos;
+        b->m_Angle     = aimAngle + i * step;
+        b->m_Speed     = speed;
+        m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
+        if (b->m_Vm.obj) {
+            m_Renderer.AddChild(b->m_Vm.obj);
+        }
+    }
+}
+
 bool EnemyBulletManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;

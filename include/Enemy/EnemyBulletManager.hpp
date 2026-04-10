@@ -54,6 +54,12 @@ class EnemyBulletManager {
 
     void SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
                        int count, float speed, float aimOffset, float spread);
+    // ways = angular spread, stacks = concentric rings with increasing speed
+    void SpawnFanStack(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
+                       int ways, int stacks, float baseSpeed, float speedInc, float aimOffset,
+                       float spread);
+    void SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
+                          int count, float speed);
 
     void Update();
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);

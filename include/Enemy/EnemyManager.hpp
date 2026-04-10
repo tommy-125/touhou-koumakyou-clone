@@ -7,6 +7,7 @@
 #include "Anm/AnmManager.hpp"
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
+#include "Enemy/EnemyLaserManager.hpp"
 #include "Enemy/Timeline.hpp"
 #include "Item/ItemManager.hpp"
 #include "Util/Renderer.hpp"
@@ -26,17 +27,25 @@ class EnemyManager {
    private:
     static constexpr int MAX_ENEMIES = 256;
 
-    Enemy* SpawnEnemy(int subId, float x, float y, int life, int score, bool mirrored = false);
+    Enemy* SpawnEnemy(int subId, float x, float y, int life, int score, bool mirrored = false,
+                      int itemDrop = -99);
     void   InitSub(Enemy& enemy);
     void   RunSub(Enemy& enemy);
     void   UpdatePhysics(Enemy& enemy);
     void   RunTimeline();
+
+    void TransitionToSub(Enemy& enemy, int newSub);
+    void MoveRandInBounds(Enemy& enemy);
+    void StartLerpTo(Enemy& enemy, float targetX, float targetY, int frames);
+    void StartLerpDir(Enemy& enemy, float speed, int frames);
+    void UpdateBossCallbacks(Enemy& enemy, GameManager& gm);
 
     std::array<Enemy, MAX_ENEMIES> m_Enemies{};
 
     Anm::Manager       m_Anm;
     Util::Renderer     m_Renderer;
     EnemyBulletManager m_BulletManager;
+    EnemyLaserManager  m_LaserManager;
     ItemManager        m_ItemManager;
 
     const TimelineEntry* m_Timeline     = nullptr;
