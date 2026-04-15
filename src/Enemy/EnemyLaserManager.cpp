@@ -1,5 +1,6 @@
 #include "Enemy/EnemyLaserManager.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 // Compromise: lasers rendered as white rectangles (Util::Image has no tint support).
@@ -69,7 +70,12 @@ void EnemyLaserManager::Update() {
         int t3 = t2 + l.m_EndTime;
 
         if (t < t1) {
-            l.m_CurWidth = l.m_MaxWidth * (float)t / (float)t1;
+            int rampStart = t1 - std::min(t1, 30);
+            if (t >= rampStart) {
+                l.m_CurWidth = l.m_MaxWidth * (float)t / (float)t1;
+            } else {
+                l.m_CurWidth = 1.2f;
+            }
         } else if (t < t2) {
             l.m_CurWidth = l.m_MaxWidth;
         } else if (t < t3) {

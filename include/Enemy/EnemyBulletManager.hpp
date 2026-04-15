@@ -41,11 +41,14 @@ enum class EBulletColor {
 
 struct EnemyBullet {
     Anm::Vm   m_Vm;
-    glm::vec2 m_Pos        = {0, 0};
-    float     m_Angle      = 0;
-    float     m_Speed      = 0;
-    glm::vec2 m_HitboxSize = {5, 5};
-    bool      m_Alive      = false;
+    glm::vec2 m_Pos          = {0, 0};
+    float     m_Angle        = 0;
+    float     m_Speed        = 0;
+    glm::vec2 m_HitboxSize   = {5, 5};
+    float     m_Acceleration = 0.0f;
+    bool      m_Alive        = false;
+    bool      m_UseDecay     = false;
+    int       m_DecayTimer   = 0;
 };
 
 class EnemyBulletManager {
@@ -53,13 +56,19 @@ class EnemyBulletManager {
     EnemyBulletManager();
 
     void SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
-                       int count, float speed, float aimOffset, float spread);
-    // ways = angular spread, stacks = concentric rings with increasing speed
+                       int count, float speed, float aimOffset, float spread,
+                       bool useDecay = false);
+    // ECL-style: speed1 = outermost ring, speed2 = innermost ring (speed1 → speed2 linearly)
     void SpawnFanStack(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
-                       int ways, int stacks, float baseSpeed, float speedInc, float aimOffset,
+                       int ways, int stacks, float speed1, float speed2, float aimOffset,
                        float spread);
+    // CIRCLE_AIMED: full 360° ring rotated toward player + aimOffset
     void SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
-                          int count, float speed);
+                          int count, float speed, float aimOffset = 0.0f, bool useDecay = false,
+                          float acceleration = 0.0f);
+    // CIRCLE: full 360° ring at absolute baseAngle (no player aiming)
+    void SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count, float speed,
+                     float baseAngle = 0.0f, bool useDecay = false);
 
     void Update();
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);

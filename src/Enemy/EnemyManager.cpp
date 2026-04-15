@@ -311,14 +311,44 @@ void EnemyManager::RunSub(Enemy& enemy) {
 
         // ── Mid-boss: main pattern ────────────────────────────────────────────
         case 8: {
-            // 3 concentric aimed circles: speeds 2.0 / 3.5 / 5.0 (Normal = 3 stacks)
+            // ECL: bullet_circle_aimed(RingBall, ?, 16, count2=3, speed1=2.0, speed2=1.5, 0,0, 0x9)
+            // speed per ring: 2.0 - (2.0-1.5)*idx/3  →  2.0 / 1.833 / 1.667
+            // flag 0x1: adds 5.0*(1-t/16) for first 16 frames (ease-out decel from +5)
             auto circle3 = [&](EBulletColor c) {
-                m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall, c,
-                                                 16, 2.0f);
-                m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall, c,
-                                                 16, 3.5f);
-                m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall, c,
-                                                 16, 5.0f);
+                constexpr float s1 = 2.0f, s2 = 1.5f;
+                constexpr int   n = 3;
+                for (int ring = 0; ring < n; ring++) {
+                    float spd = s1 - (s1 - s2) * ring / n;
+                    m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos,
+                                                     EBulletType::RingBall, c, 16, spd, true);
+                }
+            };
+
+            // Sub4: 5 waves of 14 Pellets, speed=0+decay (shoot out and stop), aimed at player
+            // angle offsets: 0, 0.065, 0.131, 0.196, 0.262 rad; colors:
+            // Blue/Red/Green/Yellow/Orange
+            static constexpr EBulletColor kSub4Colors[5] = {
+                EBulletColor::Blue, EBulletColor::Red, EBulletColor::Green, EBulletColor::Yellow,
+                EBulletColor::Orange};
+            static constexpr float kSub4Offsets[5] = {0.0f, 0.06544985f, 0.1308997f, 0.19634955f,
+                                                      0.2617994f};
+            auto                   sub4Wave        = [&](int wave) {
+                m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::Pellet,
+                                                                          kSub4Colors[wave], 14, 0.0f, kSub4Offsets[wave],
+                                                                          true, 0.02f);
+            };
+
+            // Sub5: CIRCLE (not aimed), 8 Pellets + 8 Rice per wave, each with independent
+            // random speed [0.5,3.5) and random base angle [-pi,pi), decay flag
+            auto randSpeed = [&]() { return (rand() % 1000) / 1000.0f * 3.0f + 0.5f; };
+            auto randAngle = [&]() {
+                return ((rand() % 1000) / 1000.0f * 2.0f - 1.0f) * 3.14159265f;
+            };
+            auto sub5Wave = [&](int wave) {
+                m_BulletManager.SpawnCircle(enemy.m_Pos, EBulletType::Pellet, kSub4Colors[wave], 8,
+                                            randSpeed(), randAngle(), true);
+                m_BulletManager.SpawnCircle(enemy.m_Pos, EBulletType::Rice, kSub4Colors[wave], 8,
+                                            randSpeed(), randAngle(), true);
             };
 
             if (t == 0) StartLerpTo(enemy, 320.0f, 128.0f, 60);
@@ -326,51 +356,39 @@ void EnemyManager::RunSub(Enemy& enemy) {
             if (t == 160) circle3(EBulletColor::Blue);
             // Loop 1
             if (t == 202) StartLerpTo(enemy, 192.0f, 64.0f, 60);
+            // Sub4 at t=262..294 (5 waves, 8 frames apart)
+            for (int w = 0; w < 5; w++) {
+                if (t == 262 + w * 8) sub4Wave(w);
+            }
             if (t == 384) StartLerpTo(enemy, 64.0f, 96.0f, 60);
             if (t == 414) circle3(EBulletColor::Green);
             if (t == 444) circle3(EBulletColor::Yellow);
             if (t == 526) StartLerpTo(enemy, 192.0f, 80.0f, 60);
+            // Sub5 at t=586..618 (5 waves, 8 frames apart)
+            for (int w = 0; w < 5; w++) {
+                if (t == 586 + w * 8) sub5Wave(w);
+            }
             if (t == 708) StartLerpTo(enemy, 320.0f, 96.0f, 60);
             if (t == 738) circle3(EBulletColor::Blue);
             if (t == 768) circle3(EBulletColor::Red);
             // Loop 2 (+648 from loop 1 start)
             if (t == 850) StartLerpTo(enemy, 192.0f, 64.0f, 60);
+            // Sub4 at t=910..942
+            for (int w = 0; w < 5; w++) {
+                if (t == 910 + w * 8) sub4Wave(w);
+            }
             if (t == 1032) StartLerpTo(enemy, 64.0f, 96.0f, 60);
             if (t == 1062) circle3(EBulletColor::Green);
             if (t == 1092) circle3(EBulletColor::Yellow);
             if (t == 1174) StartLerpTo(enemy, 192.0f, 80.0f, 60);
+            // Sub5 at t=1234..1266
+            for (int w = 0; w < 5; w++) {
+                if (t == 1234 + w * 8) sub5Wave(w);
+            }
             if (t == 1356) StartLerpTo(enemy, 320.0f, 96.0f, 60);
             if (t == 1386) circle3(EBulletColor::Blue);
             if (t == 1416) circle3(EBulletColor::Red);
             // timer_callback at 1440 → sub7 (handled by UpdateBossCallbacks)
-            break;
-        }
-
-        // ── Mid-boss: Moonlight Ray spell (life callback at 500 HP) ──────────
-        // Compromise: laser rotation uses fixed angularVelocity (no per-frame control).
-        case 9: {
-            if (t == 0) {
-                enemy.m_CanTakeDamage          = false;
-                enemy.m_BossTimer              = 0;
-                enemy.m_TimerCallbackThreshold = 1320;
-                enemy.m_TimerCallbackSub       = 6;
-                StartLerpTo(enemy, 192.0f, 96.0f, 120);
-            }
-            if (t == 120) enemy.m_CanTakeDamage = true;
-            {
-                int loopT = (t >= 120) ? (t - 120) % 330 : -1;
-                if (loopT == 0) {
-                    // 2 counter-rotating lasers: angles 22.5° and 157.5°
-                    m_LaserManager.SpawnAtAngle(enemy.m_Pos, 0.3926991f, 500.0f, 32.0f, 30, 120, 30,
-                                                16, 120, 0.008267349f);
-                    m_LaserManager.SpawnAtAngle(enemy.m_Pos, 2.7488935f, 500.0f, 32.0f, 30, 120, 30,
-                                                16, 120, -0.008267349f);
-                }
-                if (loopT == 210) {
-                    MoveRandInBounds(enemy);
-                    StartLerpDir(enemy, 2.0f, 120);
-                }
-            }
             break;
         }
 
@@ -411,14 +429,14 @@ void EnemyManager::RunSub(Enemy& enemy) {
                 MoveRandInBounds(enemy);
                 StartLerpDir(enemy, 3.0f, 60);
             }
-            // 7 stacked fan bursts at t=12,20,28,36,44,52,60 (every 8f starting at 12)
-            // Normal: t=12 baseSpeed=3.0, t=20-60 baseSpeed=4.0, stacks=10, inc=1.0
+            // ECL: bullet_fan_aimed(Ball, Red/DarkRed, 1way, 10stacks, speed1, 1.0, 0, 0.09817477,
+            // 0x4) Normal: t=12 speed1=3.0, t=20-60 speed1=4.0; speed2=1.0 (innermost ring)
             if (t >= 12 && t <= 60 && (t - 12) % 8 == 0) {
-                float base = (t == 12) ? 3.0f : 4.0f;
+                float speed1 = 4.0f;
                 m_BulletManager.SpawnFanStack(
                     enemy.m_Pos, m_PlayerPos, EBulletType::Ball,
                     (((t - 12) / 8) % 2 == 0) ? EBulletColor::Red : EBulletColor::DarkRed, 1, 10,
-                    base, 1.0f, 0.0f, 0.09817477f);
+                    speed1, 1.0f, 0.0f, 0.09817477f);
             }
             if (t == 180) {
                 int r = rand() % 3;
@@ -433,33 +451,35 @@ void EnemyManager::RunSub(Enemy& enemy) {
                 MoveRandInBounds(enemy);
                 StartLerpDir(enemy, 3.0f, 60);
             }
+            // ECL: bullet_circle_aimed(RingBall/Pellet, ?, count=12/16 Normal, 1ring, speed, 1.0,
+            // ...)
             if (t == 60) {
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall,
-                                                 EBulletColor::Blue, 6, 4.0f);
+                                                 EBulletColor::Blue, 12, 4.0f);
             }
             if (t == 68) {
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::Pellet,
-                                                 EBulletColor::DarkBlue, 8, 3.0f);
+                                                 EBulletColor::DarkBlue, 16, 3.0f);
             }
             if (t == 76) {
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall,
-                                                 EBulletColor::Blue, 6, 2.0f);
+                                                 EBulletColor::Blue, 12, 2.0f);
             }
             if (t == 84) {
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::Pellet,
-                                                 EBulletColor::DarkBlue, 8, 3.0f);
+                                                 EBulletColor::DarkBlue, 16, 3.0f);
             }
             if (t == 92) {
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall,
-                                                 EBulletColor::Blue, 6, 4.0f);
+                                                 EBulletColor::Blue, 12, 4.0f);
             }
             if (t == 100) {
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::Pellet,
-                                                 EBulletColor::DarkBlue, 8, 3.0f);
+                                                 EBulletColor::DarkBlue, 16, 3.0f);
             }
             if (t == 108) {
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall,
-                                                 EBulletColor::Blue, 6, 2.0f);
+                                                 EBulletColor::Blue, 12, 2.0f);
             }
             if (t == 228) {
                 int r = rand() % 3;
@@ -475,12 +495,14 @@ void EnemyManager::RunSub(Enemy& enemy) {
                 StartLerpDir(enemy, 3.0f, 60);
             }
             if (t == 80) {
-                // Normal: 2 ways, 16 count per way, speed 5.0, spread 0.06544985
-                m_BulletManager.SpawnFanAimed(enemy.m_Pos, m_PlayerPos, EBulletType::Rice,
-                                              EBulletColor::Red, 2 * 16, 5.0f, 0.0f, 0.06544985f);
+                // ECL: bullet_fan_aimed(Rice, Red, 3ways Normal, 16stacks, 5.0, 1.0, 0, 0.06544985,
+                // 0x8)
+                m_BulletManager.SpawnFanStack(enemy.m_Pos, m_PlayerPos, EBulletType::Rice,
+                                              EBulletColor::Red, 3, 16, 5.0f, 1.0f, 0.0f,
+                                              0.06544985f);
             }
             if (t == 110) {
-                // Normal: 16 bullets, speed 2.0
+                // ECL: bullet_circle_aimed(RingBall, Blue, 16 Normal, 1ring, 2.0, 1.0, ...)
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall,
                                                  EBulletColor::Blue, 16, 2.0f);
             }
@@ -503,8 +525,8 @@ void EnemyManager::RunSub(Enemy& enemy) {
             if (t >= 0 && t < 32 && t % 2 == 0) {
                 int   step   = t / 2;
                 float speed  = 1.0f + step * 0.25f;
-                float offset = enemy.m_Mirrored ? -(0.2617994f + step * 0.06544985f)
-                                                : (0.2617994f + step * 0.06544985f);
+                float offset = enemy.m_Mirrored ? (-0.2617994f + step * 0.06544985f)
+                                                : (0.2617994f - step * 0.06544985f);
                 m_BulletManager.SpawnFanAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall,
                                               EBulletColor::Green, 1, speed, offset, 0.0f);
             }
@@ -559,9 +581,11 @@ void EnemyManager::RunSub(Enemy& enemy) {
                 StartLerpDir(enemy, 3.0f, 60);
             }
             if (t == 12) {
-                // Normal: 1 way, speed 3.0
-                m_BulletManager.SpawnFanAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall,
-                                              EBulletColor::Green, 1, 3.0f, 0.0f, 0.0f);
+                // ECL: bullet_fan_aimed(RingBall, Green, 2ways Normal, 8stacks, 3.0, 1.0, 0,
+                // 0.09817477, 0x4)
+                m_BulletManager.SpawnFanStack(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall,
+                                              EBulletColor::Green, 2, 8, 3.0f, 1.0f, 0.0f,
+                                              0.09817477f);
             }
             // 7 aimed lasers at t=20,28,36,44,52,60,68 (every 8f)
             // Params from ECL: length=500, maxWidth=16, startTime=120, duration=60,
@@ -583,9 +607,10 @@ void EnemyManager::RunSub(Enemy& enemy) {
                 MoveRandInBounds(enemy);
                 StartLerpDir(enemy, 3.0f, 60);
             }
+            // ECL: bullet_circle_aimed(Rice/Pellet, Green, 36/28 Normal, 1ring, 2.0/2.6, 1.0, ...)
             if (t == 60) {
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::Rice,
-                                                 EBulletColor::Green, 24, 2.0f);
+                                                 EBulletColor::Green, 36, 2.0f);
             }
             if (t == 90) {
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::Pellet,
@@ -593,7 +618,7 @@ void EnemyManager::RunSub(Enemy& enemy) {
             }
             if (t == 120) {
                 m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos, EBulletType::Rice,
-                                                 EBulletColor::Green, 24, 2.0f);
+                                                 EBulletColor::Green, 36, 2.0f);
             }
             if (t == 240) {
                 int r = rand() % 3;
@@ -608,19 +633,20 @@ void EnemyManager::RunSub(Enemy& enemy) {
                 MoveRandInBounds(enemy);
                 StartLerpDir(enemy, 3.0f, 60);
             }
-            // Normal: 4 ways, 2 rings, speed 3.0, spread 0.5235988
+            // ECL: bullet_fan_aimed(Rice, Yellow, (4:8:12:16)ways, 2stacks, 3.0, 1.0, 0,
+            // (0.52:0.26:...) Normal)
             if (t == 60)
                 m_BulletManager.SpawnFanStack(enemy.m_Pos, m_PlayerPos, EBulletType::Rice,
-                                              EBulletColor::Yellow, 4, 2, 3.0f, 0.0f, 0.0f,
-                                              0.5235988f);
+                                              EBulletColor::Yellow, 8, 2, 3.0f, 1.0f, 0.0f,
+                                              0.2617994f);
             if (t == 80)
                 m_BulletManager.SpawnFanStack(enemy.m_Pos, m_PlayerPos, EBulletType::Rice,
-                                              EBulletColor::Yellow, 5, 2, 3.0f, 0.0f, 0.0f,
-                                              0.5235988f);
+                                              EBulletColor::Yellow, 9, 2, 3.0f, 1.0f, 0.0f,
+                                              0.2617994f);
             if (t == 100)
                 m_BulletManager.SpawnFanStack(enemy.m_Pos, m_PlayerPos, EBulletType::Rice,
-                                              EBulletColor::Yellow, 7, 2, 3.0f, 0.0f, 0.0f,
-                                              0.5235988f);
+                                              EBulletColor::Yellow, 10, 2, 3.0f, 1.0f, 0.0f,
+                                              0.2617994f);
             if (t == 220) {
                 int r = rand() % 3;
                 TransitionToSub(enemy, r == 0 ? 19 : (r == 1 ? 18 : 21));
@@ -639,8 +665,8 @@ void EnemyManager::RunSub(Enemy& enemy) {
             if (t >= 0 && t < 32 && t % 2 == 0) {
                 int   step   = t / 2;
                 float speed  = 1.0f + step * 0.25f;
-                float offset = enemy.m_Mirrored ? -(0.7139983f + step * 0.14279966f)
-                                                : (0.7139983f + step * 0.14279966f);
+                float offset = enemy.m_Mirrored ? (-0.7139983f + step * 0.14279966f)
+                                                : (0.7139983f - step * 0.14279966f);
                 m_BulletManager.SpawnFanAimed(enemy.m_Pos, m_PlayerPos, EBulletType::RingBall,
                                               EBulletColor::Green, 2, speed, offset, 0.14279966f);
             }
@@ -664,34 +690,34 @@ void EnemyManager::RunSub(Enemy& enemy) {
             if (t == 120) {
                 enemy.m_CanTakeDamage = true;
             }
-            // Loop: 4 groups of 16 RingBall spiral bullets, then move
-            // Each full cycle ≈ 228 frames (4*2*16=128f firing + 100f move)
+            // Loop: 4 groups x2 passes of RingBall spiral bullets, then move
+            // Period = 2*128 + 100 = 356 frames
             {
-                int loopT = (t >= 120) ? (t - 120) % 228 : -1;
+                int loopT = (t >= 120) ? (t - 120) % 356 : -1;
                 if (loopT >= 0) {
-                    // 4 groups of 16 bullets at 2-frame intervals
-                    // Group 0 (DarkBlue, negative spiral): loopT 0..30
-                    // Group 1 (DarkCyan, positive spiral): loopT 32..62
-                    // Group 2 (Blue, negative spiral):     loopT 64..94
-                    // Group 3 (Cyan, positive spiral):     loopT 96..126
-                    // Move: loopT == 128
-                    auto shootSpiral = [&](int groupStart, EBulletColor color, bool negDir) {
+                    auto shootSpiral = [&](int groupStart, EBulletColor color, float initOffset,
+                                           float angleStep) {
                         if (loopT >= groupStart && loopT < groupStart + 32 &&
                             (loopT - groupStart) % 2 == 0) {
                             int   step   = (loopT - groupStart) / 2;
                             float speed  = 1.0f + step * 0.2f;
-                            float offset = negDir ? -(0.57119864f + step * 0.19634955f)
-                                                  : (0.57119864f + step * 0.19634955f);
+                            float offset = initOffset + step * angleStep;
                             m_BulletManager.SpawnFanAimed(enemy.m_Pos, m_PlayerPos,
                                                           EBulletType::RingBall, color, 1, speed,
                                                           offset, 0.06544985f);
                         }
                     };
-                    shootSpiral(0, EBulletColor::DarkBlue, true);
-                    shootSpiral(32, EBulletColor::DarkCyan, false);
-                    shootSpiral(64, EBulletColor::Blue, true);
-                    shootSpiral(96, EBulletColor::Cyan, false);
-                    if (loopT == 128) {
+                    // Pass 1 (loopT 0..127)
+                    shootSpiral(0, EBulletColor::DarkBlue, -0.57119864f, +0.14279966f);
+                    shootSpiral(32, EBulletColor::DarkCyan, +0.57119864f, -0.14279966f);
+                    shootSpiral(64, EBulletColor::Blue, -0.7853982f, +0.19634955f);
+                    shootSpiral(96, EBulletColor::Cyan, +0.7853982f, -0.19634955f);
+                    // Pass 2 (loopT 128..255)
+                    shootSpiral(128, EBulletColor::DarkBlue, -0.57119864f, +0.14279966f);
+                    shootSpiral(160, EBulletColor::DarkCyan, +0.57119864f, -0.14279966f);
+                    shootSpiral(192, EBulletColor::Blue, -0.7853982f, +0.19634955f);
+                    shootSpiral(224, EBulletColor::Cyan, +0.7853982f, -0.19634955f);
+                    if (loopT == 256) {
                         MoveRandInBounds(enemy);
                         StartLerpDir(enemy, 2.0f, 120);
                     }
@@ -712,35 +738,23 @@ void EnemyManager::RunSub(Enemy& enemy) {
             if (t == 120) {
                 enemy.m_CanTakeDamage = true;
             }
-            // Loop: 3 Rice circle pairs every 60f, then move at 300f
+            // Loop: 5 Rice circle pairs every 60f, then move at 300f
+            // Each pair: circle at aimOffset=0 + circle at aimOffset=0.19634955
             {
                 int loopT = (t >= 120) ? (t - 120) % 360 : -1;
                 if (loopT >= 0) {
-                    // Normal: 12 bullets, speed 3.0
-                    if (loopT == 0) {
+                    auto spawnPair = [&](EBulletColor color) {
                         m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos,
-                                                         EBulletType::Rice, EBulletColor::Blue, 12,
-                                                         3.0f);
+                                                         EBulletType::Rice, color, 16, 3.0f, 0.0f);
                         m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos,
-                                                         EBulletType::Rice, EBulletColor::Blue, 12,
-                                                         3.0f);
-                    }
-                    if (loopT == 60) {
-                        m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos,
-                                                         EBulletType::Rice, EBulletColor::Green, 12,
-                                                         3.0f);
-                        m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos,
-                                                         EBulletType::Rice, EBulletColor::Green, 12,
-                                                         3.0f);
-                    }
-                    if (loopT == 120) {
-                        m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos,
-                                                         EBulletType::Rice, EBulletColor::Red, 12,
-                                                         3.0f);
-                        m_BulletManager.SpawnCircleAimed(enemy.m_Pos, m_PlayerPos,
-                                                         EBulletType::Rice, EBulletColor::Red, 12,
-                                                         3.0f);
-                    }
+                                                         EBulletType::Rice, color, 16, 3.0f,
+                                                         0.19634955f);
+                    };
+                    if (loopT == 0) spawnPair(EBulletColor::Blue);
+                    if (loopT == 60) spawnPair(EBulletColor::Green);
+                    if (loopT == 120) spawnPair(EBulletColor::Red);
+                    if (loopT == 180) spawnPair(EBulletColor::Green);
+                    if (loopT == 240) spawnPair(EBulletColor::Red);
                     if (loopT == 300) {
                         MoveRandInBounds(enemy);
                         StartLerpDir(enemy, 2.0f, 120);

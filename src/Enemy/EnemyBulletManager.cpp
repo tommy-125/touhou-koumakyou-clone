@@ -28,7 +28,7 @@ EnemyBullet* EnemyBulletManager::AllocBullet() {
 
 void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
                                        EBulletColor color, int count, float speed, float aimOffset,
-                                       float spread) {
+                                       float spread, bool useDecay) {
     int scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
     int sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
 
@@ -49,6 +49,7 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
         b->m_Pos       = pos;
         b->m_Angle     = aimAngle + delta;
         b->m_Speed     = speed;
+        b->m_UseDecay  = useDecay;
 
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
@@ -58,19 +59,42 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
 }
 
 void EnemyBulletManager::SpawnFanStack(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
-                                       EBulletColor color, int ways, int stacks, float baseSpeed,
-                                       float speedInc, float aimOffset, float spread) {
+                                       EBulletColor color, int ways, int stacks, float speed1,
+                                       float speed2, float aimOffset, float spread) {
     for (int s = 0; s < stacks; s++) {
-        float speed = baseSpeed + s * speedInc;
+        float speed = speed1 - (speed1 - speed2) * s / stacks;
         SpawnFanAimed(pos, playerPos, type, color, ways, speed, aimOffset, spread);
     }
 }
 
 void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
-                                          EBulletColor color, int count, float speed) {
+                                          EBulletColor color, int count, float speed,
+                                          float aimOffset, bool useDecay, float acceleration) {
     int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
     int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
-    float aimAngle  = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x);
+    float aimAngle  = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x) + aimOffset;
+    float step      = 2.0f * Util::HALF_PI * 2.0f / count;
+
+    for (int i = 0; i < count; i++) {
+        EnemyBullet* b    = AllocBullet();
+        *b                = EnemyBullet{};
+        b->m_Alive        = true;
+        b->m_Pos          = pos;
+        b->m_Angle        = aimAngle + i * step;
+        b->m_Speed        = speed;
+        b->m_UseDecay     = useDecay;
+        b->m_Acceleration = acceleration;
+        m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
+        if (b->m_Vm.obj) {
+            m_Renderer.AddChild(b->m_Vm.obj);
+        }
+    }
+}
+
+void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count,
+                                     float speed, float baseAngle, bool useDecay) {
+    int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
+    int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
 
     for (int i = 0; i < count; i++) {
@@ -78,8 +102,9 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
         *b             = EnemyBullet{};
         b->m_Alive     = true;
         b->m_Pos       = pos;
-        b->m_Angle     = aimAngle + i * step;
+        b->m_Angle     = baseAngle + i * step;
         b->m_Speed     = speed;
+        b->m_UseDecay  = useDecay;
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
             m_Renderer.AddChild(b->m_Vm.obj);
@@ -115,8 +140,21 @@ void EnemyBulletManager::Update() {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
 
-        b.m_Pos.x += std::cos(b.m_Angle) * b.m_Speed;
-        b.m_Pos.y += std::sin(b.m_Angle) * b.m_Speed;
+        float effectiveSpeed = b.m_Speed;
+        if (b.m_UseDecay) {
+            if (b.m_DecayTimer <= 16) {
+                effectiveSpeed += 5.0f - b.m_DecayTimer * 5.0f / 16.0f;
+            } else {
+                b.m_UseDecay = false;
+            }
+            b.m_DecayTimer++;
+        } else if (b.m_Acceleration != 0.0f) {
+            b.m_Speed += b.m_Acceleration;
+            effectiveSpeed = b.m_Speed;
+        }
+
+        b.m_Pos.x += std::cos(b.m_Angle) * effectiveSpeed;
+        b.m_Pos.y += std::sin(b.m_Angle) * effectiveSpeed;
 
         b.m_Vm.pos = b.m_Pos;
         m_Anm.UpdateObjects(b.m_Vm);
