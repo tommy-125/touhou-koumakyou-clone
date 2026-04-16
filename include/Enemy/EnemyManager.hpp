@@ -3,22 +3,27 @@
 
 #include <array>
 #include <glm/glm.hpp>
+#include <memory>
 
 #include "Anm/AnmManager.hpp"
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
-#include "Enemy/Timeline.hpp"
-#include "Item/ItemManager.hpp"
+#include "Enemy/EnemySubCtx.hpp"
+#include "Scene/IStageScript.hpp"
+#include "Scene/Timeline.hpp"
 #include "Util/Renderer.hpp"
 
 struct GameManager;
+class ItemManager;
 class Player;
 
 class EnemyManager {
    public:
     EnemyManager();
     void SetTimeline(const TimelineEntry* entries, int count);
+    void SetScript(std::unique_ptr<IStageScript> script);
+    void SetItemManager(ItemManager* items) { m_Items = items; }
     void Update(const glm::vec2& playerPos, GameManager& gm);
     int  ApplyPlayerBulletDamage(Player& player);
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
@@ -27,18 +32,12 @@ class EnemyManager {
    private:
     static constexpr int MAX_ENEMIES = 256;
 
-    Enemy* SpawnEnemy(int subId, float x, float y, int life, int score, bool mirrored = false,
-                      int itemDrop = -99);
-    void   InitSub(Enemy& enemy);
-    void   RunSub(Enemy& enemy);
-    void   UpdatePhysics(Enemy& enemy);
-    void   RunTimeline();
-
-    void TransitionToSub(Enemy& enemy, int newSub);
-    void MoveRandInBounds(Enemy& enemy);
-    void StartLerpTo(Enemy& enemy, float targetX, float targetY, int frames);
-    void StartLerpDir(Enemy& enemy, float speed, int frames);
-    void UpdateBossCallbacks(Enemy& enemy, GameManager& gm);
+    Enemy*      SpawnEnemy(int subId, float x, float y, int life, int score, bool mirrored = false,
+                           int itemDrop = -99);
+    void        UpdatePhysics(Enemy& enemy);
+    void        RunTimeline();
+    void        UpdateBossCallbacks(Enemy& enemy, GameManager& gm);
+    EnemySubCtx MakeCtx();
 
     std::array<Enemy, MAX_ENEMIES> m_Enemies{};
 
@@ -46,7 +45,9 @@ class EnemyManager {
     Util::Renderer     m_Renderer;
     EnemyBulletManager m_BulletManager;
     EnemyLaserManager  m_LaserManager;
-    ItemManager        m_ItemManager;
+    ItemManager*       m_Items = nullptr;
+
+    std::unique_ptr<IStageScript> m_Script;
 
     const TimelineEntry* m_Timeline     = nullptr;
     int                  m_TimelineSize = 0;

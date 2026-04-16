@@ -1,9 +1,10 @@
-#ifndef SCENE_STAGE1_HPP
-#define SCENE_STAGE1_HPP
+#ifndef SCENE_STAGE1_STAGE1_HPP
+#define SCENE_STAGE1_STAGE1_HPP
 
 #include "Enemy/EnemyManager.hpp"
 #include "GameManager.hpp"
 #include "Gui.hpp"
+#include "Item/ItemManager.hpp"
 #include "Player.hpp"
 #include "Scene/Scene.hpp"
 #include "Util/GameObject.hpp"
@@ -26,8 +27,9 @@ class Stage1 : public Scene {
 
     GameManager  m_GameManager;
     Gui          m_Gui;
+    ItemManager  m_ItemManager;
     EnemyManager m_EnemyManager;
     Player       m_Player;
 };
 
-#endif  // SCENE_STAGE1_HPP
+#endif  // SCENE_STAGE1_STAGE1_HPP

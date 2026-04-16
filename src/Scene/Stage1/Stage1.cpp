@@ -1,6 +1,9 @@
-#include "Scene/Stage1.hpp"
+#include "Scene/Stage1/Stage1.hpp"
 
-#include "Enemy/Timeline.hpp"
+#include <memory>
+
+#include "Scene/Stage1/Stage1Script.hpp"
+#include "Scene/Timeline.hpp"
 #include "Scene/Title.hpp"
 
 // Transcribed from ecldata1.txt timeline0 (Normal difficulty)
@@ -256,8 +259,10 @@ static const TimelineEntry STAGE1_TIMELINE[] = {
 };
 
 Stage1::Stage1(CharacterItem character, SpellCardItem spellCard) : m_Player(character, spellCard) {
+    m_EnemyManager.SetItemManager(&m_ItemManager);
     m_EnemyManager.SetTimeline(STAGE1_TIMELINE,
                                sizeof(STAGE1_TIMELINE) / sizeof(STAGE1_TIMELINE[0]));
+    m_EnemyManager.SetScript(std::make_unique<Stage1Script>());
 
     m_BgImage = std::make_shared<Util::Image>(GA_RESOURCE_DIR "/stage1_bg.png");
     m_BgObj   = std::make_shared<Util::GameObject>(m_BgImage, -10.0f);
@@ -272,6 +277,7 @@ void Stage1::Update() {
     m_Renderer.Update();
 
     m_EnemyManager.Update(m_Player.GetPos(), m_GameManager);
+    m_ItemManager.Update(m_Player.GetPos(), m_GameManager);
     m_Player.Update(m_GameManager);
 
     int scoreGained = m_EnemyManager.ApplyPlayerBulletDamage(m_Player);

@@ -4,7 +4,7 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
-#include "Scene/Stage1.hpp"
+#include "Scene/Stage1/Stage1.hpp"
 #include "Scene/Title.hpp"
 #include "Util/Image.hpp"
 #include "Util/Input.hpp"

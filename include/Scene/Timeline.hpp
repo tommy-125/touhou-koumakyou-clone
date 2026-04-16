@@ -1,5 +1,5 @@
-#ifndef ENEMY_TIMELINE_HPP
-#define ENEMY_TIMELINE_HPP
+#ifndef SCENE_TIMELINE_HPP
+#define SCENE_TIMELINE_HPP
 
 struct TimelineEntry {
     int   frame;
@@ -12,4 +12,4 @@ struct TimelineEntry {
     int   itemDrop = -99;    // -99 = use InitSub default; otherwise override m_ItemDrop
 };
 
-#endif  // ENEMY_TIMELINE_HPP
+#endif  // SCENE_TIMELINE_HPP
