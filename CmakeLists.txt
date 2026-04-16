@@ -37,7 +37,7 @@ else()
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    PTSD_FONT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resources/黑体.ttf"
+    PTSD_FONT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resources/black_font.ttf"
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
