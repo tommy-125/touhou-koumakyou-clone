@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "Anm/AnmManager.hpp"
+#include "Enemy/EnemyManager.hpp"
 #include "GameManager.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/Image.hpp"
@@ -13,7 +14,7 @@
 class Gui {
    public:
     Gui();
-    void Update(const GameManager& gm);
+    void Update(const GameManager& gm, const BossHudState& bossHud);
 
    private:
     static constexpr int NUM_DECO  = 6;  // front scripts 0–5
@@ -41,12 +42,37 @@ class Gui {
     std::shared_ptr<Util::GameObject> m_PowerObj;
     std::shared_ptr<Util::GameObject> m_GrazeObj;
 
-    int m_LastLives   = -1;
-    int m_LastBombs   = -1;
-    int m_LastScore   = -1;
-    int m_LastHiScore = -1;
-    int m_LastPower   = -1;
-    int m_LastGraze   = -1;
+    std::shared_ptr<Util::Text>       m_BossLabelText;
+    std::shared_ptr<Util::Text>       m_BossBarText;
+    std::shared_ptr<Util::Text>       m_BossHpText;
+    std::shared_ptr<Util::Text>       m_BossTimerText;
+    std::shared_ptr<Util::Text>       m_BossTitleText;
+    std::shared_ptr<Util::Text>       m_BossBonusText;
+    std::shared_ptr<Util::GameObject> m_BossLabelObj;
+    std::shared_ptr<Util::GameObject> m_BossBarObj;
+    std::shared_ptr<Util::GameObject> m_BossHpObj;
+    std::shared_ptr<Util::GameObject> m_BossTimerObj;
+    std::shared_ptr<Util::GameObject> m_BossTitleObj;
+    std::shared_ptr<Util::GameObject> m_BossBonusObj;
+
+    int   m_LastLives           = -1;
+    int   m_LastBombs           = -1;
+    int   m_LastScore           = -1;
+    int   m_LastHiScore         = -1;
+    int   m_LastPower           = -1;
+    int   m_LastGraze           = -1;
+    int   m_LastBossLife        = -1;
+    int   m_LastBossMin         = -1;
+    int   m_LastBossMax         = -1;
+    int   m_LastBossShow        = -1;
+    int   m_LastBossSeconds     = -1;
+    int   m_LastBossPhase       = -1;
+    int   m_LastBossBonus       = -1;
+    bool  m_LastBossSpell       = false;
+    bool  m_LastBossShowName    = false;
+    std::string m_LastBossTitle;
+    float m_BossBarRatioDisplay = 0.0f;
+    float m_BossUiAnim          = 0.0f;
 };
 
 #endif  // GUI_HPP

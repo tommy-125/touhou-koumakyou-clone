@@ -8,6 +8,10 @@
 #include "Util/Input.hpp"
 #include "Util/Math.hpp"
 
+static constexpr float PLAYER_LASER_DEFAULT_LENGTH = 176.0f;
+static constexpr float PLAYER_LASER_GROWTH_RATE    = 24.0f;
+static constexpr int   PLAYER_LASER_HOLD_FRAMES    = 2;
+
 Player::Player(CharacterItem character, SpellCardItem spellCard)
     : m_Data(character == CharacterItem::Reimu ? &REIMU_DATA : &MARISA_DATA),
       m_SpellCard(spellCard) {
@@ -50,6 +54,16 @@ int Player::CalcDamageToEnemy(glm::vec2 enemyPos, glm::vec2 enemyHitboxSize) {
     int total = 0;
     for (auto& b : m_Bullets) {
         if (b.m_BulletState != BulletState::FIRED) continue;
+        if (b.m_BulletType == BulletType::LASER) {
+            const float dx = std::abs(b.m_Vm.pos.x - enemyPos.x);
+            const float dy = std::abs(b.m_Vm.pos.y - enemyPos.y);
+            if (dx < (b.m_Size.x + enemyHitboxSize.x) * 0.5f &&
+                dy < (b.m_Size.y + enemyHitboxSize.y) * 0.5f) {
+                total += b.m_Damage;
+            }
+            continue;
+        }
+
         float dx = std::abs(b.m_Vm.pos.x - enemyPos.x);
         float dy = std::abs(b.m_Vm.pos.y - enemyPos.y);
         // Both m_Size and enemyHitboxSize are full widths (matches TH6 SetVecCorners).
@@ -289,7 +303,33 @@ FireBulletResult Player::FireSingleBullet(PlayerBullet* bullet, int bulletIdx,
     const CharacterPowerBulletData* bulletData = powerData->m_Bullets + bulletIdx;
 
     if (bulletData->m_BulletType == BulletType::LASER) {
-        // TODO: implement laser bullets
+        for (auto& activeBullet : m_Bullets) {
+            if (activeBullet.m_BulletState != BulletState::FIRED ||
+                activeBullet.m_BulletType != BulletType::LASER ||
+                activeBullet.m_LaserSpawnPositionIdx != bulletData->m_SpawnPositionIdx) {
+                continue;
+            }
+
+            activeBullet.m_Damage     = bulletData->m_Damage;
+            activeBullet.m_Size.x     = bulletData->m_Size.x;
+            activeBullet.m_LaserOffset = bulletData->m_SpawnOffset;
+            activeBullet.m_AliveTimer = PLAYER_LASER_HOLD_FRAMES;
+            return bulletIdx + 1 >= powerData->m_NumBullets ? FireBulletResult::END_SPAWNING
+                                                            : FireBulletResult::CONTINUE_SPAWNING;
+        }
+
+        if (m_FireBulletTimer % bulletData->m_BulletsInterval == bulletData->m_FireBulletOffset) {
+            *bullet = PlayerBullet{};
+            m_Anm.SetScript(bullet->m_Vm, bulletData->m_ScriptIdx, bulletData->m_SpriteOffset);
+            bullet->m_Size                 = {bulletData->m_Size.x, 1.0f};
+            bullet->m_Damage               = bulletData->m_Damage;
+            bullet->m_BulletType           = BulletType::LASER;
+            bullet->m_LaserOffset          = bulletData->m_SpawnOffset;
+            bullet->m_LaserSpawnPositionIdx = bulletData->m_SpawnPositionIdx;
+            bullet->m_AliveTimer           = PLAYER_LASER_HOLD_FRAMES;
+            return bulletIdx + 1 >= powerData->m_NumBullets ? FireBulletResult::FIRED_AND_LAST
+                                                            : FireBulletResult::FIRED;
+        }
     } else if (m_FireBulletTimer % bulletData->m_BulletsInterval ==
                bulletData->m_FireBulletOffset) {
         *bullet = PlayerBullet{};
@@ -335,14 +375,36 @@ void Player::UpdatePlayerBullets() {
                 case BulletType::PIERCE:
                     break;
                 case BulletType::LASER:
+                    bullet->m_AliveTimer--;
+                    if (bullet->m_AliveTimer < 0) {
+                        bullet->m_BulletState = BulletState::UNUSED;
+                        m_Renderer.RemoveChild(bullet->m_Vm.obj);
+                        break;
+                    }
+
+                    if (bullet->m_LaserSpawnPositionIdx == 0) {
+                        bullet->m_Vm.pos = this->m_BodyPos + bullet->m_LaserOffset;
+                    } else {
+                        bullet->m_Vm.pos = this->m_OrbVms[bullet->m_LaserSpawnPositionIdx - 1]->pos +
+                                           bullet->m_LaserOffset;
+                    }
+
+                    bullet->m_Size.y = std::min(PLAYER_LASER_DEFAULT_LENGTH,
+                                                bullet->m_Size.y + PLAYER_LASER_GROWTH_RATE);
+                    bullet->m_Vm.pos.y -= bullet->m_Size.y * 0.5f;
+                    bullet->m_Vm.rotation = 0.0f;
+                    bullet->m_Vm.scale    = {bullet->m_Size.x / 32.0f, bullet->m_Size.y / 32.0f};
                     break;
                 case BulletType::STRAIGHT:
                     break;
             }
 
-            bullet->m_Vm.pos += bullet->m_Velocity;
+            if (bullet->m_BulletType != BulletType::LASER) {
+                bullet->m_Vm.pos += bullet->m_Velocity;
+            }
             m_Anm.UpdateObjects(bullet->m_Vm);
-            if (!Util::IsInGameBounds(bullet->m_Vm.pos.x, bullet->m_Vm.pos.y, bullet->m_Size.x,
+            if (bullet->m_BulletType != BulletType::LASER &&
+                !Util::IsInGameBounds(bullet->m_Vm.pos.x, bullet->m_Vm.pos.y, bullet->m_Size.x,
                                       bullet->m_Size.y)) {
                 bullet->m_BulletState = BulletState::UNUSED;
                 m_Renderer.RemoveChild(bullet->m_Vm.obj);

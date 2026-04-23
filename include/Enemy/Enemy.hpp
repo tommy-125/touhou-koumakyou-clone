@@ -2,6 +2,7 @@
 #define ENEMY_HPP
 
 #include <glm/glm.hpp>
+#include <string>
 
 #include "Anm/AnmTypes.hpp"
 
@@ -35,7 +36,11 @@ struct Enemy {
     bool m_InSpellcard      = false;  // damage /7 during spellcard (TH6 behavior)
     int  m_BossTimer        = 0;
     int  m_BossMaxLife      = 1;
+    int  m_BossPhaseIndex   = 0;
+    int  m_SpellcardBonus   = 0;
+    bool m_ShowSpellName    = false;
     int  m_DeathCallbackSub = -1;
+    std::string m_BossTitle;
 
     int m_LifeCallbackThreshold  = -1;
     int m_LifeCallbackSub        = -1;

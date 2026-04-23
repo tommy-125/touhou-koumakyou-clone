@@ -58,6 +58,8 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_TimerCallbackThreshold = 1440;
             enemy.m_TimerCallbackSub       = 7;
             enemy.m_BlocksTimeline         = true;
+            enemy.m_BossTitle              = "Rumia";
+            enemy.m_BossPhaseIndex         = 0;
             break;
         }
 
@@ -74,6 +76,7 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_IsBoss           = true;
             enemy.m_CanTakeDamage    = false;
             enemy.m_DeathCallbackSub = 16;
+            enemy.m_BossTitle        = "Rumia";
             break;
         }
 
@@ -208,6 +211,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
         case 7: {  // Mid-boss escape (timer callback from Sub8)
             if (t == 0) {
                 enemy.m_CanTakeDamage = false;
+                enemy.m_ShowSpellName = false;
                 ctx.bullets.ClearAll();
                 ctx.lasers.ClearAll();
                 enemy.m_Speed = 0.0f;
@@ -226,6 +230,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
         case 6: {  // Mid-boss death (death callback from Sub8)
             if (t == 0) {
                 enemy.m_CanTakeDamage = false;
+                enemy.m_ShowSpellName = false;
                 ctx.bullets.ClearAll();
                 ctx.lasers.ClearAll();
                 enemy.m_Speed = 0.0f;
@@ -260,6 +265,10 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
         case 11: {  // Phase 1 non-spell init (HP 7000, life→22 @900, timer→22 @2100)
             if (t == 0) {
                 enemy.m_CanTakeDamage          = true;
+                enemy.m_ShowSpellName          = false;
+                enemy.m_BossTitle              = "Rumia";
+                enemy.m_BossPhaseIndex         = 1;
+                enemy.m_SpellcardBonus         = 0;
                 enemy.m_Life                   = 7000;
                 enemy.m_BossMaxLife            = 7000;
                 enemy.m_BossTimer              = 0;
@@ -378,6 +387,10 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t == 0) {
                 enemy.m_CanTakeDamage          = false;
                 enemy.m_InSpellcard            = true;
+                enemy.m_ShowSpellName          = true;
+                enemy.m_BossTitle              = "Night Bird";
+                enemy.m_BossPhaseIndex         = 2;
+                enemy.m_SpellcardBonus         = 2000000;
                 enemy.m_BossTimer              = 0;
                 enemy.m_TimerCallbackThreshold = 1500;
                 ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
@@ -425,6 +438,10 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t == 0) {
                 enemy.m_CanTakeDamage          = false;
                 enemy.m_InSpellcard            = false;
+                enemy.m_ShowSpellName          = false;
+                enemy.m_BossTitle              = "Rumia";
+                enemy.m_BossPhaseIndex         = 3;
+                enemy.m_SpellcardBonus         = 0;
                 enemy.m_Life                   = 7500;
                 enemy.m_BossMaxLife            = 7500;
                 enemy.m_BossTimer              = 0;
@@ -534,7 +551,12 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t == 0) {
                 enemy.m_CanTakeDamage          = false;
                 enemy.m_InSpellcard            = true;
+                enemy.m_ShowSpellName          = true;
+                enemy.m_BossTitle              = "Demarcation";
+                enemy.m_BossPhaseIndex         = 4;
+                enemy.m_SpellcardBonus         = 3000000;
                 enemy.m_BossTimer              = 0;
+                enemy.m_BossMaxLife            = enemy.m_Life > 0 ? enemy.m_Life : 1;
                 enemy.m_TimerCallbackThreshold = 1500;
                 ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
             }
@@ -545,15 +567,16 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 // One cycle = 336 frames (3 pairs at 0/60/120, spiral at 180 for 96f, +60 wait)
                 int loopT = (t >= 120) ? (t - 120) % 336 : -1;
                 if (loopT >= 0) {
-                    auto spawnPair = [&](EBulletColor color, bool upFirst) {
+                    const glm::vec2 ringAnchor = enemy.m_Pos + glm::vec2{1.0f, 0.0f};
+                    auto            spawnPair  = [&](EBulletColor color, bool upFirst) {
                         float a1 = upFirst ? +Util::HALF_PI : -Util::HALF_PI;
                         float a2 = upFirst ? -Util::HALF_PI : +Util::HALF_PI;
-                        ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                                     color, 16, 3.0f, 0.0f, false, 0.0f,
-                                                     {40, a1, 1.5f, true}, true);
-                        ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                                     color, 16, 3.0f, 0.19634955f, false, 0.0f,
-                                                     {40, a2, 1.5f, true}, true);
+                        ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ringAnchor, EBulletType::Rice,
+                                                                 color, 16, 3.0f, 0.0f, false, 0.0f,
+                                                                 {40, a1, 1.5f, true}, true);
+                        ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ringAnchor, EBulletType::Rice,
+                                                                 color, 16, 3.0f, 0.19634955f, false, 0.0f,
+                                                                 {40, a2, 1.5f, true}, true);
                     };
                     if (loopT == 0) spawnPair(EBulletColor::Blue, true);
                     if (loopT == 60) spawnPair(EBulletColor::Green, false);
@@ -581,8 +604,10 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
 
         case 17: {  // Boss death — clear field, despawn after 60f
             if (t == 0) {
-                enemy.m_CanTakeDamage = false;
-                enemy.m_InSpellcard   = false;
+                enemy.m_CanTakeDamage  = false;
+                enemy.m_InSpellcard    = false;
+                enemy.m_ShowSpellName  = false;
+                enemy.m_SpellcardBonus = 0;
                 ctx.bullets.ClearAll();
                 ctx.lasers.ClearAll();
             }

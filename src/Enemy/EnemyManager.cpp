@@ -278,6 +278,30 @@ void EnemyManager::ClearAllBullets() {
     m_LaserManager.ClearAll();
 }
 
+BossHudState EnemyManager::GetBossHudState() const {
+    for (const auto& enemy : m_Enemies) {
+        if (!enemy.m_Alive || !enemy.m_IsBoss) continue;
+
+        BossHudState state;
+        state.visible          = true;
+        state.isSpellcard      = enemy.m_InSpellcard;
+        state.showSpellName    = enemy.m_ShowSpellName;
+        state.life             = enemy.m_Life;
+        state.minLife          = 0;
+        state.maxLife          = enemy.m_BossMaxLife > 0 ? enemy.m_BossMaxLife : 1;
+        state.phaseIndex       = enemy.m_BossPhaseIndex;
+        state.spellcardBonus   = enemy.m_SpellcardBonus;
+        state.title            = enemy.m_BossTitle;
+        if (enemy.m_TimerCallbackThreshold >= 0) {
+            const int framesLeft = std::max(0, enemy.m_TimerCallbackThreshold - enemy.m_BossTimer);
+            state.secondsRemaining = (framesLeft + 59) / 60;
+        }
+        return state;
+    }
+
+    return {};
+}
+
 void EnemyManager::SkipToFrame(int frame) {
     for (auto& e : m_Enemies) {
         if (!e.m_Alive) continue;

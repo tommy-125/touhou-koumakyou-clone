@@ -12,6 +12,8 @@ static constexpr float ITEM_HALF_SIZE   = 8.0f;
 static constexpr float ITEM_VEL_INIT_Y  = -2.2f;
 static constexpr float ITEM_GRAVITY     = 0.03f;
 static constexpr float ITEM_VEL_MAX_Y   = 3.0f;
+static constexpr float ITEM_AUTOGET_Y   = Util::FIELD_OFFSET_Y + 128.0f;
+static constexpr float ITEM_HOMING_GAIN = 0.18f;
 
 ItemManager::ItemManager() {
     m_Anm.LoadAnm(Anm::ETAMA3.folder, Anm::ETAMA3.txt, Anm::ETAMA3.offset);
@@ -50,6 +52,13 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
 
         item.m_Vm.pos = item.m_Pos;
         m_Anm.UpdateObjects(item.m_Vm);
+
+        if (playerPos.y <= ITEM_AUTOGET_Y) {
+            glm::vec2 toPlayer = playerPos - item.m_Pos;
+            item.m_Vel += toPlayer * ITEM_HOMING_GAIN;
+            item.m_Vel.x = std::clamp(item.m_Vel.x, -10.0f, 10.0f);
+            item.m_Vel.y = std::clamp(item.m_Vel.y, -10.0f, 10.0f);
+        }
 
         float dx = std::abs(item.m_Pos.x - playerPos.x);
         float dy = std::abs(item.m_Pos.y - playerPos.y);

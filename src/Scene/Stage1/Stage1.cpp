@@ -307,7 +307,7 @@ void Stage1::Update() {
         m_EnemyManager.ClearAllBullets();
     }
 
-    m_Gui.Update(m_GameManager);
+    m_Gui.Update(m_GameManager, m_EnemyManager.GetBossHudState());
 }
 
 std::unique_ptr<Scene> Stage1::NextScene() {

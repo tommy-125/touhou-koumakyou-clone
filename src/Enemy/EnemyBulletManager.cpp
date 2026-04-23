@@ -86,7 +86,9 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
         b->m_Speed             = speed;
         b->m_UseDecay          = useDecay;
         b->m_Acceleration      = acceleration;
-        b->m_DirChangeAt       = curve.at;
+        b->m_DirChangeInterval = curve.at;
+        b->m_DirChangeNumTimes = 0;
+        b->m_DirChangeMaxTimes = curve.times;
         b->m_DirChangeAngle    = curve.angle;
         b->m_DirChangeSpeed    = curve.speed;
         b->m_DirChangeRelative = curve.relative;
@@ -148,13 +150,6 @@ void EnemyBulletManager::Update() {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
 
-        if (b.m_DirChangeAt >= 0 && b.m_DecayTimer == b.m_DirChangeAt) {
-            b.m_Angle = b.m_DirChangeRelative ? b.m_Angle + b.m_DirChangeAngle : b.m_DirChangeAngle;
-            b.m_Speed = b.m_DirChangeSpeed;
-            b.m_DirChangeAt = -1;
-            b.m_UseDecay    = false;
-        }
-
         float effectiveSpeed = b.m_Speed;
         if (b.m_UseDecay) {
             if (b.m_DecayTimer <= 16) {
@@ -166,13 +161,36 @@ void EnemyBulletManager::Update() {
             b.m_Speed += b.m_Acceleration;
             effectiveSpeed = b.m_Speed;
         }
+
+        // TH06 ex flag 0x40 behavior: within each interval, speed decays linearly to 0;
+        // at interval boundary, angle/speed are reset and this can repeat multiple times.
+        if (b.m_DirChangeInterval > 0 && b.m_DirChangeNumTimes < b.m_DirChangeMaxTimes) {
+            int nextTrigger = b.m_DirChangeInterval * (b.m_DirChangeNumTimes + 1);
+            if (b.m_DecayTimer >= nextTrigger) {
+                b.m_DirChangeNumTimes++;
+                b.m_Angle =
+                    b.m_DirChangeRelative ? b.m_Angle + b.m_DirChangeAngle : b.m_DirChangeAngle;
+                b.m_Speed      = b.m_DirChangeSpeed;
+                effectiveSpeed = b.m_Speed;
+                if (b.m_DirChangeNumTimes >= b.m_DirChangeMaxTimes) {
+                    b.m_DirChangeInterval = -1;
+                }
+            } else {
+                int   intervalStart = b.m_DirChangeInterval * b.m_DirChangeNumTimes;
+                float localTime     = static_cast<float>(b.m_DecayTimer - intervalStart);
+                float interval      = static_cast<float>(b.m_DirChangeInterval);
+                effectiveSpeed      = b.m_Speed - (localTime * b.m_Speed) / interval;
+                if (effectiveSpeed < 0.0f) effectiveSpeed = 0.0f;
+            }
+        }
+
         b.m_DecayTimer++;
 
         b.m_Pos.x += std::cos(b.m_Angle) * effectiveSpeed;
         b.m_Pos.y += std::sin(b.m_Angle) * effectiveSpeed;
 
         b.m_Vm.pos = b.m_Pos;
-        if (b.m_RotateWithAngle) b.m_Vm.rotation = b.m_Angle;
+        if (b.m_RotateWithAngle) b.m_Vm.rotation = Util::HALF_PI - b.m_Angle;
         m_Anm.UpdateObjects(b.m_Vm);
 
         if (!Util::IsInGameBounds(b.m_Pos.x, b.m_Pos.y, 0, 0)) {

@@ -49,22 +49,26 @@ struct EnemyBullet {
     bool      m_Alive        = false;
     bool      m_UseDecay     = false;
     int       m_DecayTimer   = 0;
-    // Direction change (ECL flag 0x40 / ins_82): at m_DirChangeAt frames old,
-    // snap angle to m_DirChangeAngle and speed to m_DirChangeSpeed. Disabled when < 0.
-    bool  m_RotateWithAngle   = false;
-    int   m_DirChangeAt       = -1;
+    // TH06 auto-rotate style for angle-aware bullets.
+    bool m_RotateWithAngle = false;
+    // Direction change (ECL flag 0x40 / ins_82): every m_DirChangeInterval frames,
+    // rotate to new direction and restore speed, up to m_DirChangeMaxTimes.
+    int   m_DirChangeInterval = -1;
+    int   m_DirChangeNumTimes = 0;
+    int   m_DirChangeMaxTimes = 0;
     float m_DirChangeAngle    = 0.0f;
     float m_DirChangeSpeed    = 0.0f;
     bool  m_DirChangeRelative = false;
 };
 
-// Direction change (ECL flag 0x40 / ins_82): after N frames, snap bullet to new angle/speed.
-// relative=true: new angle = current angle + angle (tangential turns); false: absolute world angle.
+// Direction change (ECL flag 0x40 / ins_82): every `at` frames, rotate/re-speed.
+// relative=true: new angle = current angle + angle; false: absolute world angle.
 struct BulletCurve {
     int   at       = -1;
     float angle    = 0.0f;
     float speed    = 0.0f;
     bool  relative = false;
+    int   times    = 1;
 };
 
 class EnemyBulletManager {

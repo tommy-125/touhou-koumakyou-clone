@@ -24,6 +24,7 @@ static void InitLaser(EnemyLaser* l, glm::vec2 pos, float angle, float length, f
     l->m_Length          = length;
     l->m_MaxWidth        = maxWidth;
     l->m_CurWidth        = 0.0f;
+    l->m_CoreWidth       = 0.0f;
     l->m_StartTime       = startTime;
     l->m_Duration        = duration;
     l->m_EndTime         = endTime;
@@ -37,13 +38,17 @@ void EnemyLaserManager::SpawnAimed(glm::vec2 pos, glm::vec2 playerPos, float len
                                    int hitboxEnd) {
     EnemyLaser* l = AllocLaser();
     if (l->m_Obj) m_Renderer.RemoveChild(l->m_Obj);
+    if (l->m_CoreObj) m_Renderer.RemoveChild(l->m_CoreObj);
     float angle = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x);
     InitLaser(l, pos, angle, length, maxWidth, startTime, duration, endTime, hitboxStart, hitboxEnd,
               0.0f);
     l->m_Img = std::make_shared<Util::Image>(WHITE_PNG);
     l->m_Obj = std::make_shared<Util::GameObject>(l->m_Img, 3.0f);
+    l->m_CoreObj = std::make_shared<Util::GameObject>(l->m_Img, 3.1f);
     l->m_Obj->SetVisible(false);
+    l->m_CoreObj->SetVisible(false);
     m_Renderer.AddChild(l->m_Obj);
+    m_Renderer.AddChild(l->m_CoreObj);
 }
 
 void EnemyLaserManager::SpawnAtAngle(glm::vec2 pos, float angle, float length, float maxWidth,
@@ -51,12 +56,16 @@ void EnemyLaserManager::SpawnAtAngle(glm::vec2 pos, float angle, float length, f
                                      int hitboxEnd, float angularVelocity) {
     EnemyLaser* l = AllocLaser();
     if (l->m_Obj) m_Renderer.RemoveChild(l->m_Obj);
+    if (l->m_CoreObj) m_Renderer.RemoveChild(l->m_CoreObj);
     InitLaser(l, pos, angle, length, maxWidth, startTime, duration, endTime, hitboxStart, hitboxEnd,
               angularVelocity);
     l->m_Img = std::make_shared<Util::Image>(WHITE_PNG);
     l->m_Obj = std::make_shared<Util::GameObject>(l->m_Img, 3.0f);
+    l->m_CoreObj = std::make_shared<Util::GameObject>(l->m_Img, 3.1f);
     l->m_Obj->SetVisible(false);
+    l->m_CoreObj->SetVisible(false);
     m_Renderer.AddChild(l->m_Obj);
+    m_Renderer.AddChild(l->m_CoreObj);
 }
 
 void EnemyLaserManager::Update() {
@@ -85,10 +94,15 @@ void EnemyLaserManager::Update() {
             if (l.m_Obj) {
                 m_Renderer.RemoveChild(l.m_Obj);
                 l.m_Obj = nullptr;
-                l.m_Img = nullptr;
             }
+            if (l.m_CoreObj) {
+                m_Renderer.RemoveChild(l.m_CoreObj);
+                l.m_CoreObj = nullptr;
+            }
+            l.m_Img = nullptr;
             continue;
         }
+        l.m_CoreWidth = std::max(2.0f, l.m_CurWidth * 0.45f);
 
         l.m_Angle += l.m_AngularVelocity;
 
@@ -104,6 +118,17 @@ void EnemyLaserManager::Update() {
             l.m_Obj->m_Transform.rotation    = -l.m_Angle;
             l.m_Obj->m_Transform.scale       = {l.m_Length / 4.0f, l.m_CurWidth / 4.0f};
         }
+        if (l.m_CoreObj) {
+            float cx = l.m_Pos.x + std::cos(l.m_Angle) * l.m_Length * 0.5f;
+            float cy = l.m_Pos.y + std::sin(l.m_Angle) * l.m_Length * 0.5f;
+            float px = cx - 320.0f;
+            float py = 240.0f - cy;
+
+            l.m_CoreObj->SetVisible(true);
+            l.m_CoreObj->m_Transform.translation = {px, py};
+            l.m_CoreObj->m_Transform.rotation    = -l.m_Angle;
+            l.m_CoreObj->m_Transform.scale       = {l.m_Length / 4.0f, l.m_CoreWidth / 4.0f};
+        }
     }
     m_Renderer.Update();
 }
@@ -113,7 +138,7 @@ bool EnemyLaserManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitb
         if (!l.m_Alive) continue;
         // Hitbox active window
         if (l.m_Timer < l.m_HitboxStart) continue;
-        if (l.m_Timer >= l.m_StartTime + l.m_Duration) continue;
+        if (l.m_Timer >= l.m_HitboxEnd) continue;
         if (l.m_CurWidth < 2.0f) continue;
 
         // OBB point test: rotate player pos into laser local space
@@ -137,7 +162,11 @@ void EnemyLaserManager::ClearAll() {
         if (l.m_Obj) {
             m_Renderer.RemoveChild(l.m_Obj);
             l.m_Obj = nullptr;
-            l.m_Img = nullptr;
         }
+        if (l.m_CoreObj) {
+            m_Renderer.RemoveChild(l.m_CoreObj);
+            l.m_CoreObj = nullptr;
+        }
+        l.m_Img = nullptr;
     }
 }

@@ -13,6 +13,7 @@ struct EnemyLaser {
     float     m_Length   = 500.0f;
     float     m_MaxWidth = 16.0f;
     float     m_CurWidth = 0.0f;
+    float     m_CoreWidth = 0.0f;
 
     // Timing (frames)
     int m_StartTime   = 120;  // grow phase
@@ -26,6 +27,7 @@ struct EnemyLaser {
     bool  m_Alive           = false;
 
     std::shared_ptr<Util::GameObject> m_Obj;
+    std::shared_ptr<Util::GameObject> m_CoreObj;
     std::shared_ptr<Util::Image>      m_Img;
 };
 

@@ -131,7 +131,7 @@ struct PlayerBullet {
     int         m_Damage;
     BulletState m_BulletState = BulletState::UNUSED;
     BulletType  m_BulletType;
-    float       m_LaserOffset;
+    glm::vec2   m_LaserOffset = {};
     int         m_LaserSpawnPositionIdx;
     int         m_AliveTimer;
 };
