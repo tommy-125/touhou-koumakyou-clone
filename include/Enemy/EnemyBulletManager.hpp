@@ -89,7 +89,8 @@ class EnemyBulletManager {
                           bool rotateWithAngle = false);
     // CIRCLE: full 360° ring at absolute baseAngle (no player aiming)
     void SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count, float speed,
-                     float baseAngle = 0.0f, bool useDecay = false);
+                     float baseAngle = 0.0f, bool useDecay = false,
+                     float acceleration = 0.0f);
 
     void Update();
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);

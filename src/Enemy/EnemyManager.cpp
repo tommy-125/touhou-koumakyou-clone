@@ -284,13 +284,10 @@ BossHudState EnemyManager::GetBossHudState() const {
 
         BossHudState state;
         state.visible          = true;
-        state.isSpellcard      = enemy.m_InSpellcard;
         state.showSpellName    = enemy.m_ShowSpellName;
         state.life             = enemy.m_Life;
         state.minLife          = 0;
         state.maxLife          = enemy.m_BossMaxLife > 0 ? enemy.m_BossMaxLife : 1;
-        state.phaseIndex       = enemy.m_BossPhaseIndex;
-        state.spellcardBonus   = enemy.m_SpellcardBonus;
         state.title            = enemy.m_BossTitle;
         if (enemy.m_TimerCallbackThreshold >= 0) {
             const int framesLeft = std::max(0, enemy.m_TimerCallbackThreshold - enemy.m_BossTimer);

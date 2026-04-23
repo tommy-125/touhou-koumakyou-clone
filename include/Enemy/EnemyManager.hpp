@@ -21,14 +21,11 @@ class Player;
 
 struct BossHudState {
     bool        visible           = false;
-    bool        isSpellcard       = false;
     bool        showSpellName     = false;
     int         life              = 0;
     int         minLife           = 0;
     int         maxLife           = 1;
     int         secondsRemaining  = 0;
-    int         phaseIndex        = 0;
-    int         spellcardBonus    = 0;
     std::string title;
 };
 

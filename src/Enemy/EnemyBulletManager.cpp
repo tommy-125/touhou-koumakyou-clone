@@ -101,7 +101,8 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
 }
 
 void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count,
-                                     float speed, float baseAngle, bool useDecay) {
+                                     float speed, float baseAngle, bool useDecay,
+                                     float acceleration) {
     int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
     int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
@@ -114,6 +115,7 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
         b->m_Angle     = baseAngle + i * step;
         b->m_Speed     = speed;
         b->m_UseDecay  = useDecay;
+        b->m_Acceleration = acceleration;
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
             m_Renderer.AddChild(b->m_Vm.obj);

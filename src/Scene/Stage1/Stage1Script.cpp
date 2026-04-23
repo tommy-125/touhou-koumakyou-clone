@@ -10,6 +10,33 @@
 #include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
 
+namespace {
+
+void StartRandomAttackMove(Enemy& enemy, const EnemySubCtx& ctx, float speed = 3.0f, int frames = 60) {
+    ctx.MoveRandInBounds(enemy);
+    ctx.StartLerpDir(enemy, speed, frames);
+}
+
+void TransitionToRandomSub(Enemy& enemy, const EnemySubCtx& ctx, int subA, int subB, int subC) {
+    const int roll = rand() % 3;
+    ctx.TransitionToSub(enemy, roll == 0 ? subA : (roll == 1 ? subB : subC));
+}
+
+void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int phaseIndex,
+                     int spellBonus, int timerFrames) {
+    enemy.m_CanTakeDamage          = false;
+    enemy.m_InSpellcard            = true;
+    enemy.m_ShowSpellName          = true;
+    enemy.m_BossTitle              = title;
+    enemy.m_BossPhaseIndex         = phaseIndex;
+    enemy.m_SpellcardBonus         = spellBonus;
+    enemy.m_BossTimer              = 0;
+    enemy.m_TimerCallbackThreshold = timerFrames;
+    ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
+}
+
+}  // namespace
+
 void Stage1Script::Preload(Anm::Manager& anm) {
     anm.LoadAnm(Anm::STG1ENM.folder, Anm::STG1ENM.txt, Anm::STG1ENM.offset);
     anm.LoadAnm(Anm::STG1ENM2.folder, Anm::STG1ENM2.txt, Anm::STG1ENM2.offset);
@@ -115,7 +142,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t == 70) {
                 glm::vec2 shootPos = enemy.m_Pos + glm::vec2{12.0f, -12.0f};
                 ctx.bullets.SpawnFanAimed(shootPos, ctx.playerPos, EBulletType::RingBall,
-                                          EBulletColor::Red, 7, 1.4f, 0.0f, 0.628f, true);
+                                          EBulletColor::Red, 7, 1.4f, 0.0f, 0.62831855f, true);
             }
             if (t == 130) {
                 enemy.m_Acceleration    = 0.05f;
@@ -158,9 +185,8 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             static constexpr float kSub4Offsets[5] = {0.0f, 0.06544985f, 0.1308997f, 0.19634955f,
                                                       0.2617994f};
             auto                   sub4Wave        = [&](int wave) {
-                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Pellet,
-                                                                      kSub4Colors[wave], 14, 0.0f, kSub4Offsets[wave], true,
-                                                                      0.02f);
+                ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Pellet, kSub4Colors[wave], 8,
+                                        0.0f, kSub4Offsets[wave], true, 0.02f);
             };
 
             auto randSpeed = [&]() { return (rand() % 1000) / 1000.0f * 3.0f + 0.5f; };
@@ -168,43 +194,34 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 return ((rand() % 1000) / 1000.0f * 2.0f - 1.0f) * 3.14159265f;
             };
             auto sub5Wave = [&](int wave) {
-                ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Pellet, kSub4Colors[wave], 8,
-                                        randSpeed(), randAngle(), true);
-                ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Rice, kSub4Colors[wave], 8,
-                                        randSpeed(), randAngle(), true);
+                ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Pellet, kSub4Colors[wave], 4,
+                                        randSpeed(), randAngle(), true, 0.7f);
+                ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Rice, kSub4Colors[wave], 4,
+                                        randSpeed(), randAngle(), true, 0.7f);
             };
 
             if (t == 0) ctx.StartLerpTo(enemy, 320.0f, 128.0f, 60);
             if (t == 60) enemy.m_CanTakeDamage = true;
             if (t == 160) circle3(EBulletColor::Blue);
-            if (t == 202) ctx.StartLerpTo(enemy, 192.0f, 64.0f, 60);
-            for (int w = 0; w < 5; w++) {
-                if (t == 262 + w * 8) sub4Wave(w);
+            for (int cycle = 0; cycle < 2; cycle++) {
+                const int base = 192 + cycle * 648;
+                if (t == base + 10) ctx.StartLerpTo(enemy, 192.0f, 64.0f, 60);
+                for (int w = 0; w < 5; w++) {
+                    if (t == base + 70 + w * 8) sub4Wave(w);
+                }
+                if (t == base + 192) ctx.StartLerpTo(enemy, 64.0f, 96.0f, 60);
+                if (t == base + 222) circle3(EBulletColor::Green);
+                if (t == base + 252) circle3(EBulletColor::Yellow);
+                if (t == base + 334) ctx.StartLerpTo(enemy, 192.0f, 80.0f, 60);
+                for (int w = 0; w < 5; w++) {
+                    if (t == base + 394 + w * 8) sub5Wave(w);
+                }
+                if (t == base + 516) ctx.StartLerpTo(enemy, 320.0f, 96.0f, 60);
+                if (t == base + 546) circle3(EBulletColor::Blue);
+                if (t == base + 576) circle3(EBulletColor::Red);
             }
-            if (t == 384) ctx.StartLerpTo(enemy, 64.0f, 96.0f, 60);
-            if (t == 414) circle3(EBulletColor::Green);
-            if (t == 444) circle3(EBulletColor::Yellow);
-            if (t == 526) ctx.StartLerpTo(enemy, 192.0f, 80.0f, 60);
-            for (int w = 0; w < 5; w++) {
-                if (t == 586 + w * 8) sub5Wave(w);
-            }
-            if (t == 708) ctx.StartLerpTo(enemy, 320.0f, 96.0f, 60);
-            if (t == 738) circle3(EBulletColor::Blue);
-            if (t == 768) circle3(EBulletColor::Red);
-            if (t == 850) ctx.StartLerpTo(enemy, 192.0f, 64.0f, 60);
-            for (int w = 0; w < 5; w++) {
-                if (t == 910 + w * 8) sub4Wave(w);
-            }
-            if (t == 1032) ctx.StartLerpTo(enemy, 64.0f, 96.0f, 60);
-            if (t == 1062) circle3(EBulletColor::Green);
-            if (t == 1092) circle3(EBulletColor::Yellow);
-            if (t == 1174) ctx.StartLerpTo(enemy, 192.0f, 80.0f, 60);
-            for (int w = 0; w < 5; w++) {
-                if (t == 1234 + w * 8) sub5Wave(w);
-            }
-            if (t == 1356) ctx.StartLerpTo(enemy, 320.0f, 96.0f, 60);
-            if (t == 1386) circle3(EBulletColor::Blue);
-            if (t == 1416) circle3(EBulletColor::Red);
+            if (t == 850) ctx.StartLerpTo(enemy, 192.0f, -64.0f, 60);
+            if (t == 910) enemy.m_Alive = false;
             break;
         }
 
@@ -235,9 +252,9 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.lasers.ClearAll();
                 enemy.m_Speed = 0.0f;
                 for (int k = 0; k < 5; k++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
-                ctx.StartLerpTo(enemy, 192.0f, -64.0f, 120);
             }
-            if (t == 120) {
+            if (t == 40) ctx.StartLerpTo(enemy, 192.0f, -64.0f, 120);
+            if (t == 160) {
                 enemy.m_Alive = false;
                 if (enemy.m_Vm.obj) {
                     ctx.renderer.RemoveChild(enemy.m_Vm.obj);
@@ -283,29 +300,20 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
         }
 
         case 12: {  // Phase 1 attack — Ball fan stack
-            if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
-            }
+            if (t == 0) StartRandomAttackMove(enemy, ctx);
             if (t >= 12 && t <= 60 && (t - 12) % 8 == 0) {
-                float speed1 = 4.0f;
+                const int burst = (t - 12) / 8;
                 ctx.bullets.SpawnFanStack(
                     enemy.m_Pos, ctx.playerPos, EBulletType::Ball,
-                    (((t - 12) / 8) % 2 == 0) ? EBulletColor::Red : EBulletColor::DarkRed, 1, 10,
-                    speed1, 1.0f, 0.0f, 0.09817477f);
+                    (burst & 1) == 0 ? EBulletColor::Red : EBulletColor::DarkRed, 1, 10,
+                    burst == 0 ? 3.0f : 4.0f, 1.0f, 0.0f, 0.09817477f);
             }
-            if (t == 180) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 13 : (r == 1 ? 14 : 15));
-            }
+            if (t == 180) TransitionToRandomSub(enemy, ctx, 13, 14, 15);
             break;
         }
 
         case 13: {  // Phase 1 attack — RingBall + Pellet interleaved circles
-            if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
-            }
+            if (t == 0) StartRandomAttackMove(enemy, ctx);
             if (t == 60) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                              EBulletColor::Blue, 12, 4.0f);
@@ -316,7 +324,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             }
             if (t == 76) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                             EBulletColor::Blue, 12, 2.0f);
+                                             EBulletColor::Blue, 12, 2.0f, -0.1308997f);
             }
             if (t == 84) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Pellet,
@@ -324,7 +332,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             }
             if (t == 92) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                             EBulletColor::Blue, 12, 4.0f);
+                                             EBulletColor::Blue, 12, 4.0f, 0.1308997f);
             }
             if (t == 100) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Pellet,
@@ -332,39 +340,29 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             }
             if (t == 108) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                             EBulletColor::Blue, 12, 2.0f);
+                                             EBulletColor::Blue, 12, 2.0f, -0.1308997f);
             }
-            if (t == 228) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 12 : (r == 1 ? 14 : 15));
-            }
+            if (t == 228) TransitionToRandomSub(enemy, ctx, 12, 14, 15);
             break;
         }
 
         case 14: {  // Phase 1 attack — Rice fan stack + RingBall circle
-            if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
-            }
+            if (t == 0) StartRandomAttackMove(enemy, ctx);
             if (t == 80) {
                 ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                          EBulletColor::Red, 3, 16, 5.0f, 1.0f, 0.0f, 0.06544985f);
+                                          EBulletColor::Red, 2, 16, 5.0f, 1.0f, 0.0f, 0.06544985f);
             }
             if (t == 110) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                              EBulletColor::Blue, 16, 2.0f);
             }
-            if (t == 200) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 13 : (r == 1 ? 12 : 15));
-            }
+            if (t == 200) TransitionToRandomSub(enemy, ctx, 13, 12, 15);
             break;
         }
 
         case 15: {  // Phase 1 attack — RingBall converging spiral
             if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
+                StartRandomAttackMove(enemy, ctx);
                 enemy.m_Mirrored = (rand() % 2) == 0;
             }
             if (t >= 0 && t < 32 && t % 2 == 0) {
@@ -375,26 +373,13 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                           EBulletColor::Green, 1, speed, offset, 0.0f);
             }
-            if (t == 124) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 13 : (r == 1 ? 14 : 12));
-            }
+            if (t == 124) TransitionToRandomSub(enemy, ctx, 13, 14, 12);
             break;
         }
 
         case 22: {  // Phase 1 spellcard — Night Bird (8-group RingBall spirals × 2 passes, then
                     // move)
-            if (t == 0) {
-                enemy.m_CanTakeDamage          = false;
-                enemy.m_InSpellcard            = true;
-                enemy.m_ShowSpellName          = true;
-                enemy.m_BossTitle              = "Night Bird";
-                enemy.m_BossPhaseIndex         = 2;
-                enemy.m_SpellcardBonus         = 2000000;
-                enemy.m_BossTimer              = 0;
-                enemy.m_TimerCallbackThreshold = 1500;
-                ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
-            }
+            if (t == 0) StartSpellPhase(enemy, ctx, "Night Bird", 2, 2000000, 1500);
             if (t == 120) {
                 enemy.m_CanTakeDamage = true;
             }
@@ -413,14 +398,14 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                                                       offset, 0.06544985f);
                         }
                     };
-                    shootSpiral(0, EBulletColor::DarkBlue, -0.57119864f, +0.14279966f);
-                    shootSpiral(32, EBulletColor::DarkCyan, +0.57119864f, -0.14279966f);
-                    shootSpiral(64, EBulletColor::Blue, -0.7853982f, +0.19634955f);
-                    shootSpiral(96, EBulletColor::Cyan, +0.7853982f, -0.19634955f);
-                    shootSpiral(128, EBulletColor::DarkBlue, -0.57119864f, +0.14279966f);
-                    shootSpiral(160, EBulletColor::DarkCyan, +0.57119864f, -0.14279966f);
-                    shootSpiral(192, EBulletColor::Blue, -0.7853982f, +0.19634955f);
-                    shootSpiral(224, EBulletColor::Cyan, +0.7853982f, -0.19634955f);
+                    shootSpiral(0, EBulletColor::DarkBlue, -0.57119864f, +0.19634955f);
+                    shootSpiral(32, EBulletColor::DarkCyan, +0.57119864f, -0.19634955f);
+                    shootSpiral(64, EBulletColor::Blue, -0.7853982f, +0.2617994f);
+                    shootSpiral(96, EBulletColor::Cyan, +0.7853982f, -0.2617994f);
+                    shootSpiral(128, EBulletColor::DarkBlue, -0.57119864f, +0.19634955f);
+                    shootSpiral(160, EBulletColor::DarkCyan, +0.57119864f, -0.19634955f);
+                    shootSpiral(192, EBulletColor::Blue, -0.7853982f, +0.2617994f);
+                    shootSpiral(224, EBulletColor::Cyan, +0.7853982f, -0.2617994f);
                     if (loopT == 256) {
                         ctx.MoveRandInBounds(enemy);
                         ctx.StartLerpDir(enemy, 2.0f, 120);
@@ -460,33 +445,24 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
         }
 
         case 18: {  // Phase 2 attack — RingBall fan + 6 aimed lasers
-            if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
-            }
+            if (t == 0) StartRandomAttackMove(enemy, ctx);
             if (t == 12) {
                 ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                          EBulletColor::Green, 2, 8, 3.0f, 1.0f, 0.0f, 0.09817477f);
+                                          EBulletColor::Green, 1, 8, 3.0f, 1.0f, 0.0f, 0.09817477f);
             }
             if (t >= 20 && t <= 60 && (t - 20) % 8 == 0) {
                 ctx.lasers.SpawnAimed(enemy.m_Pos, ctx.playerPos, 500.0f, 16.0f, 120, 60, 14, 16,
                                       120);
             }
-            if (t == 224) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 19 : (r == 1 ? 20 : 21));
-            }
+            if (t == 224) TransitionToRandomSub(enemy, ctx, 19, 20, 21);
             break;
         }
 
         case 19: {  // Phase 2 attack — Rice + Pellet circles
-            if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
-            }
+            if (t == 0) StartRandomAttackMove(enemy, ctx);
             if (t == 60) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                             EBulletColor::Green, 36, 2.0f);
+                                             EBulletColor::Green, 24, 2.0f);
             }
             if (t == 90) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Pellet,
@@ -494,41 +470,31 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             }
             if (t == 120) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                             EBulletColor::Green, 36, 2.0f);
+                                             EBulletColor::Green, 24, 2.0f);
             }
-            if (t == 240) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 18 : (r == 1 ? 20 : 21));
-            }
+            if (t == 240) TransitionToRandomSub(enemy, ctx, 18, 20, 21);
             break;
         }
 
         case 20: {  // Phase 2 attack — Rice fan stack × 3
-            if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
-            }
+            if (t == 0) StartRandomAttackMove(enemy, ctx);
             if (t == 60)
                 ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                          EBulletColor::Yellow, 8, 2, 3.0f, 1.0f, 0.0f, 0.2617994f);
+                                          EBulletColor::Yellow, 4, 2, 3.0f, 1.0f, 0.0f, 0.5235988f);
             if (t == 80)
                 ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                          EBulletColor::Yellow, 9, 2, 3.0f, 1.0f, 0.0f, 0.2617994f);
+                                          EBulletColor::Yellow, 5, 2, 3.0f, 1.0f, 0.0f, 0.5235988f);
             if (t == 100)
                 ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                          EBulletColor::Yellow, 10, 2, 3.0f, 1.0f, 0.0f,
-                                          0.2617994f);
-            if (t == 220) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 19 : (r == 1 ? 18 : 21));
-            }
+                                          EBulletColor::Yellow, 7, 2, 3.0f, 1.0f, 0.0f,
+                                          0.5235988f);
+            if (t == 220) TransitionToRandomSub(enemy, ctx, 19, 18, 21);
             break;
         }
 
         case 21: {  // Phase 2 attack — RingBall wider converging spiral
             if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
+                StartRandomAttackMove(enemy, ctx);
                 enemy.m_Mirrored = (rand() % 2) == 0;
             }
             if (t >= 0 && t < 32 && t % 2 == 0) {
@@ -539,26 +505,15 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                           EBulletColor::Green, 2, speed, offset, 0.14279966f);
             }
-            if (t == 124) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 19 : (r == 1 ? 20 : 18));
-            }
+            if (t == 124) TransitionToRandomSub(enemy, ctx, 19, 20, 18);
             break;
         }
 
         case 23: {  // Phase 2 spellcard — Demarcation (3 Rice pairs w/ curve + RingBall spiral)
             // Each bullet redirects vertically after 40f at speed 1.5 (ECL ins_82 flag 0x40).
             if (t == 0) {
-                enemy.m_CanTakeDamage          = false;
-                enemy.m_InSpellcard            = true;
-                enemy.m_ShowSpellName          = true;
-                enemy.m_BossTitle              = "Demarcation";
-                enemy.m_BossPhaseIndex         = 4;
-                enemy.m_SpellcardBonus         = 3000000;
-                enemy.m_BossTimer              = 0;
-                enemy.m_BossMaxLife            = enemy.m_Life > 0 ? enemy.m_Life : 1;
-                enemy.m_TimerCallbackThreshold = 1500;
-                ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
+                StartSpellPhase(enemy, ctx, "Demarcation", 4, 3000000, 1500);
+                enemy.m_BossMaxLife = enemy.m_Life > 0 ? enemy.m_Life : 1;
             }
             if (t == 120) {
                 enemy.m_CanTakeDamage = true;
@@ -572,10 +527,10 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                         float a1 = upFirst ? +Util::HALF_PI : -Util::HALF_PI;
                         float a2 = upFirst ? -Util::HALF_PI : +Util::HALF_PI;
                         ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ringAnchor, EBulletType::Rice,
-                                                                 color, 16, 3.0f, 0.0f, false, 0.0f,
+                                                                 color, 12, 3.0f, 0.0f, false, 0.0f,
                                                                  {40, a1, 1.5f, true}, true);
                         ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ringAnchor, EBulletType::Rice,
-                                                                 color, 16, 3.0f, 0.19634955f, false, 0.0f,
+                                                                 color, 12, 3.0f, 0.2617994f, false, 0.0f,
                                                                  {40, a2, 1.5f, true}, true);
                     };
                     if (loopT == 0) spawnPair(EBulletColor::Blue, true);
@@ -583,7 +538,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                     if (loopT == 120) spawnPair(EBulletColor::Red, true);
                     if (loopT == 180) {
                         ctx.MoveRandInBounds(enemy);
-                        ctx.StartLerpDir(enemy, 2.0f, 60);
+                        ctx.StartLerpDir(enemy, 2.0f, 120);
                     }
                     // Spiral: 2 outer × (12 neg + 12 pos) × every 2f = 96 frames (loopT 180-275)
                     int spiralT = loopT - 180;
@@ -596,6 +551,10 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                         ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                                   EBulletColor::Blue, 1, speed, offset, 0.09817477f,
                                                   false, true);
+                    }
+                    if (loopT == 276) {
+                        ctx.MoveRandInBounds(enemy);
+                        ctx.StartLerpDir(enemy, 2.0f, 60);
                     }
                 }
             }
@@ -610,8 +569,10 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_SpellcardBonus = 0;
                 ctx.bullets.ClearAll();
                 ctx.lasers.ClearAll();
+                ctx.MoveRandInBounds(enemy);
+                ctx.StartLerpDir(enemy, 0.6f, 60);
             }
-            if (t == 60) {
+            if (t == 90) {
                 enemy.m_Alive = false;
             }
             break;

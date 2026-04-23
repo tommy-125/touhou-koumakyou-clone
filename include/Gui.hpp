@@ -47,13 +47,11 @@ class Gui {
     std::shared_ptr<Util::Text>       m_BossHpText;
     std::shared_ptr<Util::Text>       m_BossTimerText;
     std::shared_ptr<Util::Text>       m_BossTitleText;
-    std::shared_ptr<Util::Text>       m_BossBonusText;
     std::shared_ptr<Util::GameObject> m_BossLabelObj;
     std::shared_ptr<Util::GameObject> m_BossBarObj;
     std::shared_ptr<Util::GameObject> m_BossHpObj;
     std::shared_ptr<Util::GameObject> m_BossTimerObj;
     std::shared_ptr<Util::GameObject> m_BossTitleObj;
-    std::shared_ptr<Util::GameObject> m_BossBonusObj;
 
     int   m_LastLives           = -1;
     int   m_LastBombs           = -1;
@@ -66,9 +64,6 @@ class Gui {
     int   m_LastBossMax         = -1;
     int   m_LastBossShow        = -1;
     int   m_LastBossSeconds     = -1;
-    int   m_LastBossPhase       = -1;
-    int   m_LastBossBonus       = -1;
-    bool  m_LastBossSpell       = false;
     bool  m_LastBossShowName    = false;
     std::string m_LastBossTitle;
     float m_BossBarRatioDisplay = 0.0f;
