@@ -49,6 +49,22 @@ struct EnemyBullet {
     bool      m_Alive        = false;
     bool      m_UseDecay     = false;
     int       m_DecayTimer   = 0;
+    // Direction change (ECL flag 0x40 / ins_82): at m_DirChangeAt frames old,
+    // snap angle to m_DirChangeAngle and speed to m_DirChangeSpeed. Disabled when < 0.
+    bool  m_RotateWithAngle   = false;
+    int   m_DirChangeAt       = -1;
+    float m_DirChangeAngle    = 0.0f;
+    float m_DirChangeSpeed    = 0.0f;
+    bool  m_DirChangeRelative = false;
+};
+
+// Direction change (ECL flag 0x40 / ins_82): after N frames, snap bullet to new angle/speed.
+// relative=true: new angle = current angle + angle (tangential turns); false: absolute world angle.
+struct BulletCurve {
+    int   at       = -1;
+    float angle    = 0.0f;
+    float speed    = 0.0f;
+    bool  relative = false;
 };
 
 class EnemyBulletManager {
@@ -56,8 +72,8 @@ class EnemyBulletManager {
     EnemyBulletManager();
 
     void SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
-                       int count, float speed, float aimOffset, float spread,
-                       bool useDecay = false);
+                       int count, float speed, float aimOffset, float spread, bool useDecay = false,
+                       bool rotateWithAngle = false);
     // ECL-style: speed1 = outermost ring, speed2 = innermost ring (speed1 → speed2 linearly)
     void SpawnFanStack(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
                        int ways, int stacks, float speed1, float speed2, float aimOffset,
@@ -65,7 +81,8 @@ class EnemyBulletManager {
     // CIRCLE_AIMED: full 360° ring rotated toward player + aimOffset
     void SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
                           int count, float speed, float aimOffset = 0.0f, bool useDecay = false,
-                          float acceleration = 0.0f);
+                          float acceleration = 0.0f, BulletCurve curve = {},
+                          bool rotateWithAngle = false);
     // CIRCLE: full 360° ring at absolute baseAngle (no player aiming)
     void SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count, float speed,
                      float baseAngle = 0.0f, bool useDecay = false);

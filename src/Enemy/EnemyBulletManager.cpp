@@ -28,28 +28,29 @@ EnemyBullet* EnemyBulletManager::AllocBullet() {
 
 void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
                                        EBulletColor color, int count, float speed, float aimOffset,
-                                       float spread, bool useDecay) {
+                                       float spread, bool useDecay, bool rotateWithAngle) {
     int scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
     int sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
 
     float aimAngle = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x) + aimOffset;
 
     for (int i = 0; i < count; i++) {
-        float delta;
-        if (count & 1) {
-            delta = ((i + 1) / 2.0f) * spread;
-        } else {
-            delta = (i / 2.0f) * spread + spread * 0.5f;
-        }
+        // Matches TH6 BulletManager: odd count centers on aim axis, even count straddles it.
+        // Pairs bullets symmetrically: 0, ±1, ±2, ... (odd) or ±0.5, ±1.5, ... (even).
+        // Integer division is intentional — gives TH6's symmetric pairing.
+        int   step  = (count & 1) ? (i + 1) / 2 : i / 2;
+        float delta = static_cast<float>(step) * spread;
+        if (!(count & 1)) delta += spread * 0.5f;
         if (i & 1) delta = -delta;
 
-        EnemyBullet* b = AllocBullet();
-        *b             = EnemyBullet{};
-        b->m_Alive     = true;
-        b->m_Pos       = pos;
-        b->m_Angle     = aimAngle + delta;
-        b->m_Speed     = speed;
-        b->m_UseDecay  = useDecay;
+        EnemyBullet* b       = AllocBullet();
+        *b                   = EnemyBullet{};
+        b->m_Alive           = true;
+        b->m_Pos             = pos;
+        b->m_Angle           = aimAngle + delta;
+        b->m_Speed           = speed;
+        b->m_UseDecay        = useDecay;
+        b->m_RotateWithAngle = rotateWithAngle;
 
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
@@ -69,21 +70,27 @@ void EnemyBulletManager::SpawnFanStack(glm::vec2 pos, glm::vec2 playerPos, EBull
 
 void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
                                           EBulletColor color, int count, float speed,
-                                          float aimOffset, bool useDecay, float acceleration) {
+                                          float aimOffset, bool useDecay, float acceleration,
+                                          BulletCurve curve, bool rotateWithAngle) {
     int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
     int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
     float aimAngle  = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x) + aimOffset;
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
 
     for (int i = 0; i < count; i++) {
-        EnemyBullet* b    = AllocBullet();
-        *b                = EnemyBullet{};
-        b->m_Alive        = true;
-        b->m_Pos          = pos;
-        b->m_Angle        = aimAngle + i * step;
-        b->m_Speed        = speed;
-        b->m_UseDecay     = useDecay;
-        b->m_Acceleration = acceleration;
+        EnemyBullet* b         = AllocBullet();
+        *b                     = EnemyBullet{};
+        b->m_Alive             = true;
+        b->m_Pos               = pos;
+        b->m_Angle             = aimAngle + i * step;
+        b->m_Speed             = speed;
+        b->m_UseDecay          = useDecay;
+        b->m_Acceleration      = acceleration;
+        b->m_DirChangeAt       = curve.at;
+        b->m_DirChangeAngle    = curve.angle;
+        b->m_DirChangeSpeed    = curve.speed;
+        b->m_DirChangeRelative = curve.relative;
+        b->m_RotateWithAngle   = rotateWithAngle;
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
             m_Renderer.AddChild(b->m_Vm.obj);
@@ -117,8 +124,9 @@ bool EnemyBulletManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHit
         if (!b.m_Alive) continue;
         float dx = std::abs(b.m_Pos.x - playerPos.x);
         float dy = std::abs(b.m_Pos.y - playerPos.y);
-        if (dx < b.m_HitboxSize.x + playerHitboxSize.x &&
-            dy < b.m_HitboxSize.y + playerHitboxSize.y) {
+        // bullet m_HitboxSize is full width (SetVecCorners), player hitbox is already a radius.
+        if (dx < b.m_HitboxSize.x * 0.5f + playerHitboxSize.x &&
+            dy < b.m_HitboxSize.y * 0.5f + playerHitboxSize.y) {
             return true;
         }
     }
@@ -140,6 +148,13 @@ void EnemyBulletManager::Update() {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
 
+        if (b.m_DirChangeAt >= 0 && b.m_DecayTimer == b.m_DirChangeAt) {
+            b.m_Angle = b.m_DirChangeRelative ? b.m_Angle + b.m_DirChangeAngle : b.m_DirChangeAngle;
+            b.m_Speed = b.m_DirChangeSpeed;
+            b.m_DirChangeAt = -1;
+            b.m_UseDecay    = false;
+        }
+
         float effectiveSpeed = b.m_Speed;
         if (b.m_UseDecay) {
             if (b.m_DecayTimer <= 16) {
@@ -147,16 +162,17 @@ void EnemyBulletManager::Update() {
             } else {
                 b.m_UseDecay = false;
             }
-            b.m_DecayTimer++;
         } else if (b.m_Acceleration != 0.0f) {
             b.m_Speed += b.m_Acceleration;
             effectiveSpeed = b.m_Speed;
         }
+        b.m_DecayTimer++;
 
         b.m_Pos.x += std::cos(b.m_Angle) * effectiveSpeed;
         b.m_Pos.y += std::sin(b.m_Angle) * effectiveSpeed;
 
         b.m_Vm.pos = b.m_Pos;
+        if (b.m_RotateWithAngle) b.m_Vm.rotation = b.m_Angle;
         m_Anm.UpdateObjects(b.m_Vm);
 
         if (!Util::IsInGameBounds(b.m_Pos.x, b.m_Pos.y, 0, 0)) {

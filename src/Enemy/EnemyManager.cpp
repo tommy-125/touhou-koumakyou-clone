@@ -35,11 +35,13 @@ void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
     enemy.m_BossTimer++;
 
     if (enemy.m_LifeCallbackThreshold >= 0 && enemy.m_Life < enemy.m_LifeCallbackThreshold) {
-        enemy.m_Life                  = enemy.m_LifeCallbackThreshold;
-        int sub                       = enemy.m_LifeCallbackSub;
-        enemy.m_LifeCallbackThreshold = -1;
-        enemy.m_LifeCallbackSub       = -1;
-        enemy.m_TimerCallbackSub      = enemy.m_DeathCallbackSub;
+        enemy.m_Life                   = enemy.m_LifeCallbackThreshold;
+        int sub                        = enemy.m_LifeCallbackSub;
+        enemy.m_LifeCallbackThreshold  = -1;
+        enemy.m_LifeCallbackSub        = -1;
+        enemy.m_TimerCallbackThreshold = -1;
+        enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
+        enemy.m_CanTakeDamage          = false;
         for (auto& e : m_Enemies) {
             if (e.m_Alive && !e.m_IsBoss) e.m_Life = 0;
         }
@@ -57,6 +59,7 @@ void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
         int sub                        = enemy.m_TimerCallbackSub;
         enemy.m_TimerCallbackThreshold = -1;
         enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
+        enemy.m_CanTakeDamage          = false;
         m_BulletManager.ClearAll();
         m_LaserManager.ClearAll();
         for (auto& e : m_Enemies) {
@@ -190,7 +193,35 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
 
         int dmg = player.CalcDamageToEnemy(enemy.m_Pos, enemy.m_HitboxSize);
         if (dmg <= 0) continue;
+
+        // TH6: damage capped at 70/frame, hit score = (dmg/5)*10 on capped value,
+        // spellcard divides damage by 7 (min 1).
+        if (dmg > 70) dmg = 70;
+        totalScore += (dmg / 5) * 10;
+        if (enemy.m_InSpellcard) {
+            dmg = (dmg > 7) ? dmg / 7 : 1;
+        }
         enemy.m_Life -= dmg;
+
+        // Boss overshoot guard: if a single hit crosses below a pending life callback
+        // threshold, clamp to threshold and trigger the callback instead of death. Prevents
+        // players from skipping spellcards with a burst hit.
+        if (enemy.m_IsBoss && enemy.m_LifeCallbackThreshold >= 0 &&
+            enemy.m_Life < enemy.m_LifeCallbackThreshold) {
+            enemy.m_Life                   = enemy.m_LifeCallbackThreshold;
+            int sub                        = enemy.m_LifeCallbackSub;
+            enemy.m_LifeCallbackThreshold  = -1;
+            enemy.m_LifeCallbackSub        = -1;
+            enemy.m_TimerCallbackThreshold = -1;
+            enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
+            enemy.m_CanTakeDamage          = false;
+            for (auto& e : m_Enemies) {
+                if (e.m_Alive && !e.m_IsBoss) e.m_Life = 0;
+            }
+            enemy.m_SubId      = sub;
+            enemy.m_FrameTimer = -1;
+            continue;
+        }
 
         if (enemy.m_Life <= 0) {
             if (enemy.m_IsBoss) {
@@ -245,4 +276,21 @@ bool EnemyManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSiz
 void EnemyManager::ClearAllBullets() {
     m_BulletManager.ClearAll();
     m_LaserManager.ClearAll();
+}
+
+void EnemyManager::SkipToFrame(int frame) {
+    for (auto& e : m_Enemies) {
+        if (!e.m_Alive) continue;
+        e.m_Alive = false;
+        if (e.m_Vm.obj) {
+            m_Renderer.RemoveChild(e.m_Vm.obj);
+            e.m_Vm.obj = nullptr;
+        }
+    }
+    m_BulletManager.ClearAll();
+    m_LaserManager.ClearAll();
+    m_Frame = frame;
+    while (m_TimelineIdx < m_TimelineSize && m_Timeline[m_TimelineIdx].frame <= frame) {
+        m_TimelineIdx++;
+    }
 }

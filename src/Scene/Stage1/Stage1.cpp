@@ -5,6 +5,7 @@
 #include "Scene/Stage1/Stage1Script.hpp"
 #include "Scene/Timeline.hpp"
 #include "Scene/Title.hpp"
+#include "Util/Input.hpp"
 
 // Transcribed from ecldata1.txt timeline0 (Normal difficulty)
 // Format: {frame, subId, x, y, life, score, mirrored}
@@ -271,13 +272,19 @@ Stage1::Stage1(CharacterItem character, SpellCardItem spellCard) : m_Player(char
 }
 
 void Stage1::Update() {
+    if (Util::Input::IsKeyDown(Util::Keycode::F5)) {
+        constexpr int BOSS_FRAME = 5200;
+        m_StageFrame             = BOSS_FRAME;
+        m_EnemyManager.SkipToFrame(BOSS_FRAME);
+    }
+
     ++m_StageFrame;
     float scrollY = m_StageFrame * (BG_CANVAS_H - FIELD_H) / STAGE_TOTAL_FRAMES;
     m_BgObj->m_Transform.translation.y = (BG_CANVAS_H / 2.0f - FIELD_H / 2.0f) - scrollY;
     m_Renderer.Update();
 
-    m_EnemyManager.Update(m_Player.GetPos(), m_GameManager);
     m_ItemManager.Update(m_Player.GetPos(), m_GameManager);
+    m_EnemyManager.Update(m_Player.GetPos(), m_GameManager);
     m_Player.Update(m_GameManager);
 
     int scoreGained = m_EnemyManager.ApplyPlayerBulletDamage(m_Player);

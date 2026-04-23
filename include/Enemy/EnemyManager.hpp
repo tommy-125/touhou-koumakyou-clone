@@ -28,6 +28,7 @@ class EnemyManager {
     int  ApplyPlayerBulletDamage(Player& player);
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAllBullets();
+    void SkipToFrame(int frame);
 
    private:
     static constexpr int MAX_ENEMIES = 256;

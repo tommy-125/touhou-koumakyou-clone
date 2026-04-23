@@ -52,7 +52,9 @@ int Player::CalcDamageToEnemy(glm::vec2 enemyPos, glm::vec2 enemyHitboxSize) {
         if (b.m_BulletState != BulletState::FIRED) continue;
         float dx = std::abs(b.m_Vm.pos.x - enemyPos.x);
         float dy = std::abs(b.m_Vm.pos.y - enemyPos.y);
-        if (dx < b.m_Size.x + enemyHitboxSize.x && dy < b.m_Size.y + enemyHitboxSize.y) {
+        // Both m_Size and enemyHitboxSize are full widths (matches TH6 SetVecCorners).
+        if (dx < (b.m_Size.x + enemyHitboxSize.x) * 0.5f &&
+            dy < (b.m_Size.y + enemyHitboxSize.y) * 0.5f) {
             b.m_BulletState = BulletState::COLLIDED;
             total += b.m_Damage;
         }

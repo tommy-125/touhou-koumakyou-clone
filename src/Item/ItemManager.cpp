@@ -42,9 +42,11 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
     for (auto& item : m_Items) {
         if (!item.m_Alive) continue;
 
-        // Limit downward velocity of items
-        item.m_Vel.y = std::min(item.m_Vel.y + ITEM_GRAVITY, ITEM_VEL_MAX_Y);
         item.m_Pos += item.m_Vel;
+        if (item.m_Vel.y < ITEM_VEL_MAX_Y)
+            item.m_Vel.y += ITEM_GRAVITY;
+        else
+            item.m_Vel.y = ITEM_VEL_MAX_Y;
 
         item.m_Vm.pos = item.m_Pos;
         m_Anm.UpdateObjects(item.m_Vm);

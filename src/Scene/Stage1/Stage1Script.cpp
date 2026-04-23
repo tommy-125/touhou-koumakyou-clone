@@ -19,7 +19,11 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
     int offset = Anm::STG1ENM.offset;
 
     switch (enemy.m_SubId) {
-        case 0:
+        // ══════════════════════════════════════════════════════════════════════
+        // Regular enemies (small/medium fairies)
+        // ══════════════════════════════════════════════════════════════════════
+        case 0:  // Small fairy — straight-down with angular drift
+        case 1:  // Small fairy — single-turn variant
             ctx.anm.SetScript(enemy.m_Vm, offset + 0, offset);
             enemy.m_HitboxSize = {28, 28};
             enemy.m_Angle      = Util::HALF_PI;
@@ -27,15 +31,8 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_ItemDrop   = -1;
             break;
 
-        case 1:
-            ctx.anm.SetScript(enemy.m_Vm, offset + 0, offset);
-            enemy.m_HitboxSize = {28, 28};
-            enemy.m_Angle      = Util::HALF_PI;
-            enemy.m_Speed      = 2.0f;
-            enemy.m_ItemDrop   = -1;
-            break;
-
-        case 2:
+        case 2:  // Medium fairy — stops and shoots fan
+        case 3:  // Medium fairy — same movement, no shot on Normal
             ctx.anm.SetScript(enemy.m_Vm, offset + 3, offset);
             enemy.m_HitboxSize = {28, 28};
             enemy.m_Angle      = Util::HALF_PI;
@@ -43,15 +40,10 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_ItemDrop   = 0;
             break;
 
-        case 3:
-            ctx.anm.SetScript(enemy.m_Vm, offset + 3, offset);
-            enemy.m_HitboxSize = {28, 28};
-            enemy.m_Angle      = Util::HALF_PI;
-            enemy.m_Speed      = 2.0f;
-            enemy.m_ItemDrop   = 0;
-            break;
-
-        case 8: {
+        // ══════════════════════════════════════════════════════════════════════
+        // Mid-boss (Rumia — stg1enm sprite 128, short preview encounter)
+        // ══════════════════════════════════════════════════════════════════════
+        case 8: {  // Mid-boss main pattern entry
             ctx.anm.SetScript(enemy.m_Vm, offset + 128, offset);
             enemy.m_HitboxSize             = {48, 56};
             enemy.m_ItemDrop               = -1;
@@ -61,7 +53,7 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_CanTakeDamage          = false;
             enemy.m_BossMaxLife            = 6000;
             enemy.m_DeathCallbackSub       = 6;
-            enemy.m_LifeCallbackThreshold  = -1;
+            enemy.m_LifeCallbackThreshold  = -1;  // Normal has no mid-boss life callback
             enemy.m_LifeCallbackSub        = -1;
             enemy.m_TimerCallbackThreshold = 1440;
             enemy.m_TimerCallbackSub       = 7;
@@ -69,7 +61,10 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 10: {
+        // ══════════════════════════════════════════════════════════════════════
+        // Boss (Rumia — stg1enm2 sprite 128)
+        // ══════════════════════════════════════════════════════════════════════
+        case 10: {  // Boss entry
             int off2 = Anm::STG1ENM2.offset;
             ctx.anm.SetScript(enemy.m_Vm, off2 + 128, off2);
             enemy.m_HitboxSize       = {48, 56};
@@ -93,20 +88,23 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
     float dir    = enemy.m_Mirrored ? -1.0f : 1.0f;
 
     switch (enemy.m_SubId) {
-        case 0:
+        // ══════════════════════════════════════════════════════════════════════
+        // Regular enemies (small/medium fairies) — Stage waves 1–3
+        // ══════════════════════════════════════════════════════════════════════
+        case 0:  // Small fairy — angular drift pattern A
             if (t == 40) enemy.m_AngularVelocity = dir * -0.024543693f;
             if (t == 120) enemy.m_AngularVelocity = dir * 0.019634955f;
             if (t == 220) enemy.m_AngularVelocity = 0.0f;
             if (t >= 10000) enemy.m_Alive = false;
             break;
 
-        case 1:
+        case 1:  // Small fairy — angular drift pattern B
             if (t == 100) enemy.m_AngularVelocity = dir * 0.019634955f;
             if (t == 200) enemy.m_AngularVelocity = 0.0f;
             if (t >= 10000) enemy.m_Alive = false;
             break;
 
-        case 2:
+        case 2:  // Medium fairy — stops, shoots 7-way fan, re-accelerates
             if (t == 60) {
                 ctx.anm.SetScript(enemy.m_Vm, offset + 5, offset);
                 enemy.m_Speed = 0.0f;
@@ -114,7 +112,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t == 70) {
                 glm::vec2 shootPos = enemy.m_Pos + glm::vec2{12.0f, -12.0f};
                 ctx.bullets.SpawnFanAimed(shootPos, ctx.playerPos, EBulletType::RingBall,
-                                          EBulletColor::Red, 7, 1.4f, 0.0f, 0.628f);
+                                          EBulletColor::Red, 7, 1.4f, 0.0f, 0.628f, true);
             }
             if (t == 130) {
                 enemy.m_Acceleration    = 0.05f;
@@ -124,7 +122,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t >= 10000) enemy.m_Alive = false;
             break;
 
-        case 3:
+        case 3:  // Medium fairy — same movement, no shot on Normal
             if (t == 60) {
                 ctx.anm.SetScript(enemy.m_Vm, offset + 5, offset);
                 enemy.m_Speed = 0.0f;
@@ -137,44 +135,10 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t >= 10000) enemy.m_Alive = false;
             break;
 
-        case 7: {
-            if (t == 0) {
-                enemy.m_CanTakeDamage = false;
-                ctx.bullets.ClearAll();
-                ctx.lasers.ClearAll();
-                enemy.m_Speed = 0.0f;
-                ctx.StartLerpTo(enemy, 192.0f, -64.0f, 60);
-            }
-            if (t == 60) {
-                enemy.m_Alive = false;
-                if (enemy.m_Vm.obj) {
-                    ctx.renderer.RemoveChild(enemy.m_Vm.obj);
-                    enemy.m_Vm.obj = nullptr;
-                }
-            }
-            break;
-        }
-
-        case 6: {
-            if (t == 0) {
-                enemy.m_CanTakeDamage = false;
-                ctx.bullets.ClearAll();
-                ctx.lasers.ClearAll();
-                enemy.m_Speed = 0.0f;
-                for (int k = 0; k < 5; k++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
-                ctx.StartLerpTo(enemy, 192.0f, -64.0f, 120);
-            }
-            if (t == 120) {
-                enemy.m_Alive = false;
-                if (enemy.m_Vm.obj) {
-                    ctx.renderer.RemoveChild(enemy.m_Vm.obj);
-                    enemy.m_Vm.obj = nullptr;
-                }
-            }
-            break;
-        }
-
-        case 8: {
+        // ══════════════════════════════════════════════════════════════════════
+        // Mid-boss (Rumia — preview encounter)
+        // ══════════════════════════════════════════════════════════════════════
+        case 8: {  // Mid-boss main pattern (Sub4 scatter waves + Sub5 random + circle3 rings)
             auto circle3 = [&](EBulletColor c) {
                 constexpr float s1 = 2.0f, s2 = 1.5f;
                 constexpr int   n = 3;
@@ -241,7 +205,47 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 10: {
+        case 7: {  // Mid-boss escape (timer callback from Sub8)
+            if (t == 0) {
+                enemy.m_CanTakeDamage = false;
+                ctx.bullets.ClearAll();
+                ctx.lasers.ClearAll();
+                enemy.m_Speed = 0.0f;
+                ctx.StartLerpTo(enemy, 192.0f, -64.0f, 60);
+            }
+            if (t == 60) {
+                enemy.m_Alive = false;
+                if (enemy.m_Vm.obj) {
+                    ctx.renderer.RemoveChild(enemy.m_Vm.obj);
+                    enemy.m_Vm.obj = nullptr;
+                }
+            }
+            break;
+        }
+
+        case 6: {  // Mid-boss death (death callback from Sub8)
+            if (t == 0) {
+                enemy.m_CanTakeDamage = false;
+                ctx.bullets.ClearAll();
+                ctx.lasers.ClearAll();
+                enemy.m_Speed = 0.0f;
+                for (int k = 0; k < 5; k++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
+                ctx.StartLerpTo(enemy, 192.0f, -64.0f, 120);
+            }
+            if (t == 120) {
+                enemy.m_Alive = false;
+                if (enemy.m_Vm.obj) {
+                    ctx.renderer.RemoveChild(enemy.m_Vm.obj);
+                    enemy.m_Vm.obj = nullptr;
+                }
+            }
+            break;
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        // Boss (Rumia) — Phase 1
+        // ══════════════════════════════════════════════════════════════════════
+        case 10: {  // Boss entry — lerp in, swap sprite, go non-spell
             if (t == 0) {
                 ctx.StartLerpTo(enemy, 192.0f, 96.0f, 60);
             }
@@ -253,7 +257,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 11: {
+        case 11: {  // Phase 1 non-spell init (HP 7000, life→22 @900, timer→22 @2100)
             if (t == 0) {
                 enemy.m_CanTakeDamage          = true;
                 enemy.m_Life                   = 7000;
@@ -269,7 +273,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 12: {
+        case 12: {  // Phase 1 attack — Ball fan stack
             if (t == 0) {
                 ctx.MoveRandInBounds(enemy);
                 ctx.StartLerpDir(enemy, 3.0f, 60);
@@ -288,7 +292,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 13: {
+        case 13: {  // Phase 1 attack — RingBall + Pellet interleaved circles
             if (t == 0) {
                 ctx.MoveRandInBounds(enemy);
                 ctx.StartLerpDir(enemy, 3.0f, 60);
@@ -328,7 +332,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 14: {
+        case 14: {  // Phase 1 attack — Rice fan stack + RingBall circle
             if (t == 0) {
                 ctx.MoveRandInBounds(enemy);
                 ctx.StartLerpDir(enemy, 3.0f, 60);
@@ -348,7 +352,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 15: {
+        case 15: {  // Phase 1 attack — RingBall converging spiral
             if (t == 0) {
                 ctx.MoveRandInBounds(enemy);
                 ctx.StartLerpDir(enemy, 3.0f, 60);
@@ -369,128 +373,11 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 16: {
+        case 22: {  // Phase 1 spellcard — Night Bird (8-group RingBall spirals × 2 passes, then
+                    // move)
             if (t == 0) {
                 enemy.m_CanTakeDamage          = false;
-                enemy.m_Life                   = 7500;
-                enemy.m_BossMaxLife            = 7500;
-                enemy.m_BossTimer              = 0;
-                enemy.m_LifeCallbackThreshold  = 800;
-                enemy.m_LifeCallbackSub        = 23;
-                enemy.m_TimerCallbackThreshold = 1800;
-                enemy.m_TimerCallbackSub       = 23;
-                enemy.m_DeathCallbackSub       = 17;
-                for (int k = 0; k < 5; k++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
-            }
-            if (t == 200) {
-                enemy.m_CanTakeDamage = true;
-                ctx.TransitionToSub(enemy, 18);
-            }
-            break;
-        }
-
-        case 17: {
-            if (t == 0) {
-                enemy.m_CanTakeDamage = false;
-                ctx.bullets.ClearAll();
-                ctx.lasers.ClearAll();
-            }
-            if (t == 60) {
-                enemy.m_Alive = false;
-            }
-            break;
-        }
-
-        case 18: {
-            if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
-            }
-            if (t == 12) {
-                ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                          EBulletColor::Green, 2, 8, 3.0f, 1.0f, 0.0f, 0.09817477f);
-            }
-            if (t >= 20 && t <= 60 && (t - 20) % 8 == 0) {
-                ctx.lasers.SpawnAimed(enemy.m_Pos, ctx.playerPos, 500.0f, 16.0f, 120, 60, 14, 16,
-                                      120);
-            }
-            if (t == 224) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 19 : (r == 1 ? 20 : 21));
-            }
-            break;
-        }
-
-        case 19: {
-            if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
-            }
-            if (t == 60) {
-                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                             EBulletColor::Green, 36, 2.0f);
-            }
-            if (t == 90) {
-                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Pellet,
-                                             EBulletColor::Green, 28, 2.6f);
-            }
-            if (t == 120) {
-                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                             EBulletColor::Green, 36, 2.0f);
-            }
-            if (t == 240) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 18 : (r == 1 ? 20 : 21));
-            }
-            break;
-        }
-
-        case 20: {
-            if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
-            }
-            if (t == 60)
-                ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                          EBulletColor::Yellow, 8, 2, 3.0f, 1.0f, 0.0f, 0.2617994f);
-            if (t == 80)
-                ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                          EBulletColor::Yellow, 9, 2, 3.0f, 1.0f, 0.0f, 0.2617994f);
-            if (t == 100)
-                ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                          EBulletColor::Yellow, 10, 2, 3.0f, 1.0f, 0.0f,
-                                          0.2617994f);
-            if (t == 220) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 19 : (r == 1 ? 18 : 21));
-            }
-            break;
-        }
-
-        case 21: {
-            if (t == 0) {
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 3.0f, 60);
-                enemy.m_Mirrored = (rand() % 2) == 0;
-            }
-            if (t >= 0 && t < 32 && t % 2 == 0) {
-                int   step   = t / 2;
-                float speed  = 1.0f + step * 0.25f;
-                float offset = enemy.m_Mirrored ? (-0.7139983f + step * 0.14279966f)
-                                                : (0.7139983f - step * 0.14279966f);
-                ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                          EBulletColor::Green, 2, speed, offset, 0.14279966f);
-            }
-            if (t == 124) {
-                int r = rand() % 3;
-                ctx.TransitionToSub(enemy, r == 0 ? 19 : (r == 1 ? 20 : 18));
-            }
-            break;
-        }
-
-        case 22: {
-            if (t == 0) {
-                enemy.m_CanTakeDamage          = false;
+                enemy.m_InSpellcard            = true;
                 enemy.m_BossTimer              = 0;
                 enemy.m_TimerCallbackThreshold = 1500;
                 ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
@@ -530,9 +417,123 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 23: {
+        // ══════════════════════════════════════════════════════════════════════
+        // Boss (Rumia) — Phase 2
+        // ══════════════════════════════════════════════════════════════════════
+        case 16: {  // Phase 2 entry (HP 7500, life→23 @800, timer→23 @1800, death→17; drops 5
+                    // items)
             if (t == 0) {
                 enemy.m_CanTakeDamage          = false;
+                enemy.m_InSpellcard            = false;
+                enemy.m_Life                   = 7500;
+                enemy.m_BossMaxLife            = 7500;
+                enemy.m_BossTimer              = 0;
+                enemy.m_LifeCallbackThreshold  = 800;
+                enemy.m_LifeCallbackSub        = 23;
+                enemy.m_TimerCallbackThreshold = 1800;
+                enemy.m_TimerCallbackSub       = 23;
+                enemy.m_DeathCallbackSub       = 17;
+                for (int k = 0; k < 5; k++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
+            }
+            if (t == 200) {
+                enemy.m_CanTakeDamage = true;
+                ctx.TransitionToSub(enemy, 18);
+            }
+            break;
+        }
+
+        case 18: {  // Phase 2 attack — RingBall fan + 6 aimed lasers
+            if (t == 0) {
+                ctx.MoveRandInBounds(enemy);
+                ctx.StartLerpDir(enemy, 3.0f, 60);
+            }
+            if (t == 12) {
+                ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
+                                          EBulletColor::Green, 2, 8, 3.0f, 1.0f, 0.0f, 0.09817477f);
+            }
+            if (t >= 20 && t <= 60 && (t - 20) % 8 == 0) {
+                ctx.lasers.SpawnAimed(enemy.m_Pos, ctx.playerPos, 500.0f, 16.0f, 120, 60, 14, 16,
+                                      120);
+            }
+            if (t == 224) {
+                int r = rand() % 3;
+                ctx.TransitionToSub(enemy, r == 0 ? 19 : (r == 1 ? 20 : 21));
+            }
+            break;
+        }
+
+        case 19: {  // Phase 2 attack — Rice + Pellet circles
+            if (t == 0) {
+                ctx.MoveRandInBounds(enemy);
+                ctx.StartLerpDir(enemy, 3.0f, 60);
+            }
+            if (t == 60) {
+                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
+                                             EBulletColor::Green, 36, 2.0f);
+            }
+            if (t == 90) {
+                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Pellet,
+                                             EBulletColor::Green, 28, 2.6f);
+            }
+            if (t == 120) {
+                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
+                                             EBulletColor::Green, 36, 2.0f);
+            }
+            if (t == 240) {
+                int r = rand() % 3;
+                ctx.TransitionToSub(enemy, r == 0 ? 18 : (r == 1 ? 20 : 21));
+            }
+            break;
+        }
+
+        case 20: {  // Phase 2 attack — Rice fan stack × 3
+            if (t == 0) {
+                ctx.MoveRandInBounds(enemy);
+                ctx.StartLerpDir(enemy, 3.0f, 60);
+            }
+            if (t == 60)
+                ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
+                                          EBulletColor::Yellow, 8, 2, 3.0f, 1.0f, 0.0f, 0.2617994f);
+            if (t == 80)
+                ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
+                                          EBulletColor::Yellow, 9, 2, 3.0f, 1.0f, 0.0f, 0.2617994f);
+            if (t == 100)
+                ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
+                                          EBulletColor::Yellow, 10, 2, 3.0f, 1.0f, 0.0f,
+                                          0.2617994f);
+            if (t == 220) {
+                int r = rand() % 3;
+                ctx.TransitionToSub(enemy, r == 0 ? 19 : (r == 1 ? 18 : 21));
+            }
+            break;
+        }
+
+        case 21: {  // Phase 2 attack — RingBall wider converging spiral
+            if (t == 0) {
+                ctx.MoveRandInBounds(enemy);
+                ctx.StartLerpDir(enemy, 3.0f, 60);
+                enemy.m_Mirrored = (rand() % 2) == 0;
+            }
+            if (t >= 0 && t < 32 && t % 2 == 0) {
+                int   step   = t / 2;
+                float speed  = 1.0f + step * 0.25f;
+                float offset = enemy.m_Mirrored ? (-0.7139983f + step * 0.14279966f)
+                                                : (0.7139983f - step * 0.14279966f);
+                ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
+                                          EBulletColor::Green, 2, speed, offset, 0.14279966f);
+            }
+            if (t == 124) {
+                int r = rand() % 3;
+                ctx.TransitionToSub(enemy, r == 0 ? 19 : (r == 1 ? 20 : 18));
+            }
+            break;
+        }
+
+        case 23: {  // Phase 2 spellcard — Demarcation (3 Rice pairs w/ curve + RingBall spiral)
+            // Each bullet redirects vertically after 40f at speed 1.5 (ECL ins_82 flag 0x40).
+            if (t == 0) {
+                enemy.m_CanTakeDamage          = false;
+                enemy.m_InSpellcard            = true;
                 enemy.m_BossTimer              = 0;
                 enemy.m_TimerCallbackThreshold = 1500;
                 ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
@@ -541,24 +542,52 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_CanTakeDamage = true;
             }
             {
-                int loopT = (t >= 120) ? (t - 120) % 360 : -1;
+                // One cycle = 336 frames (3 pairs at 0/60/120, spiral at 180 for 96f, +60 wait)
+                int loopT = (t >= 120) ? (t - 120) % 336 : -1;
                 if (loopT >= 0) {
-                    auto spawnPair = [&](EBulletColor color) {
+                    auto spawnPair = [&](EBulletColor color, bool upFirst) {
+                        float a1 = upFirst ? +Util::HALF_PI : -Util::HALF_PI;
+                        float a2 = upFirst ? -Util::HALF_PI : +Util::HALF_PI;
                         ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                                     color, 16, 3.0f, 0.0f);
+                                                     color, 16, 3.0f, 0.0f, false, 0.0f,
+                                                     {40, a1, 1.5f, true}, true);
                         ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
-                                                     color, 16, 3.0f, 0.19634955f);
+                                                     color, 16, 3.0f, 0.19634955f, false, 0.0f,
+                                                     {40, a2, 1.5f, true}, true);
                     };
-                    if (loopT == 0) spawnPair(EBulletColor::Blue);
-                    if (loopT == 60) spawnPair(EBulletColor::Green);
-                    if (loopT == 120) spawnPair(EBulletColor::Red);
-                    if (loopT == 180) spawnPair(EBulletColor::Green);
-                    if (loopT == 240) spawnPair(EBulletColor::Red);
-                    if (loopT == 300) {
+                    if (loopT == 0) spawnPair(EBulletColor::Blue, true);
+                    if (loopT == 60) spawnPair(EBulletColor::Green, false);
+                    if (loopT == 120) spawnPair(EBulletColor::Red, true);
+                    if (loopT == 180) {
                         ctx.MoveRandInBounds(enemy);
-                        ctx.StartLerpDir(enemy, 2.0f, 120);
+                        ctx.StartLerpDir(enemy, 2.0f, 60);
+                    }
+                    // Spiral: 2 outer × (12 neg + 12 pos) × every 2f = 96 frames (loopT 180-275)
+                    int spiralT = loopT - 180;
+                    if (spiralT >= 0 && spiralT < 96 && spiralT % 2 == 0) {
+                        int   phase  = (spiralT % 48) / 24;  // 0 = neg dir, 1 = pos dir
+                        int   step   = (spiralT % 24) / 2;   // 0..11
+                        float speed  = 1.0f + step * 0.2f;
+                        float offset = (phase == 0 ? -0.57119864f + step * 0.14279966f
+                                                   : +0.57119864f - step * 0.14279966f);
+                        ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
+                                                  EBulletColor::Blue, 1, speed, offset, 0.09817477f,
+                                                  false, true);
                     }
                 }
+            }
+            break;
+        }
+
+        case 17: {  // Boss death — clear field, despawn after 60f
+            if (t == 0) {
+                enemy.m_CanTakeDamage = false;
+                enemy.m_InSpellcard   = false;
+                ctx.bullets.ClearAll();
+                ctx.lasers.ClearAll();
+            }
+            if (t == 60) {
+                enemy.m_Alive = false;
             }
             break;
         }

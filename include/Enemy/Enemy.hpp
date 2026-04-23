@@ -32,6 +32,7 @@ struct Enemy {
     // Boss
     bool m_IsBoss           = false;
     bool m_CanTakeDamage    = true;
+    bool m_InSpellcard      = false;  // damage /7 during spellcard (TH6 behavior)
     int  m_BossTimer        = 0;
     int  m_BossMaxLife      = 1;
     int  m_DeathCallbackSub = -1;
