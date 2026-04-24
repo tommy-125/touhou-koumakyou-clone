@@ -7,6 +7,7 @@
 #include "Item/ItemManager.hpp"
 #include "Player.hpp"
 #include "Scene/Scene.hpp"
+#include "Scene/StageMenu.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/Image.hpp"
 
@@ -24,6 +25,7 @@ class Stage1 : public Scene {
     int                               m_StageFrame = 0;
     std::shared_ptr<Util::Image>      m_BgImage;
     std::shared_ptr<Util::GameObject> m_BgObj;
+    StageMenu                         m_StageMenu;
 
     GameManager  m_GameManager;
     Gui          m_Gui;

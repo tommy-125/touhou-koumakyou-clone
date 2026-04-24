@@ -11,6 +11,7 @@
 static constexpr float PLAYER_LASER_DEFAULT_LENGTH = 176.0f;
 static constexpr float PLAYER_LASER_GROWTH_RATE    = 24.0f;
 static constexpr int   PLAYER_LASER_HOLD_FRAMES    = 2;
+static constexpr int   PLAYER_BOMB_INVUL_FRAMES    = 180;
 
 Player::Player(CharacterItem character, SpellCardItem spellCard)
     : m_Data(character == CharacterItem::Reimu ? &REIMU_DATA : &MARISA_DATA),
@@ -78,6 +79,9 @@ int Player::CalcDamageToEnemy(glm::vec2 enemyPos, glm::vec2 enemyHitboxSize) {
 
 void Player::UpdateState() {
     m_JustEnteredSpawning = false;
+    if (m_BombTimer > 0) {
+        --m_BombTimer;
+    }
     switch (m_PlayerState) {
         case PlayerState::DEAD:
             if (++m_DeadTimer >= 30) {
@@ -105,6 +109,7 @@ void Player::UpdateState() {
 
 void Player::Update(GameManager& gm) {
     m_Power = gm.power;
+    m_BombRequested = false;
     UpdateState();
     HandlePlayerInput();
     m_HitboxTopLeft     = m_BodyPos - m_HitboxSize;
@@ -247,6 +252,23 @@ void Player::HandlePlayerInput() {
             m_FireBulletTimer = 0;
         }
     }
+
+    if (Util::Input::IsKeyDown(Util::Keycode::X)) {
+        m_BombRequested = true;
+    }
+}
+
+bool Player::TryUseBomb(GameManager& gm) {
+    if (!m_BombRequested) return false;
+    m_BombRequested = false;
+
+    if (gm.bombsRemaining <= 0) return false;
+    if (m_PlayerState == PlayerState::DEAD || m_PlayerState == PlayerState::SPAWNING) return false;
+    if (m_BombTimer > 0) return false;
+
+    --gm.bombsRemaining;
+    m_BombTimer = PLAYER_BOMB_INVUL_FRAMES;
+    return true;
 }
 
 void Player::UpdateFireBulletsTimer() {

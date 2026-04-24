@@ -1,6 +1,7 @@
 #ifndef GUI_HPP
 #define GUI_HPP
 
+#include <array>
 #include <memory>
 
 #include "Anm/AnmManager.hpp"
@@ -14,13 +15,17 @@
 class Gui {
    public:
     Gui();
-    void Update(const GameManager& gm, const BossHudState& bossHud);
+    void Update(const GameManager& gm, const BossHudState& bossHud, bool tick = true);
 
    private:
     static constexpr int NUM_DECO  = 6;  // front scripts 0–5
     static constexpr int NUM_LABEL = 7;  // front scripts 9–15
     static constexpr int MAX_LIVES = 8;
     static constexpr int MAX_BOMBS = 8;
+    static constexpr int MAX_SCORE_DIGITS = 9;
+    static constexpr int MAX_POWER_DIGITS = 3;
+    static constexpr int MAX_GRAZE_DIGITS = 6;
+    static constexpr int MAX_POINT_DIGITS = 6;
 
     Anm::Manager   m_Anm;
     Util::Renderer m_Renderer;
@@ -33,14 +38,11 @@ class Gui {
     Anm::Vm m_LifeVms[MAX_LIVES];
     Anm::Vm m_BombVms[MAX_BOMBS];
 
-    std::shared_ptr<Util::Text>       m_HiScoreText;
-    std::shared_ptr<Util::Text>       m_ScoreText;
-    std::shared_ptr<Util::Text>       m_PowerText;
-    std::shared_ptr<Util::Text>       m_GrazeText;
-    std::shared_ptr<Util::GameObject> m_HiScoreObj;
-    std::shared_ptr<Util::GameObject> m_ScoreObj;
-    std::shared_ptr<Util::GameObject> m_PowerObj;
-    std::shared_ptr<Util::GameObject> m_GrazeObj;
+    std::array<std::shared_ptr<Util::GameObject>, MAX_SCORE_DIGITS> m_HiScoreDigits;
+    std::array<std::shared_ptr<Util::GameObject>, MAX_SCORE_DIGITS> m_ScoreDigits;
+    std::array<std::shared_ptr<Util::GameObject>, MAX_POWER_DIGITS> m_PowerDigits;
+    std::array<std::shared_ptr<Util::GameObject>, MAX_GRAZE_DIGITS> m_GrazeDigits;
+    std::array<std::shared_ptr<Util::GameObject>, MAX_POINT_DIGITS> m_PointDigits;
 
     std::shared_ptr<Util::Text>       m_BossLabelText;
     std::shared_ptr<Util::Text>       m_BossBarText;
@@ -59,6 +61,7 @@ class Gui {
     int   m_LastHiScore         = -1;
     int   m_LastPower           = -1;
     int   m_LastGraze           = -1;
+    int   m_LastPointItems      = -1;
     int   m_LastBossLife        = -1;
     int   m_LastBossMin         = -1;
     int   m_LastBossMax         = -1;

@@ -53,7 +53,7 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
         item.m_Vm.pos = item.m_Pos;
         m_Anm.UpdateObjects(item.m_Vm);
 
-        if (playerPos.y <= ITEM_AUTOGET_Y) {
+        if (gm.power >= 128 && playerPos.y <= ITEM_AUTOGET_Y) {
             glm::vec2 toPlayer = playerPos - item.m_Pos;
             item.m_Vel += toPlayer * ITEM_HOMING_GAIN;
             item.m_Vel.x = std::clamp(item.m_Vel.x, -10.0f, 10.0f);
@@ -79,6 +79,7 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                               ? 100000
                               : std::max(0, static_cast<int>(60000.0f - (fieldY - 128.0f) * 100.0f));
                     gm.score += pts;
+                    gm.pointItems += 1;
                     break;
                 }
             }

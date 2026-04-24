@@ -10,7 +10,7 @@ void App::Start() {
 }
 
 void App::Update() {
-    if (Util::Input::IsKeyUp(Util::Keycode::ESCAPE) || Util::Input::IfExit()) {
+    if (Util::Input::IfExit()) {
         m_Done = true;
         return;
     }

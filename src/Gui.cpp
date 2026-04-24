@@ -9,18 +9,14 @@
 
 static constexpr int        FONT_SIZE     = 12;
 static constexpr const char FONT_PATH[]   = PTSD_FONT_PATH;
-static const Util::Color    TEXT_COLOR    = Util::Color::FromRGB(255, 255, 128);
+static constexpr float      DIGIT_SCALE   = 1.0f;
+static constexpr float      DIGIT_ADVANCE = 14.0f;
+static constexpr float      DIGIT_WIDTH   = 16.0f;
+static constexpr float      DIGIT_HEIGHT  = 16.0f;
 static const Util::Color    BOSS_COLOR    = Util::Color::FromRGB(255, 96, 96);
 static const Util::Color    BOSS_HP_COLOR = Util::Color::FromRGB(255, 220, 220);
 static const Util::Color    BOSS_TIME_COLOR = Util::Color::FromRGB(255, 255, 96);
 static const Util::Color    SPELL_NAME_COLOR = Util::Color::FromRGB(220, 240, 255);
-
-static void SetupText(std::shared_ptr<Util::Text>& text, std::shared_ptr<Util::GameObject>& obj,
-                      const std::string& str, float x, float y) {
-    text = std::make_shared<Util::Text>(FONT_PATH, FONT_SIZE, str, TEXT_COLOR);
-    obj  = std::make_shared<Util::GameObject>(text, 10.0f);
-    obj->m_Transform.translation = {x, y};
-}
 
 static void SetupTextWithColor(std::shared_ptr<Util::Text>&       text,
                                std::shared_ptr<Util::GameObject>& obj, const std::string& str,
@@ -56,6 +52,77 @@ static std::string BuildPhaseText(const BossHudState& bossHud) {
     return bossHud.title;
 }
 
+template <size_t N>
+static void SetupDigitField(std::array<std::shared_ptr<Util::GameObject>, N>& digits,
+                            Util::Renderer& renderer, float startX, float y) {
+    for (size_t i = 0; i < N; i++) {
+        digits[i] = std::make_shared<Util::GameObject>(nullptr, 10.0f);
+        digits[i]->m_Transform.translation = {
+            startX + DIGIT_WIDTH * 0.5f + static_cast<float>(i) * DIGIT_ADVANCE,
+            y - DIGIT_HEIGHT * 0.5f,
+        };
+        digits[i]->m_Transform.scale       = {DIGIT_SCALE, DIGIT_SCALE};
+        digits[i]->SetVisible(false);
+        renderer.AddChild(digits[i]);
+    }
+}
+
+template <size_t N>
+static void SetDigitField(std::array<std::shared_ptr<Util::GameObject>, N>& digits,
+                          const Anm::Manager& anm, int asciiOffset, const std::string& value,
+                          bool rightAlign = true) {
+    const size_t textLen = std::min(value.size(), N);
+    const size_t pad     = rightAlign ? (N - textLen) : 0;
+
+    for (size_t i = 0; i < N; i++) {
+        const auto& obj = digits[i];
+        if (!obj) continue;
+
+        if ((rightAlign && i < pad) || (!rightAlign && i >= textLen)) {
+            obj->SetVisible(false);
+            continue;
+        }
+
+        const size_t srcIdx = rightAlign ? (i - pad) : i;
+        const char   ch     = value[srcIdx];
+        if (ch < '0' || ch > '9') {
+            obj->SetVisible(false);
+            continue;
+        }
+
+        obj->SetDrawable(anm.sprites[asciiOffset + static_cast<int>(ch) - 0x15].image);
+        obj->SetVisible(true);
+    }
+}
+
+template <size_t N>
+static void SetAsciiField(std::array<std::shared_ptr<Util::GameObject>, N>& digits,
+                          const Anm::Manager& anm, int asciiOffset, const std::string& value,
+                          bool rightAlign = true) {
+    const size_t textLen = std::min(value.size(), N);
+    const size_t pad     = rightAlign ? (N - textLen) : 0;
+
+    for (size_t i = 0; i < N; i++) {
+        const auto& obj = digits[i];
+        if (!obj) continue;
+
+        if ((rightAlign && i < pad) || (!rightAlign && i >= textLen)) {
+            obj->SetVisible(false);
+            continue;
+        }
+
+        const size_t srcIdx = rightAlign ? (i - pad) : i;
+        const char   ch     = value[srcIdx];
+        if (ch < 0x15) {
+            obj->SetVisible(false);
+            continue;
+        }
+
+        obj->SetDrawable(anm.sprites[asciiOffset + static_cast<int>(ch) - 0x15].image);
+        obj->SetVisible(true);
+    }
+}
+
 Gui::Gui() {
     m_BgImage =
         std::make_shared<Util::Image>(GA_RESOURCE_DIR "/th06c/th06c_CM_output/front/bg.png");
@@ -65,6 +132,7 @@ Gui::Gui() {
 
     const int off = Anm::FRONT.offset;
     m_Anm.LoadAnm(Anm::FRONT.folder, Anm::FRONT.txt, off);
+    m_Anm.LoadAnm(Anm::ASCII.folder, Anm::ASCII.txt, Anm::ASCII.offset);
 
     // Animated decorations: scripts 0–5
     for (int i = 0; i < NUM_DECO; i++) {
@@ -117,10 +185,11 @@ Gui::Gui() {
     // Score:   th06(496,82)  → PTSD(176,158)
     // Power:   th06(496,186) → PTSD(176,54)
     // Graze:   th06(496,206) → PTSD(176,34)
-    SetupText(m_HiScoreText, m_HiScoreObj, "000000000", 230.0f, 182.0f);
-    SetupText(m_ScoreText, m_ScoreObj, "000000000", 230.0f, 158.0f);
-    SetupText(m_PowerText, m_PowerObj, "0", 218.0f, 54.0f);
-    SetupText(m_GrazeText, m_GrazeObj, "0", 218.0f, 34.0f);
+    SetupDigitField(m_HiScoreDigits, m_Renderer, 176.0f, 182.0f);
+    SetupDigitField(m_ScoreDigits, m_Renderer, 176.0f, 158.0f);
+    SetupDigitField(m_PowerDigits, m_Renderer, 176.0f, 54.0f);
+    SetupDigitField(m_GrazeDigits, m_Renderer, 176.0f, 34.0f);
+    SetupDigitField(m_PointDigits, m_Renderer, 176.0f, 14.0f);
 
     SetupTextWithColor(m_BossLabelText, m_BossLabelObj, "BOSS", BOSS_COLOR, -288.0f, 218.0f);
     SetupTextWithColor(m_BossBarText, m_BossBarObj, BuildBossBar(1, 0, 1), BOSS_COLOR, -252.0f,
@@ -129,10 +198,6 @@ Gui::Gui() {
     SetupTextWithColor(m_BossTimerText, m_BossTimerObj, "TIME 00", BOSS_TIME_COLOR, 132.0f, 218.0f);
     SetupTextWithColor(m_BossTitleText, m_BossTitleObj, " ", SPELL_NAME_COLOR, -160.0f, 196.0f);
 
-    m_Renderer.AddChild(m_HiScoreObj);
-    m_Renderer.AddChild(m_ScoreObj);
-    m_Renderer.AddChild(m_PowerObj);
-    m_Renderer.AddChild(m_GrazeObj);
     m_Renderer.AddChild(m_BossLabelObj);
     m_Renderer.AddChild(m_BossBarObj);
     m_Renderer.AddChild(m_BossHpObj);
@@ -146,9 +211,11 @@ Gui::Gui() {
     m_BossTitleObj->SetVisible(false);
 }
 
-void Gui::Update(const GameManager& gm, const BossHudState& bossHud) {
-    for (auto& vm : m_DecoVms) m_Anm.UpdateObjects(vm);
-    for (auto& vm : m_LabelVms) m_Anm.UpdateObjects(vm);
+void Gui::Update(const GameManager& gm, const BossHudState& bossHud, bool tick) {
+    if (tick) {
+        for (auto& vm : m_DecoVms) m_Anm.UpdateObjects(vm);
+        for (auto& vm : m_LabelVms) m_Anm.UpdateObjects(vm);
+    }
 
     if (m_LastLives != gm.livesRemaining) {
         m_LastLives = gm.livesRemaining;
@@ -166,24 +233,35 @@ void Gui::Update(const GameManager& gm, const BossHudState& bossHud) {
         m_LastScore = gm.score;
         char buf[16];
         snprintf(buf, sizeof(buf), "%09d", gm.score);
-        m_ScoreText->SetText(buf);
+        SetDigitField(m_ScoreDigits, m_Anm, Anm::ASCII.offset, buf);
     }
 
     if (m_LastHiScore != gm.highScore) {
         m_LastHiScore = gm.highScore;
         char buf[16];
         snprintf(buf, sizeof(buf), "%09d", gm.highScore);
-        m_HiScoreText->SetText(buf);
+        SetDigitField(m_HiScoreDigits, m_Anm, Anm::ASCII.offset, buf);
     }
 
     if (m_LastPower != gm.power) {
         m_LastPower = gm.power;
-        m_PowerText->SetText(std::to_string(gm.power));
+        if (gm.power >= 128) {
+            SetAsciiField(m_PowerDigits, m_Anm, Anm::ASCII.offset, "MAX", false);
+        } else {
+            SetDigitField(m_PowerDigits, m_Anm, Anm::ASCII.offset, std::to_string(gm.power),
+                          false);
+        }
     }
 
     if (m_LastGraze != gm.graze) {
         m_LastGraze = gm.graze;
-        m_GrazeText->SetText(std::to_string(gm.graze));
+        SetDigitField(m_GrazeDigits, m_Anm, Anm::ASCII.offset, std::to_string(gm.graze), false);
+    }
+
+    if (m_LastPointItems != gm.pointItems) {
+        m_LastPointItems = gm.pointItems;
+        SetDigitField(m_PointDigits, m_Anm, Anm::ASCII.offset, std::to_string(gm.pointItems),
+                      false);
     }
 
     const int bossShow = bossHud.visible ? 1 : 0;
@@ -192,10 +270,12 @@ void Gui::Update(const GameManager& gm, const BossHudState& bossHud) {
         if (!bossHud.visible) m_BossBarRatioDisplay = 0.0f;
     }
 
-    if (bossHud.visible) {
-        m_BossUiAnim = std::min(1.0f, m_BossUiAnim + 0.08f);
-    } else {
-        m_BossUiAnim = std::max(0.0f, m_BossUiAnim - 0.08f);
+    if (tick) {
+        if (bossHud.visible) {
+            m_BossUiAnim = std::min(1.0f, m_BossUiAnim + 0.08f);
+        } else {
+            m_BossUiAnim = std::max(0.0f, m_BossUiAnim - 0.08f);
+        }
     }
 
     const bool bossUiVisible = m_BossUiAnim > 0.0f;
@@ -217,14 +297,16 @@ void Gui::Update(const GameManager& gm, const BossHudState& bossHud) {
         const int   denom     = std::max(1, bossHud.maxLife - bossHud.minLife);
         const int   num       = std::clamp(bossHud.life - bossHud.minLife, 0, denom);
         const float targetBar = static_cast<float>(num) / static_cast<float>(denom);
-        if (targetBar > m_BossBarRatioDisplay) {
+        if (tick && targetBar > m_BossBarRatioDisplay) {
             m_BossBarRatioDisplay += 0.01f;
             if (m_BossBarRatioDisplay > targetBar) m_BossBarRatioDisplay = targetBar;
             bossBarChanged = true;
-        } else if (targetBar < m_BossBarRatioDisplay) {
+        } else if (tick && targetBar < m_BossBarRatioDisplay) {
             m_BossBarRatioDisplay -= 0.02f;
             if (m_BossBarRatioDisplay < targetBar) m_BossBarRatioDisplay = targetBar;
             bossBarChanged = true;
+        } else if (!tick && m_LastBossShow == 1) {
+            m_BossBarRatioDisplay = targetBar;
         }
     }
 

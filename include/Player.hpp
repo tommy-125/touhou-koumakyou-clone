@@ -149,9 +149,13 @@ class Player {
     const glm::vec2& GetPos() const { return m_BodyPos; }
     int              CalcDamageToEnemy(glm::vec2 enemyPos, glm::vec2 enemyHitboxSize);
     void             Die();
-    bool             IsVulnerable() const { return m_PlayerState == PlayerState::ALIVE; }
+    bool             IsVulnerable() const {
+        return m_PlayerState == PlayerState::ALIVE && m_BombTimer <= 0;
+    }
     bool             JustEnteredSpawning() const { return m_JustEnteredSpawning; }
     PlayerState      GetState() const { return m_PlayerState; }
+    bool             TryUseBomb(GameManager& gm);
+    bool             IsBombActive() const { return m_BombTimer > 0; }
 
    private:
     void SetMoveState(MoveState newState);
@@ -196,7 +200,9 @@ class Player {
     int  m_DeadTimer           = 0;
     int  m_SpawnTimer          = 0;
     int  m_InvulTimer          = 0;
+    int  m_BombTimer           = 0;
     bool m_JustEnteredSpawning = false;
+    bool m_BombRequested       = false;
 
     int          m_FireBulletTimer = -1;
     PlayerBullet m_Bullets[100];  // Object pool for bullets

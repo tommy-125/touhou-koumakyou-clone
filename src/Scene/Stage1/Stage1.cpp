@@ -259,7 +259,8 @@ static const TimelineEntry STAGE1_TIMELINE[] = {
     {5279, 10, 0.0f, 0.0f, 1, 200000, false},
 };
 
-Stage1::Stage1(CharacterItem character, SpellCardItem spellCard) : m_Player(character, spellCard) {
+Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
+    : m_StageMenu(m_Renderer), m_Player(character, spellCard) {
     m_EnemyManager.SetItemManager(&m_ItemManager);
     m_EnemyManager.SetTimeline(STAGE1_TIMELINE,
                                sizeof(STAGE1_TIMELINE) / sizeof(STAGE1_TIMELINE[0]));
@@ -272,10 +273,26 @@ Stage1::Stage1(CharacterItem character, SpellCardItem spellCard) : m_Player(char
 }
 
 void Stage1::Update() {
-    if (Util::Input::IsKeyDown(Util::Keycode::F5)) {
+    if (Util::Input::IsKeyDown(Util::Keycode::ESCAPE)) {
+        m_StageMenu.Toggle();
+    }
+
+    const auto stageMenuAction = m_StageMenu.Update();
+    if (stageMenuAction == StageMenu::Action::ReturnToTitle) {
+        m_Done = true;
+        return;
+    }
+
+    if (!m_StageMenu.IsOpen() && Util::Input::IsKeyDown(Util::Keycode::F5)) {
         constexpr int BOSS_FRAME = 5200;
         m_StageFrame             = BOSS_FRAME;
         m_EnemyManager.SkipToFrame(BOSS_FRAME);
+    }
+
+    if (m_StageMenu.IsOpen()) {
+        m_Renderer.Update();
+        m_Gui.Update(m_GameManager, m_EnemyManager.GetBossHudState(), false);
+        return;
     }
 
     ++m_StageFrame;
@@ -286,6 +303,9 @@ void Stage1::Update() {
     m_ItemManager.Update(m_Player.GetPos(), m_GameManager);
     m_EnemyManager.Update(m_Player.GetPos(), m_GameManager);
     m_Player.Update(m_GameManager);
+    if (m_Player.TryUseBomb(m_GameManager) || m_Player.IsBombActive()) {
+        m_EnemyManager.ClearAllBullets();
+    }
 
     int scoreGained = m_EnemyManager.ApplyPlayerBulletDamage(m_Player);
     if (scoreGained > 0) {
@@ -307,7 +327,7 @@ void Stage1::Update() {
         m_EnemyManager.ClearAllBullets();
     }
 
-    m_Gui.Update(m_GameManager, m_EnemyManager.GetBossHudState());
+    m_Gui.Update(m_GameManager, m_EnemyManager.GetBossHudState(), true);
 }
 
 std::unique_ptr<Scene> Stage1::NextScene() {

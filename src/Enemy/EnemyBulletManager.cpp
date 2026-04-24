@@ -72,6 +72,15 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
                                           EBulletColor color, int count, float speed,
                                           float aimOffset, bool useDecay, float acceleration,
                                           BulletCurve curve, bool rotateWithAngle) {
+    SpawnCircleAimed(pos, playerPos, type, color, count, speed, aimOffset, useDecay, acceleration,
+                     0, curve, rotateWithAngle);
+}
+
+void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
+                                          EBulletColor color, int count, float speed,
+                                          float aimOffset, bool useDecay, float acceleration,
+                                          int accelerationFrames, BulletCurve curve,
+                                          bool rotateWithAngle) {
     int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
     int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
     float aimAngle  = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x) + aimOffset;
@@ -86,6 +95,7 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
         b->m_Speed             = speed;
         b->m_UseDecay          = useDecay;
         b->m_Acceleration      = acceleration;
+        b->m_AccelerationFrames = accelerationFrames;
         b->m_DirChangeInterval = curve.at;
         b->m_DirChangeNumTimes = 0;
         b->m_DirChangeMaxTimes = curve.times;
@@ -102,7 +112,7 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
 
 void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count,
                                      float speed, float baseAngle, bool useDecay,
-                                     float acceleration) {
+                                     float acceleration, int accelerationFrames) {
     int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
     int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
@@ -113,9 +123,10 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
         b->m_Alive     = true;
         b->m_Pos       = pos;
         b->m_Angle     = baseAngle + i * step;
-        b->m_Speed     = speed;
-        b->m_UseDecay  = useDecay;
-        b->m_Acceleration = acceleration;
+        b->m_Speed              = speed;
+        b->m_UseDecay           = useDecay;
+        b->m_Acceleration       = acceleration;
+        b->m_AccelerationFrames = accelerationFrames;
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
             m_Renderer.AddChild(b->m_Vm.obj);
@@ -159,8 +170,9 @@ void EnemyBulletManager::Update() {
             } else {
                 b.m_UseDecay = false;
             }
-        } else if (b.m_Acceleration != 0.0f) {
+        } else if (b.m_Acceleration != 0.0f && b.m_AccelerationFrames > 0) {
             b.m_Speed += b.m_Acceleration;
+            --b.m_AccelerationFrames;
             effectiveSpeed = b.m_Speed;
         }
 

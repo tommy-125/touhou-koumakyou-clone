@@ -156,6 +156,12 @@ constexpr Entry FRONT = {
     740 + 200,  // 940
 };
 
+constexpr Entry ASCII = {
+    GA_RESOURCE_DIR "/th06c/th06c_IN_output/ascii",
+    GA_RESOURCE_DIR "/th06c/th06c_IN_output/ascii/ascii.txt",
+    940 + 200,  // 1140
+};
+
 }  // namespace Anm
 
 #endif  // ANMDEFS_HPP

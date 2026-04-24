@@ -46,6 +46,7 @@ struct EnemyBullet {
     float     m_Speed        = 0;
     glm::vec2 m_HitboxSize   = {5, 5};
     float     m_Acceleration = 0.0f;
+    int       m_AccelerationFrames = 0;
     bool      m_Alive        = false;
     bool      m_UseDecay     = false;
     int       m_DecayTimer   = 0;
@@ -87,10 +88,14 @@ class EnemyBulletManager {
                           int count, float speed, float aimOffset = 0.0f, bool useDecay = false,
                           float acceleration = 0.0f, BulletCurve curve = {},
                           bool rotateWithAngle = false);
+    void SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
+                          int count, float speed, float aimOffset, bool useDecay,
+                          float acceleration, int accelerationFrames, BulletCurve curve,
+                          bool rotateWithAngle = false);
     // CIRCLE: full 360° ring at absolute baseAngle (no player aiming)
     void SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count, float speed,
                      float baseAngle = 0.0f, bool useDecay = false,
-                     float acceleration = 0.0f);
+                     float acceleration = 0.0f, int accelerationFrames = 0);
 
     void Update();
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
