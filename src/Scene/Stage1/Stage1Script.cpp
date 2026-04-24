@@ -186,7 +186,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                                                       0.2617994f};
             auto                   sub4Wave        = [&](int wave) {
                 ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Pellet, kSub4Colors[wave], 8,
-                                        0.8f, kSub4Offsets[wave], true);
+                                        0.0f, kSub4Offsets[wave], false, 0.02f, 40);
             };
 
             auto randSpeed = [&]() { return (rand() % 1000) / 1000.0f * 3.0f + 0.5f; };
@@ -195,9 +195,9 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             };
             auto sub5Wave = [&](int wave) {
                 ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Pellet, kSub4Colors[wave], 4,
-                                        randSpeed(), randAngle(), true);
+                                        randSpeed(), randAngle(), false);
                 ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Rice, kSub4Colors[wave], 4,
-                                        randSpeed(), randAngle(), true);
+                                        randSpeed(), randAngle(), false);
             };
 
             if (t == 0) ctx.StartLerpTo(enemy, 320.0f, 128.0f, 60);
