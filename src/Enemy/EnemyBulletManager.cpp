@@ -102,6 +102,9 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
         b->m_DirChangeAngle    = curve.angle;
         b->m_DirChangeSpeed    = curve.speed;
         b->m_DirChangeRelative = curve.relative;
+        b->m_DirChangeAimAtPlayer = curve.aimAtPlayer;
+        b->m_DirChangeStartupFrames = curve.startupFrames;
+        b->m_DirChangeStartupSpeedScale = curve.startupSpeedScale;
         b->m_RotateWithAngle   = rotateWithAngle;
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
@@ -159,7 +162,7 @@ void EnemyBulletManager::ClearAll() {
     }
 }
 
-void EnemyBulletManager::Update() {
+void EnemyBulletManager::Update(glm::vec2 playerPos) {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
 
@@ -179,22 +182,35 @@ void EnemyBulletManager::Update() {
         // TH06 ex flag 0x40 behavior: within each interval, speed decays linearly to 0;
         // at interval boundary, angle/speed are reset and this can repeat multiple times.
         if (b.m_DirChangeInterval > 0 && b.m_DirChangeNumTimes < b.m_DirChangeMaxTimes) {
-            int nextTrigger = b.m_DirChangeInterval * (b.m_DirChangeNumTimes + 1);
-            if (b.m_DecayTimer >= nextTrigger) {
-                b.m_DirChangeNumTimes++;
-                b.m_Angle =
-                    b.m_DirChangeRelative ? b.m_Angle + b.m_DirChangeAngle : b.m_DirChangeAngle;
-                b.m_Speed      = b.m_DirChangeSpeed;
-                effectiveSpeed = b.m_Speed;
-                if (b.m_DirChangeNumTimes >= b.m_DirChangeMaxTimes) {
-                    b.m_DirChangeInterval = -1;
-                }
+            if (b.m_DecayTimer < b.m_DirChangeStartupFrames) {
+                effectiveSpeed = b.m_Speed * b.m_DirChangeStartupSpeedScale;
             } else {
-                int   intervalStart = b.m_DirChangeInterval * b.m_DirChangeNumTimes;
-                float localTime     = static_cast<float>(b.m_DecayTimer - intervalStart);
-                float interval      = static_cast<float>(b.m_DirChangeInterval);
-                effectiveSpeed      = b.m_Speed - (localTime * b.m_Speed) / interval;
-                if (effectiveSpeed < 0.0f) effectiveSpeed = 0.0f;
+                int nextTrigger =
+                    b.m_DirChangeStartupFrames +
+                    b.m_DirChangeInterval * (b.m_DirChangeNumTimes + 1);
+                if (b.m_DecayTimer >= nextTrigger) {
+                    b.m_DirChangeNumTimes++;
+                    if (b.m_DirChangeAimAtPlayer) {
+                        b.m_Angle =
+                            std::atan2(playerPos.y - b.m_Pos.y, playerPos.x - b.m_Pos.x) +
+                            b.m_DirChangeAngle;
+                    } else {
+                        b.m_Angle = b.m_DirChangeRelative ? b.m_Angle + b.m_DirChangeAngle
+                                                          : b.m_DirChangeAngle;
+                    }
+                    b.m_Speed      = b.m_DirChangeSpeed;
+                    effectiveSpeed = b.m_Speed;
+                    if (b.m_DirChangeNumTimes >= b.m_DirChangeMaxTimes) {
+                        b.m_DirChangeInterval = -1;
+                    }
+                } else {
+                    int intervalStart = b.m_DirChangeInterval * b.m_DirChangeNumTimes;
+                    float localTime = static_cast<float>(b.m_DecayTimer - b.m_DirChangeStartupFrames -
+                                                         intervalStart);
+                    float interval = static_cast<float>(b.m_DirChangeInterval);
+                    effectiveSpeed = b.m_Speed - (localTime * b.m_Speed) / interval;
+                    if (effectiveSpeed < 0.0f) effectiveSpeed = 0.0f;
+                }
             }
         }
 

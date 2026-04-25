@@ -180,7 +180,7 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
     }
 
     m_Renderer.Update();
-    m_BulletManager.Update();
+    m_BulletManager.Update(m_PlayerPos);
     m_LaserManager.Update();
     m_Frame++;
 }

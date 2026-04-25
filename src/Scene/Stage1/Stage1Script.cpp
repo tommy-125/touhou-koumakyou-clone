@@ -522,6 +522,9 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 // One cycle = 336 frames (3 pairs at 0/60/120, spiral at 180 for 96f, +60 wait)
                 int loopT = (t >= 120) ? (t - 120) % 336 : -1;
                 if (loopT >= 0) {
+                    // Circle body: the two Rice rings themselves. These should keep the
+                    // original tangent-style redirection and are not the "interleaved aimed"
+                    // attack between the rings.
                     const glm::vec2 ringAnchor = enemy.m_Pos + glm::vec2{1.0f, 0.0f};
                     auto            spawnPair  = [&](EBulletColor color, bool upFirst) {
                         float a1 = upFirst ? +Util::HALF_PI : -Util::HALF_PI;
@@ -540,6 +543,9 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                         ctx.MoveRandInBounds(enemy);
                         ctx.StartLerpDir(enemy, 2.0f, 120);
                     }
+                    // Interleaved aimed attack: the blue RingBall shots threaded between the
+                    // Rice circles. This is the section to tune when the "aimed shots between
+                    // the rings" looks off.
                     // Spiral: 2 outer × (12 neg + 12 pos) × every 2f = 96 frames (loopT 180-275)
                     int spiralT = loopT - 180;
                     if (spiralT >= 0 && spiralT < 96 && spiralT % 2 == 0) {
@@ -548,9 +554,11 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                         float speed  = 1.0f + step * 0.2f;
                         float offset = (phase == 0 ? -0.57119864f + step * 0.14279966f
                                                    : +0.57119864f - step * 0.14279966f);
-                        ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                                  EBulletColor::Blue, 1, speed, offset, 0.09817477f,
-                                                  false, true);
+                        ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos,
+                                                     EBulletType::RingBall, EBulletColor::Blue, 1,
+                                                     speed, offset, false, 0.0f,
+                                                     {40, 0.0f, 3.0f, false, true, 1, 12, 0.4f},
+                                                     true);
                     }
                     if (loopT == 276) {
                         ctx.MoveRandInBounds(enemy);

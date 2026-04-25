@@ -60,6 +60,9 @@ struct EnemyBullet {
     float m_DirChangeAngle    = 0.0f;
     float m_DirChangeSpeed    = 0.0f;
     bool  m_DirChangeRelative = false;
+    bool  m_DirChangeAimAtPlayer = false;
+    int   m_DirChangeStartupFrames = 0;
+    float m_DirChangeStartupSpeedScale = 1.0f;
 };
 
 // Direction change (ECL flag 0x40 / ins_82): every `at` frames, rotate/re-speed.
@@ -69,7 +72,10 @@ struct BulletCurve {
     float angle    = 0.0f;
     float speed    = 0.0f;
     bool  relative = false;
+    bool  aimAtPlayer = false;
     int   times    = 1;
+    int   startupFrames = 0;
+    float startupSpeedScale = 1.0f;
 };
 
 class EnemyBulletManager {
@@ -97,7 +103,7 @@ class EnemyBulletManager {
                      float baseAngle = 0.0f, bool useDecay = false,
                      float acceleration = 0.0f, int accelerationFrames = 0);
 
-    void Update();
+    void Update(glm::vec2 playerPos);
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
 
