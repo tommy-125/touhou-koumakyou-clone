@@ -18,7 +18,17 @@ static constexpr ItemType RANDOM_ITEM_TABLE[32] = {
     ItemType::Point,      ItemType::Point,      ItemType::PowerSmall, ItemType::PowerBig,
 };
 
-EnemyManager::EnemyManager() = default;
+namespace {
+constexpr int   EFF_DEATH_ANM_669          = Anm::EFF00.offset + 0;
+constexpr int   EFF_DEATH_ANM_670          = Anm::EFF00.offset + 1;
+constexpr int   EFF_DEATH_ANM_671          = Anm::EFF00.offset + 2;
+constexpr int   EFF_DEATH_ANM_680          = Anm::EFF00.offset + 9;
+constexpr int   EFF_DEATH_ANM_682          = Anm::EFF00.offset + 11;
+}  // namespace
+
+EnemyManager::EnemyManager() {
+    m_EffectAnm.LoadAnm(Anm::EFF00.folder, Anm::EFF00.txt, Anm::EFF00.offset);
+}
 
 void EnemyManager::SetScript(std::unique_ptr<IStageScript> script) {
     m_Script = std::move(script);
@@ -120,6 +130,39 @@ void EnemyManager::UpdatePhysics(Enemy& enemy) {
     enemy.m_Speed += enemy.m_Acceleration;
 }
 
+void EnemyManager::UpdateBossPose(Enemy& enemy, float horizontalDelta) {
+    if (!enemy.m_IsBoss || enemy.m_AnmLeft < 0) return;
+
+    int nextState = 0;
+    if (horizontalDelta < 0.0f) {
+        nextState = 1;
+    } else if (horizontalDelta > 0.0f) {
+        nextState = 2;
+    }
+
+    if (enemy.m_AnmMoveState == nextState) return;
+
+    const int offset = enemy.m_Vm.spriteOffset;
+    switch (nextState) {
+        case 0:
+            if (enemy.m_AnmMoveState == 0xff) {
+                m_Anm.SetScript(enemy.m_Vm, offset + enemy.m_AnmDefault, offset);
+            } else if (enemy.m_AnmMoveState == 1) {
+                m_Anm.SetScript(enemy.m_Vm, offset + enemy.m_AnmFarLeft, offset);
+            } else {
+                m_Anm.SetScript(enemy.m_Vm, offset + enemy.m_AnmFarRight, offset);
+            }
+            break;
+        case 1:
+            m_Anm.SetScript(enemy.m_Vm, offset + enemy.m_AnmLeft, offset);
+            break;
+        case 2:
+            m_Anm.SetScript(enemy.m_Vm, offset + enemy.m_AnmRight, offset);
+            break;
+    }
+    enemy.m_AnmMoveState = nextState;
+}
+
 void EnemyManager::SetTimeline(const TimelineEntry* entries, int count) {
     m_Timeline     = entries;
     m_TimelineSize = count;
@@ -162,7 +205,9 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
             continue;
         }
 
+        const float oldX = enemy.m_Pos.x;
         UpdatePhysics(enemy);
+        UpdateBossPose(enemy, enemy.m_Pos.x - oldX);
 
         enemy.m_Vm.pos = enemy.m_Pos;
         m_Anm.UpdateObjects(enemy.m_Vm);
@@ -179,9 +224,10 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
         }
     }
 
-    m_Renderer.Update();
     m_BulletManager.Update(m_PlayerPos);
     m_LaserManager.Update();
+    UpdateEffects();
+    m_Renderer.Update();
     m_Frame++;
 }
 
@@ -232,10 +278,12 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                 if (sub >= 0) {
                     m_BulletManager.ClearAll();
                     m_LaserManager.ClearAll();
+                    SpawnDeathEffect(enemy);
                     enemy.m_SubId      = sub;
                     enemy.m_FrameTimer = -1;
                 } else {
                     totalScore += enemy.m_Score;
+                    SpawnDeathEffect(enemy);
                     enemy.m_Alive = false;
                     if (enemy.m_Vm.obj) {
                         m_Renderer.RemoveChild(enemy.m_Vm.obj);
@@ -245,6 +293,7 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
             } else {
                 enemy.m_Alive = false;
                 totalScore += enemy.m_Score;
+                SpawnDeathEffect(enemy);
 
                 for (int k = 0; k < enemy.m_ItemDropCount; k++) {
                     if (enemy.m_ItemDrop >= 0) {
@@ -266,6 +315,77 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
         }
     }
     return totalScore;
+}
+
+void EnemyManager::SpawnEffect(int scriptIdx, const glm::vec2& pos, float zIndex,
+                               const glm::vec2& scale) {
+    for (auto& effect : m_Effects) {
+        if (effect.active) continue;
+
+        effect.active = true;
+        effect.vm     = Anm::Vm{};
+        m_EffectAnm.SetScript(effect.vm, scriptIdx, Anm::EFF00.offset);
+        effect.vm.pos    = pos;
+        effect.vm.zIndex = zIndex;
+        effect.vm.scale  = scale;
+        if (effect.vm.obj) {
+            m_Renderer.AddChild(effect.vm.obj);
+        }
+        return;
+    }
+}
+
+int EnemyManager::GetDeathPrimaryScript(int deathAnm1) const {
+    switch (deathAnm1) {
+        case 669:
+            return EFF_DEATH_ANM_669;
+        case 671:
+            return EFF_DEATH_ANM_671;
+        case 670:
+        default:
+            return EFF_DEATH_ANM_670;
+    }
+}
+
+int EnemyManager::GetDeathSecondaryScript(int deathAnm2) const {
+    switch (deathAnm2) {
+        case 676:
+            return EFF_DEATH_ANM_680;
+        case 678:
+        default:
+            return EFF_DEATH_ANM_682;
+    }
+}
+
+void EnemyManager::SpawnDeathEffect(const Enemy& enemy) {
+    const glm::vec2 pos = enemy.m_Pos;
+    const int       primaryScript = GetDeathPrimaryScript(enemy.m_DeathEffectPrimary);
+    const int       secondaryScript = GetDeathSecondaryScript(enemy.m_DeathEffectSecondary);
+
+    SpawnEffect(primaryScript, pos, 0.78f);
+
+    for (int i = 0; i < 4; i++) {
+        glm::vec2 offset = {
+            ((static_cast<float>(std::rand() % 2001) / 1000.0f) - 1.0f) * 10.0f,
+            ((static_cast<float>(std::rand() % 2001) / 1000.0f) - 1.0f) * 8.0f,
+        };
+        SpawnEffect(secondaryScript, pos + offset, 0.79f);
+    }
+}
+
+void EnemyManager::UpdateEffects() {
+    for (auto& effect : m_Effects) {
+        if (!effect.active) continue;
+
+        m_EffectAnm.UpdateObjects(effect.vm);
+        if (effect.vm.scriptIdx >= 0) continue;
+
+        if (effect.vm.obj) {
+            m_Renderer.RemoveChild(effect.vm.obj);
+            effect.vm.obj = nullptr;
+        }
+        effect.active = false;
+    }
 }
 
 bool EnemyManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {

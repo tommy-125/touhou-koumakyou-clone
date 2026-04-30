@@ -12,6 +12,7 @@ static constexpr float PLAYER_LASER_DEFAULT_LENGTH = 176.0f;
 static constexpr float PLAYER_LASER_GROWTH_RATE    = 24.0f;
 static constexpr int   PLAYER_LASER_HOLD_FRAMES    = 2;
 static constexpr int   PLAYER_BOMB_INVUL_FRAMES    = 180;
+static constexpr int   PLAYER_BULLET_COLLISION_SCRIPT_OFFSET = 32;
 
 Player::Player(CharacterItem character, SpellCardItem spellCard)
     : m_Data(character == CharacterItem::Reimu ? &REIMU_DATA : &MARISA_DATA),
@@ -71,6 +72,9 @@ int Player::CalcDamageToEnemy(glm::vec2 enemyPos, glm::vec2 enemyHitboxSize) {
         if (dx < (b.m_Size.x + enemyHitboxSize.x) * 0.5f &&
             dy < (b.m_Size.y + enemyHitboxSize.y) * 0.5f) {
             b.m_BulletState = BulletState::COLLIDED;
+            m_Anm.SetScript(b.m_Vm, b.m_Vm.scriptIdx + PLAYER_BULLET_COLLISION_SCRIPT_OFFSET,
+                            b.m_Vm.spriteOffset);
+            b.m_Velocity *= 0.125f;
             total += b.m_Damage;
         }
     }
@@ -385,12 +389,17 @@ void Player::UpdatePlayerBullets() {
     for (int i = 0; i < 100; i++) {
         bullet = &m_Bullets[i];
 
-        if (bullet->m_BulletState == BulletState::COLLIDED) {
-            bullet->m_BulletState = BulletState::UNUSED;
-            m_Renderer.RemoveChild(bullet->m_Vm.obj);
-        }
-
         if (bullet->m_BulletState != BulletState::UNUSED) {
+            if (bullet->m_BulletState == BulletState::COLLIDED) {
+                bullet->m_Vm.pos += bullet->m_Velocity;
+                m_Anm.UpdateObjects(bullet->m_Vm);
+                if (bullet->m_Vm.scriptIdx < 0) {
+                    bullet->m_BulletState = BulletState::UNUSED;
+                    m_Renderer.RemoveChild(bullet->m_Vm.obj);
+                }
+                continue;
+            }
+
             switch (bullet->m_BulletType) {
                 case BulletType::HOMING:
                     break;

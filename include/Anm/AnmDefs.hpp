@@ -162,6 +162,12 @@ constexpr Entry ASCII = {
     940 + 200,  // 1140
 };
 
+constexpr Entry EFF00 = {
+    GA_RESOURCE_DIR "/th06c/th06c_CM_output/eff00",
+    GA_RESOURCE_DIR "/th06c/th06c_CM_output/eff00/eff00.txt",
+    1140 + 200,  // 1340
+};
+
 }  // namespace Anm
 
 #endif  // ANMDEFS_HPP

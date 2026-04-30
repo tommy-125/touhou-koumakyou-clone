@@ -12,6 +12,20 @@
 
 namespace {
 
+void SetDeathEffects(Enemy& enemy, int primary, int secondary) {
+    enemy.m_DeathEffectPrimary   = primary;
+    enemy.m_DeathEffectSecondary = secondary;
+}
+
+void SetBossPoses(Enemy& enemy, int defaults, int farLeft, int farRight, int left, int right) {
+    enemy.m_AnmDefault   = defaults;
+    enemy.m_AnmFarLeft   = farLeft;
+    enemy.m_AnmFarRight  = farRight;
+    enemy.m_AnmLeft      = left;
+    enemy.m_AnmRight     = right;
+    enemy.m_AnmMoveState = 0xff;
+}
+
 void StartRandomAttackMove(Enemy& enemy, const EnemySubCtx& ctx, float speed = 3.0f, int frames = 60) {
     ctx.MoveRandInBounds(enemy);
     ctx.StartLerpDir(enemy, speed, frames);
@@ -56,6 +70,7 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
             enemy.m_ItemDrop   = -1;
+            SetDeathEffects(enemy, 670, 678);
             break;
 
         case 2:  // Medium fairy — stops and shoots fan
@@ -65,6 +80,7 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
             enemy.m_ItemDrop   = 0;
+            SetDeathEffects(enemy, 669, 678);
             break;
 
         // ══════════════════════════════════════════════════════════════════════
@@ -87,6 +103,8 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_BlocksTimeline         = true;
             enemy.m_BossTitle              = "Rumia";
             enemy.m_BossPhaseIndex         = 0;
+            SetDeathEffects(enemy, 671, 676);
+            SetBossPoses(enemy, 128, 131, 132, 129, 130);
             break;
         }
 
@@ -104,6 +122,8 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_CanTakeDamage    = false;
             enemy.m_DeathCallbackSub = 16;
             enemy.m_BossTitle        = "Rumia";
+            SetDeathEffects(enemy, 671, 676);
+            SetBossPoses(enemy, 128, 131, 132, 129, 130);
             break;
         }
 
@@ -281,6 +301,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
 
         case 11: {  // Phase 1 non-spell init (HP 7000, life→22 @900, timer→22 @2100)
             if (t == 0) {
+                SetDeathEffects(enemy, 671, 676);
                 enemy.m_CanTakeDamage          = true;
                 enemy.m_ShowSpellName          = false;
                 enemy.m_BossTitle              = "Rumia";
@@ -421,6 +442,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
         case 16: {  // Phase 2 entry (HP 7500, life→23 @800, timer→23 @1800, death→17; drops 5
                     // items)
             if (t == 0) {
+                SetDeathEffects(enemy, 671, 676);
                 enemy.m_CanTakeDamage          = false;
                 enemy.m_InSpellcard            = false;
                 enemy.m_ShowSpellName          = false;

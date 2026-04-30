@@ -29,6 +29,8 @@ struct Enemy {
     bool m_Mirrored      = false;
     int  m_ItemDrop      = -1;
     int  m_ItemDropCount = 1;
+    int  m_DeathEffectPrimary   = 670;
+    int  m_DeathEffectSecondary = 678;
 
     // Boss
     bool m_IsBoss           = false;
@@ -41,6 +43,13 @@ struct Enemy {
     bool m_ShowSpellName    = false;
     int  m_DeathCallbackSub = -1;
     std::string m_BossTitle;
+
+    int m_AnmDefault   = -1;
+    int m_AnmFarLeft   = -1;
+    int m_AnmFarRight  = -1;
+    int m_AnmLeft      = -1;
+    int m_AnmRight     = -1;
+    int m_AnmMoveState = 0xff;
 
     int m_LifeCallbackThreshold  = -1;
     int m_LifeCallbackSub        = -1;

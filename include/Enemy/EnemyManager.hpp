@@ -44,17 +44,32 @@ class EnemyManager {
 
    private:
     static constexpr int MAX_ENEMIES = 256;
+    static constexpr int MAX_EFFECTS = 96;
+
+    struct EffectInstance {
+        bool    active = false;
+        Anm::Vm vm;
+    };
 
     Enemy*      SpawnEnemy(int subId, float x, float y, int life, int score, bool mirrored = false,
                            int itemDrop = -99);
     void        UpdatePhysics(Enemy& enemy);
+    void        UpdateBossPose(Enemy& enemy, float horizontalDelta);
     void        RunTimeline();
     void        UpdateBossCallbacks(Enemy& enemy, GameManager& gm);
+    void        SpawnDeathEffect(const Enemy& enemy);
+    void        SpawnEffect(int scriptIdx, const glm::vec2& pos, float zIndex = 0.8f,
+                            const glm::vec2& scale = {1.0f, 1.0f});
+    int         GetDeathPrimaryScript(int deathAnm1) const;
+    int         GetDeathSecondaryScript(int deathAnm2) const;
+    void        UpdateEffects();
     EnemySubCtx MakeCtx();
 
     std::array<Enemy, MAX_ENEMIES> m_Enemies{};
+    std::array<EffectInstance, MAX_EFFECTS> m_Effects{};
 
     Anm::Manager       m_Anm;
+    Anm::Manager       m_EffectAnm;
     Util::Renderer     m_Renderer;
     EnemyBulletManager m_BulletManager;
     EnemyLaserManager  m_LaserManager;
