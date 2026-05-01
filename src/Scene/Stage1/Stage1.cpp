@@ -7,6 +7,35 @@
 #include "Scene/Title.hpp"
 #include "Util/Input.hpp"
 
+namespace {
+static constexpr int        INTRO_FONT_SIZE   = 18;
+static constexpr int        INTRO_SMALL_SIZE  = 14;
+static constexpr const char INTRO_FONT_PATH[] = PTSD_FONT_PATH;
+// Center of the TH06 play field: field x 192 + screen offset 32 = screen x 224,
+// then converted to PTSD x: 224 - 320 = -96.
+static constexpr float      INTRO_CENTER_X    = -96.0f;
+static const Util::Color    INTRO_CYAN        = Util::Color::FromRGB(190, 245, 255);
+static const Util::Color    INTRO_YELLOW      = Util::Color::FromRGB(255, 230, 120);
+
+static std::shared_ptr<Util::GameObject> MakeIntroText(std::shared_ptr<Util::Text>& text,
+                                                       const std::string& str,
+                                                       const Util::Color& color, int fontSize,
+                                                       float x, float y) {
+    text = std::make_shared<Util::Text>(INTRO_FONT_PATH, fontSize, str, color);
+    auto obj = std::make_shared<Util::GameObject>(text, 30.0f);
+    obj->m_Transform.translation = {x, y};
+    obj->SetVisible(false);
+    return obj;
+}
+
+static float IntroAlpha(int frame) {
+    if (frame < 30) return static_cast<float>(frame) / 30.0f;
+    if (frame < 210) return 1.0f;
+    if (frame < 270) return 1.0f - static_cast<float>(frame - 210) / 60.0f;
+    return 0.0f;
+}
+}  // namespace
+
 // Transcribed from ecldata1.txt timeline0 (Normal difficulty)
 // Format: {frame, subId, x, y, life, score, mirrored}
 static const TimelineEntry STAGE1_TIMELINE[] = {
@@ -270,6 +299,39 @@ Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
     m_BgObj   = std::make_shared<Util::GameObject>(m_BgImage, -10.0f);
     m_BgObj->m_Transform.translation = {-96.0f, 901.0f};
     m_Renderer.AddChild(m_BgObj);
+
+    m_IntroStageNoObj = MakeIntroText(m_IntroStageNoText, "STAGE 1", INTRO_YELLOW,
+                                      INTRO_FONT_SIZE, 0.0f, 42.0f);
+    m_IntroStageNameObj = MakeIntroText(m_IntroStageNameText,
+                                        "A Dream More Scarlet than Red", INTRO_CYAN,
+                                        INTRO_FONT_SIZE, 0.0f, 16.0f);
+    m_IntroSongObj = MakeIntroText(m_IntroSongText, "BGM: A Soul as Red as a Ground Cherry",
+                                   INTRO_CYAN, INTRO_SMALL_SIZE, 0.0f, -12.0f);
+    m_IntroRenderer.AddChild(m_IntroStageNoObj);
+    m_IntroRenderer.AddChild(m_IntroStageNameObj);
+    m_IntroRenderer.AddChild(m_IntroSongObj);
+    UpdateStageIntro();
+}
+
+void Stage1::UpdateStageIntro() {
+    const float alpha   = IntroAlpha(m_StageFrame);
+    const bool  visible = alpha > 0.0f;
+    const auto  alphaByte = static_cast<Uint8>(alpha * 255.0f);
+
+    m_IntroStageNoObj->SetVisible(visible);
+    m_IntroStageNameObj->SetVisible(visible);
+    m_IntroSongObj->SetVisible(visible);
+    if (!visible) return;
+
+    m_IntroStageNoText->SetColor(Util::Color::FromRGB(255, 230, 120, alphaByte));
+    m_IntroStageNameText->SetColor(Util::Color::FromRGB(190, 245, 255, alphaByte));
+    m_IntroSongText->SetColor(Util::Color::FromRGB(190, 245, 255, alphaByte));
+    m_IntroStageNoObj->SetAlpha(1.0f);
+    m_IntroStageNameObj->SetAlpha(1.0f);
+    m_IntroSongObj->SetAlpha(1.0f);
+    m_IntroStageNoObj->m_Transform.translation   = {INTRO_CENTER_X, 42.0f};
+    m_IntroStageNameObj->m_Transform.translation = {INTRO_CENTER_X, 16.0f};
+    m_IntroSongObj->m_Transform.translation      = {INTRO_CENTER_X, -12.0f};
 }
 
 void Stage1::Update() {
@@ -292,6 +354,8 @@ void Stage1::Update() {
     if (m_StageMenu.IsOpen()) {
         m_Renderer.Update();
         m_Gui.Update(m_GameManager, m_EnemyManager.GetBossHudState(), false);
+        UpdateStageIntro();
+        m_IntroRenderer.Update();
         return;
     }
 
@@ -328,6 +392,8 @@ void Stage1::Update() {
     }
 
     m_Gui.Update(m_GameManager, m_EnemyManager.GetBossHudState(), true);
+    UpdateStageIntro();
+    m_IntroRenderer.Update();
 }
 
 std::unique_ptr<Scene> Stage1::NextScene() {

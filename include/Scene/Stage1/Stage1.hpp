@@ -8,8 +8,11 @@
 #include "Player.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/StageMenu.hpp"
+#include "Util/Color.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/Image.hpp"
+#include "Util/Renderer.hpp"
+#include "Util/Text.hpp"
 
 class Stage1 : public Scene {
    public:
@@ -22,10 +25,19 @@ class Stage1 : public Scene {
     static constexpr float BG_CANVAS_H        = 2250.0f;
     static constexpr float FIELD_H            = 448.0f;
 
+    void UpdateStageIntro();
+
     int                               m_StageFrame = 0;
     std::shared_ptr<Util::Image>      m_BgImage;
     std::shared_ptr<Util::GameObject> m_BgObj;
     StageMenu                         m_StageMenu;
+    Util::Renderer                    m_IntroRenderer;
+    std::shared_ptr<Util::Text>       m_IntroStageNoText;
+    std::shared_ptr<Util::Text>       m_IntroStageNameText;
+    std::shared_ptr<Util::Text>       m_IntroSongText;
+    std::shared_ptr<Util::GameObject> m_IntroStageNoObj;
+    std::shared_ptr<Util::GameObject> m_IntroStageNameObj;
+    std::shared_ptr<Util::GameObject> m_IntroSongObj;
 
     GameManager  m_GameManager;
     Gui          m_Gui;
