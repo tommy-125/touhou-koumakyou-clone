@@ -36,14 +36,13 @@ void TransitionToRandomSub(Enemy& enemy, const EnemySubCtx& ctx, int subA, int s
     ctx.TransitionToSub(enemy, roll == 0 ? subA : (roll == 1 ? subB : subC));
 }
 
-void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int lifeCount,
-                     int spellBonus, int timerFrames) {
+void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int spellBonus,
+                     int timerFrames) {
     ctx.BulletCancelIntoPointItems();
     enemy.m_CanTakeDamage          = false;
     enemy.m_InSpellcard            = true;
     enemy.m_ShowSpellName          = true;
     enemy.m_BossTitle              = title;
-    enemy.m_BossLifeCount          = lifeCount;
     enemy.m_SpellcardBonus         = spellBonus;
     enemy.m_BossTimer              = 0;
     enemy.m_TimerCallbackThreshold = timerFrames;
@@ -306,7 +305,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_CanTakeDamage          = true;
                 enemy.m_ShowSpellName          = false;
                 enemy.m_BossTitle              = "Rumia";
-                enemy.m_BossLifeCount          = 3;
+                enemy.m_BossLifeCount          = 1;
                 enemy.m_SpellcardBonus         = 0;
                 enemy.m_Life                   = 7000;
                 enemy.m_BossMaxLife            = 7000;
@@ -401,7 +400,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
 
         case 22: {  // Phase 1 spellcard — Night Bird (8-group RingBall spirals × 2 passes, then
                     // move)
-            if (t == 0) StartSpellPhase(enemy, ctx, "Night Bird", 2, 2000000, 1500);
+            if (t == 0) StartSpellPhase(enemy, ctx, "Night Bird", 2000000, 1500);
             if (t == 120) {
                 enemy.m_CanTakeDamage = true;
             }
@@ -448,7 +447,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_InSpellcard            = false;
                 enemy.m_ShowSpellName          = false;
                 enemy.m_BossTitle              = "Rumia";
-                enemy.m_BossLifeCount          = 1;
+                enemy.m_BossLifeCount          = 0;
                 enemy.m_SpellcardBonus         = 0;
                 enemy.m_Life                   = 7500;
                 enemy.m_BossMaxLife            = 7500;
@@ -535,7 +534,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
         case 23: {  // Phase 2 spellcard — Demarcation (3 Rice pairs w/ curve + RingBall spiral)
             // Each bullet redirects vertically after 40f at speed 1.5 (ECL ins_82 flag 0x40).
             if (t == 0) {
-                StartSpellPhase(enemy, ctx, "Demarcation", 0, 3000000, 1500);
+                StartSpellPhase(enemy, ctx, "Demarcation", 3000000, 1500);
                 enemy.m_BossMaxLife = enemy.m_Life > 0 ? enemy.m_Life : 1;
             }
             if (t == 120) {

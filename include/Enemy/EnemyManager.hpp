@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "Anm/AnmManager.hpp"
 #include "Enemy/Enemy.hpp"
@@ -33,7 +34,7 @@ struct BossHudState {
 class EnemyManager {
    public:
     EnemyManager();
-    void         SetTimeline(const TimelineEntry* entries, int count);
+    void         SetTimeline(std::vector<TimelineEntry> entries);
     void         SetScript(std::unique_ptr<IStageScript> script);
     void         SetItemManager(ItemManager* items) { m_Items = items; }
     void         Update(const glm::vec2& playerPos, GameManager& gm);
@@ -79,9 +80,8 @@ class EnemyManager {
 
     std::unique_ptr<IStageScript> m_Script;
 
-    const TimelineEntry* m_Timeline     = nullptr;
-    int                  m_TimelineSize = 0;
-    int                  m_TimelineIdx  = 0;
+    std::vector<TimelineEntry> m_Timeline;
+    size_t                     m_TimelineIdx = 0;
 
     int       m_Frame                = 0;
     glm::vec2 m_PlayerPos            = {192, 384};

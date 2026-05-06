@@ -1,0 +1,2167 @@
+{
+    "timeline":  [
+                     {
+                         "frame":  128,
+                         "subId":  0,
+                         "x":  60,
+                         "y":  -32,
+                         "life":  8,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  144,
+                         "subId":  0,
+                         "x":  68,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  160,
+                         "subId":  0,
+                         "x":  76,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  176,
+                         "subId":  0,
+                         "x":  84,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  192,
+                         "subId":  0,
+                         "x":  92,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  256,
+                         "subId":  0,
+                         "x":  324,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  272,
+                         "subId":  0,
+                         "x":  316,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  288,
+                         "subId":  0,
+                         "x":  308,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  304,
+                         "subId":  0,
+                         "x":  300,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  320,
+                         "subId":  0,
+                         "x":  292,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  336,
+                         "subId":  0,
+                         "x":  284,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  352,
+                         "subId":  0,
+                         "x":  276,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  368,
+                         "subId":  0,
+                         "x":  268,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  432,
+                         "subId":  1,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  432,
+                         "subId":  1,
+                         "x":  352,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  448,
+                         "subId":  1,
+                         "x":  48,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  448,
+                         "subId":  1,
+                         "x":  336,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  464,
+                         "subId":  1,
+                         "x":  64,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  464,
+                         "subId":  1,
+                         "x":  320,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  480,
+                         "subId":  1,
+                         "x":  80,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  480,
+                         "subId":  1,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  496,
+                         "subId":  1,
+                         "x":  96,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  496,
+                         "subId":  1,
+                         "x":  288,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  512,
+                         "subId":  1,
+                         "x":  112,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  512,
+                         "subId":  1,
+                         "x":  272,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  528,
+                         "subId":  1,
+                         "x":  128,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  528,
+                         "subId":  1,
+                         "x":  256,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  544,
+                         "subId":  1,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  544,
+                         "subId":  1,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  560,
+                         "subId":  1,
+                         "x":  160,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  560,
+                         "subId":  1,
+                         "x":  224,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  576,
+                         "subId":  1,
+                         "x":  176,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  576,
+                         "subId":  1,
+                         "x":  208,
+                         "y":  -32,
+                         "life":  8,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  640,
+                         "subId":  2,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  700,
+                         "subId":  3,
+                         "x":  256,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  750,
+                         "subId":  3,
+                         "x":  128,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  800,
+                         "subId":  2,
+                         "x":  352,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  850,
+                         "subId":  3,
+                         "x":  24,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  890,
+                         "subId":  3,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  930,
+                         "subId":  2,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  960,
+                         "subId":  3,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  990,
+                         "subId":  3,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1020,
+                         "subId":  2,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1040,
+                         "subId":  3,
+                         "x":  24,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1060,
+                         "subId":  3,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1080,
+                         "subId":  2,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1090,
+                         "subId":  3,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1100,
+                         "subId":  2,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1110,
+                         "subId":  2,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1220,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1230,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1240,
+                         "subId":  1,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1250,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1260,
+                         "subId":  1,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1270,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1280,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1290,
+                         "subId":  1,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1300,
+                         "subId":  1,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1310,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1320,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1330,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1340,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1350,
+                         "subId":  1,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1360,
+                         "subId":  1,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1370,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1380,
+                         "subId":  0,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1390,
+                         "subId":  1,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  true,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1400,
+                         "subId":  1,
+                         "x":  0,
+                         "y":  -32,
+                         "life":  32,
+                         "score":  300,
+                         "mirrored":  false,
+                         "randomX":  true
+                     },
+                     {
+                         "frame":  1600,
+                         "subId":  0,
+                         "x":  320,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1600,
+                         "subId":  0,
+                         "x":  352,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1616,
+                         "subId":  0,
+                         "x":  312,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1616,
+                         "subId":  0,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1632,
+                         "subId":  0,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1632,
+                         "subId":  0,
+                         "x":  336,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1648,
+                         "subId":  0,
+                         "x":  296,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1648,
+                         "subId":  0,
+                         "x":  328,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1664,
+                         "subId":  0,
+                         "x":  288,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1664,
+                         "subId":  0,
+                         "x":  320,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1680,
+                         "subId":  0,
+                         "x":  280,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1680,
+                         "subId":  0,
+                         "x":  312,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  1696,
+                         "subId":  0,
+                         "x":  64,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1696,
+                         "subId":  0,
+                         "x":  96,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1712,
+                         "subId":  0,
+                         "x":  72,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1712,
+                         "subId":  0,
+                         "x":  104,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1728,
+                         "subId":  0,
+                         "x":  80,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1728,
+                         "subId":  0,
+                         "x":  112,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1744,
+                         "subId":  0,
+                         "x":  88,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1744,
+                         "subId":  0,
+                         "x":  120,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1760,
+                         "subId":  0,
+                         "x":  96,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1760,
+                         "subId":  0,
+                         "x":  128,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1776,
+                         "subId":  0,
+                         "x":  104,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1776,
+                         "subId":  0,
+                         "x":  136,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1792,
+                         "subId":  0,
+                         "x":  112,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1792,
+                         "subId":  0,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1808,
+                         "subId":  0,
+                         "x":  120,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  1808,
+                         "subId":  0,
+                         "x":  152,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  2008,
+                         "subId":  8,
+                         "x":  0,
+                         "y":  0,
+                         "life":  6000,
+                         "score":  100000,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  2408,
+                         "subId":  2,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2438,
+                         "subId":  3,
+                         "x":  256,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2468,
+                         "subId":  3,
+                         "x":  128,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2498,
+                         "subId":  2,
+                         "x":  352,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2528,
+                         "subId":  3,
+                         "x":  24,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2558,
+                         "subId":  3,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2588,
+                         "subId":  2,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2618,
+                         "subId":  3,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2648,
+                         "subId":  3,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2678,
+                         "subId":  2,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2708,
+                         "subId":  3,
+                         "x":  24,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2738,
+                         "subId":  3,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2768,
+                         "subId":  2,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2798,
+                         "subId":  3,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2828,
+                         "subId":  2,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2858,
+                         "subId":  2,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2888,
+                         "subId":  2,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2918,
+                         "subId":  3,
+                         "x":  256,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2948,
+                         "subId":  3,
+                         "x":  128,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  2978,
+                         "subId":  2,
+                         "x":  352,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3008,
+                         "subId":  3,
+                         "x":  24,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3038,
+                         "subId":  3,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3068,
+                         "subId":  2,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3098,
+                         "subId":  3,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3128,
+                         "subId":  3,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3158,
+                         "subId":  2,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3188,
+                         "subId":  3,
+                         "x":  24,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3218,
+                         "subId":  3,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3248,
+                         "subId":  2,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3278,
+                         "subId":  3,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3308,
+                         "subId":  2,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3338,
+                         "subId":  2,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3368,
+                         "subId":  2,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3398,
+                         "subId":  3,
+                         "x":  256,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3428,
+                         "subId":  3,
+                         "x":  128,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3458,
+                         "subId":  2,
+                         "x":  352,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3488,
+                         "subId":  3,
+                         "x":  24,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3518,
+                         "subId":  3,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3548,
+                         "subId":  2,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3578,
+                         "subId":  3,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3608,
+                         "subId":  3,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3638,
+                         "subId":  2,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3668,
+                         "subId":  3,
+                         "x":  24,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3698,
+                         "subId":  3,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3728,
+                         "subId":  2,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3758,
+                         "subId":  3,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3788,
+                         "subId":  2,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3818,
+                         "subId":  2,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3848,
+                         "subId":  2,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3878,
+                         "subId":  3,
+                         "x":  256,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3908,
+                         "subId":  3,
+                         "x":  128,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3938,
+                         "subId":  2,
+                         "x":  352,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3968,
+                         "subId":  3,
+                         "x":  24,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  3998,
+                         "subId":  3,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4028,
+                         "subId":  2,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4058,
+                         "subId":  3,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4088,
+                         "subId":  3,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4118,
+                         "subId":  2,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4148,
+                         "subId":  3,
+                         "x":  24,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4178,
+                         "subId":  3,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4208,
+                         "subId":  2,
+                         "x":  144,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4238,
+                         "subId":  3,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4268,
+                         "subId":  2,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  false,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4298,
+                         "subId":  2,
+                         "x":  240,
+                         "y":  -32,
+                         "life":  80,
+                         "score":  700,
+                         "mirrored":  true,
+                         "randomX":  false,
+                         "itemDrop":  -1
+                     },
+                     {
+                         "frame":  4498,
+                         "subId":  0,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4498,
+                         "subId":  0,
+                         "x":  64,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4514,
+                         "subId":  0,
+                         "x":  40,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4514,
+                         "subId":  0,
+                         "x":  72,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4530,
+                         "subId":  0,
+                         "x":  48,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4530,
+                         "subId":  0,
+                         "x":  80,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4546,
+                         "subId":  0,
+                         "x":  56,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4546,
+                         "subId":  0,
+                         "x":  88,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4562,
+                         "subId":  0,
+                         "x":  64,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4562,
+                         "subId":  0,
+                         "x":  96,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4578,
+                         "subId":  0,
+                         "x":  72,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4578,
+                         "subId":  0,
+                         "x":  104,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4594,
+                         "subId":  0,
+                         "x":  80,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4594,
+                         "subId":  0,
+                         "x":  112,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4610,
+                         "subId":  0,
+                         "x":  320,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4610,
+                         "subId":  0,
+                         "x":  352,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4626,
+                         "subId":  0,
+                         "x":  312,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4626,
+                         "subId":  0,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4642,
+                         "subId":  0,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4642,
+                         "subId":  0,
+                         "x":  336,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4658,
+                         "subId":  0,
+                         "x":  296,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4658,
+                         "subId":  0,
+                         "x":  328,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4674,
+                         "subId":  0,
+                         "x":  288,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4674,
+                         "subId":  0,
+                         "x":  320,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4690,
+                         "subId":  0,
+                         "x":  280,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4690,
+                         "subId":  0,
+                         "x":  312,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4706,
+                         "subId":  0,
+                         "x":  272,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4706,
+                         "subId":  0,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4722,
+                         "subId":  0,
+                         "x":  264,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4722,
+                         "subId":  0,
+                         "x":  296,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4738,
+                         "subId":  0,
+                         "x":  32,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4738,
+                         "subId":  0,
+                         "x":  64,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4754,
+                         "subId":  0,
+                         "x":  40,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4754,
+                         "subId":  0,
+                         "x":  72,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4770,
+                         "subId":  0,
+                         "x":  48,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4770,
+                         "subId":  0,
+                         "x":  80,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4786,
+                         "subId":  0,
+                         "x":  56,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4786,
+                         "subId":  0,
+                         "x":  88,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4802,
+                         "subId":  0,
+                         "x":  64,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4802,
+                         "subId":  0,
+                         "x":  96,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4818,
+                         "subId":  0,
+                         "x":  72,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4818,
+                         "subId":  0,
+                         "x":  104,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4834,
+                         "subId":  0,
+                         "x":  80,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4834,
+                         "subId":  0,
+                         "x":  112,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4850,
+                         "subId":  0,
+                         "x":  88,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4850,
+                         "subId":  0,
+                         "x":  120,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  false
+                     },
+                     {
+                         "frame":  4866,
+                         "subId":  0,
+                         "x":  320,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4866,
+                         "subId":  0,
+                         "x":  352,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4882,
+                         "subId":  0,
+                         "x":  312,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4882,
+                         "subId":  0,
+                         "x":  344,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4898,
+                         "subId":  0,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4898,
+                         "subId":  0,
+                         "x":  336,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4914,
+                         "subId":  0,
+                         "x":  296,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4914,
+                         "subId":  0,
+                         "x":  328,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4930,
+                         "subId":  0,
+                         "x":  288,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4930,
+                         "subId":  0,
+                         "x":  320,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4946,
+                         "subId":  0,
+                         "x":  280,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4946,
+                         "subId":  0,
+                         "x":  312,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4962,
+                         "subId":  0,
+                         "x":  272,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4962,
+                         "subId":  0,
+                         "x":  304,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4978,
+                         "subId":  0,
+                         "x":  264,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  4978,
+                         "subId":  0,
+                         "x":  296,
+                         "y":  -32,
+                         "life":  3,
+                         "score":  300,
+                         "mirrored":  true
+                     },
+                     {
+                         "frame":  5279,
+                         "subId":  10,
+                         "x":  0,
+                         "y":  0,
+                         "life":  1,
+                         "score":  200000,
+                         "mirrored":  false
+                     }
+                 ]
+}

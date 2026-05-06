@@ -69,7 +69,9 @@ Testing/
 .cache/
 
 #resource files
-resources
+resources/*
+!resources/stages/
+!resources/stages/*.json
 
 # Other files
 *.claude/

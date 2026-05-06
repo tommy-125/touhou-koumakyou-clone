@@ -1,6 +1,7 @@
 #include "Enemy/EnemyManager.hpp"
 
 #include <cstdlib>
+#include <utility>
 
 #include "GameManager.hpp"
 #include "Item/ItemManager.hpp"
@@ -172,18 +173,17 @@ void EnemyManager::UpdateBossPose(Enemy& enemy, float horizontalDelta) {
     enemy.m_AnmMoveState = nextState;
 }
 
-void EnemyManager::SetTimeline(const TimelineEntry* entries, int count) {
-    m_Timeline     = entries;
-    m_TimelineSize = count;
-    m_TimelineIdx  = 0;
+void EnemyManager::SetTimeline(std::vector<TimelineEntry> entries) {
+    m_Timeline    = std::move(entries);
+    m_TimelineIdx = 0;
 }
 
 void EnemyManager::RunTimeline() {
-    if (!m_Timeline) return;
+    if (m_Timeline.empty()) return;
     for (auto& e : m_Enemies) {
         if (e.m_Alive && e.m_BlocksTimeline) return;
     }
-    while (m_TimelineIdx < m_TimelineSize && m_Timeline[m_TimelineIdx].frame <= m_Frame) {
+    while (m_TimelineIdx < m_Timeline.size() && m_Timeline[m_TimelineIdx].frame <= m_Frame) {
         const auto& e = m_Timeline[m_TimelineIdx];
         if (e.frame == m_Frame) {
             float spawnX = e.randomX ? static_cast<float>(rand() % 353 + 16) : e.x;
@@ -443,7 +443,7 @@ void EnemyManager::SkipToFrame(int frame) {
     m_LaserManager.ClearAll();
     m_Frame = frame;
     m_TimelineIdx = 0;
-    while (m_TimelineIdx < m_TimelineSize && m_Timeline[m_TimelineIdx].frame < frame) {
+    while (m_TimelineIdx < m_Timeline.size() && m_Timeline[m_TimelineIdx].frame < frame) {
         m_TimelineIdx++;
     }
 }
