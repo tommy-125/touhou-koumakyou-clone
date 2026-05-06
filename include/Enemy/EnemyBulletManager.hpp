@@ -7,6 +7,8 @@
 #include "Anm/AnmManager.hpp"
 #include "Util/Renderer.hpp"
 
+class ItemManager;
+
 enum class EBulletType {
     Pellet   = 0,
     RingBall = 1,
@@ -106,6 +108,7 @@ class EnemyBulletManager {
     void Update(glm::vec2 playerPos);
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
+    void TurnAllBulletsIntoPointItems(ItemManager& items);
 
     static constexpr int MAX_BULLETS = 640;
 

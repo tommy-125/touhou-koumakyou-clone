@@ -25,6 +25,7 @@ struct BossHudState {
     int         life              = 0;
     int         minLife           = 0;
     int         maxLife           = 1;
+    int         bossLifeCount     = 0;
     int         secondsRemaining  = 0;
     std::string title;
 };
@@ -39,6 +40,7 @@ class EnemyManager {
     int          ApplyPlayerBulletDamage(Player& player);
     bool         CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void         ClearAllBullets();
+    void         TurnAllBulletsIntoPointItems();
     BossHudState GetBossHudState() const;
     void         SkipToFrame(int frame);
 

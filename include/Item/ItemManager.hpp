@@ -10,23 +10,31 @@
 struct GameManager;
 
 enum class ItemType : int {
-    PowerSmall = 0,
-    Point      = 1,
-    PowerBig   = 2,
+    PowerSmall  = 0,
+    Point       = 1,
+    PowerBig    = 2,
+    Bomb        = 3,
+    FullPower   = 4,
+    Life        = 5,
+    PointBullet = 6,
 };
 
 struct Item {
     Anm::Vm   m_Vm;
     glm::vec2 m_Pos;
     glm::vec2 m_Vel;
+    glm::vec2 m_StartPos;
+    glm::vec2 m_TargetPos;
     ItemType  m_Type;
+    int       m_State = 0;
+    int       m_Timer = 0;
     bool      m_Alive = false;
 };
 
 class ItemManager {
    public:
     ItemManager();
-    void SpawnItem(glm::vec2 pos, ItemType type);
+    void SpawnItem(glm::vec2 pos, ItemType type, int state = 0);
     void Update(glm::vec2 playerPos, GameManager& gm);
 
    private:

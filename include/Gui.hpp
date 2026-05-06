@@ -26,6 +26,8 @@ class Gui {
     static constexpr int MAX_POWER_DIGITS = 3;
     static constexpr int MAX_GRAZE_DIGITS = 6;
     static constexpr int MAX_POINT_DIGITS = 6;
+    static constexpr int MAX_BOSS_LIFE_DIGITS = 1;
+    static constexpr int MAX_BOSS_TIMER_DIGITS = 2;
 
     Anm::Manager   m_Anm;
     Util::Renderer m_Renderer;
@@ -44,16 +46,12 @@ class Gui {
     std::array<std::shared_ptr<Util::GameObject>, MAX_GRAZE_DIGITS> m_GrazeDigits;
     std::array<std::shared_ptr<Util::GameObject>, MAX_POINT_DIGITS> m_PointDigits;
 
-    std::shared_ptr<Util::Text>       m_BossLabelText;
-    std::shared_ptr<Util::Text>       m_BossBarText;
-    std::shared_ptr<Util::Text>       m_BossHpText;
-    std::shared_ptr<Util::Text>       m_BossTimerText;
     std::shared_ptr<Util::Text>       m_BossTitleText;
-    std::shared_ptr<Util::GameObject> m_BossLabelObj;
-    std::shared_ptr<Util::GameObject> m_BossBarObj;
-    std::shared_ptr<Util::GameObject> m_BossHpObj;
-    std::shared_ptr<Util::GameObject> m_BossTimerObj;
     std::shared_ptr<Util::GameObject> m_BossTitleObj;
+    Anm::Vm                           m_BossEnemyTextVm;
+    Anm::Vm                           m_BossHealthBarVm;
+    std::array<std::shared_ptr<Util::GameObject>, MAX_BOSS_LIFE_DIGITS> m_BossLifeDigits;
+    std::array<std::shared_ptr<Util::GameObject>, MAX_BOSS_TIMER_DIGITS> m_BossTimerDigits;
 
     int   m_LastLives           = -1;
     int   m_LastBombs           = -1;
@@ -65,6 +63,7 @@ class Gui {
     int   m_LastBossLife        = -1;
     int   m_LastBossMin         = -1;
     int   m_LastBossMax         = -1;
+    int   m_LastBossLifeCount   = -1;
     int   m_LastBossShow        = -1;
     int   m_LastBossSeconds     = -1;
     bool  m_LastBossShowName    = false;

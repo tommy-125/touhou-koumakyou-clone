@@ -38,7 +38,7 @@ struct Enemy {
     bool m_InSpellcard      = false;  // damage /7 during spellcard (TH6 behavior)
     int  m_BossTimer        = 0;
     int  m_BossMaxLife      = 1;
-    int  m_BossPhaseIndex   = 0;
+    int  m_BossLifeCount    = 0;
     int  m_SpellcardBonus   = 0;
     bool m_ShowSpellName    = false;
     int  m_DeathCallbackSub = -1;

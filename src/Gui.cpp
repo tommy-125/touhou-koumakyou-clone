@@ -13,10 +13,15 @@ static constexpr float      DIGIT_SCALE   = 1.0f;
 static constexpr float      DIGIT_ADVANCE = 14.0f;
 static constexpr float      DIGIT_WIDTH   = 16.0f;
 static constexpr float      DIGIT_HEIGHT  = 16.0f;
-static const Util::Color    BOSS_COLOR    = Util::Color::FromRGB(255, 96, 96);
-static const Util::Color    BOSS_HP_COLOR = Util::Color::FromRGB(255, 220, 220);
-static const Util::Color    BOSS_TIME_COLOR = Util::Color::FromRGB(255, 255, 96);
 static const Util::Color    SPELL_NAME_COLOR = Util::Color::FromRGB(220, 240, 255);
+static constexpr int        FRONT_ENEMY_TEXT_SCRIPT = 19;
+static constexpr int        FRONT_ENEMY_TEXT_OUT_SCRIPT = 20;
+static constexpr int        FRONT_BOSS_BAR_SCRIPT = 21;
+static constexpr float      BOSS_BAR_LEFT = 96.0f;
+static constexpr float      BOSS_BAR_TOP = 24.0f;
+static constexpr float      BOSS_BAR_WIDTH = 288.0f;
+static constexpr float      BOSS_BAR_SPRITE_SIZE = 14.0f;
+static constexpr float      BOSS_BAR_HEIGHT_SCALE = 0.3f;
 
 static void SetupTextWithColor(std::shared_ptr<Util::Text>&       text,
                                std::shared_ptr<Util::GameObject>& obj, const std::string& str,
@@ -26,24 +31,9 @@ static void SetupTextWithColor(std::shared_ptr<Util::Text>&       text,
     obj->m_Transform.translation = {x, y};
 }
 
-static std::string BuildBossBar(int life, int minLife, int maxLife) {
-    constexpr int kWidth = 44;
-    const int     denom  = std::max(1, maxLife - minLife);
-    const int     num    = std::clamp(life - minLife, 0, denom);
-    const int     filled = (num * kWidth + denom / 2) / denom;
-    return "[" + std::string(filled, '=') + std::string(kWidth - filled, ' ') + "]";
-}
-
-static std::string BuildBossBarFromRatio(float ratio) {
-    constexpr int kWidth = 44;
-    ratio                = std::clamp(ratio, 0.0f, 1.0f);
-    const int filled     = static_cast<int>(ratio * static_cast<float>(kWidth) + 0.5f);
-    return "[" + std::string(filled, '=') + std::string(kWidth - filled, ' ') + "]";
-}
-
 static std::string BuildTimerText(int secondsRemaining) {
     char buf[16];
-    snprintf(buf, sizeof(buf), "TIME %02d", std::clamp(secondsRemaining, 0, 99));
+    snprintf(buf, sizeof(buf), "%02d", std::clamp(secondsRemaining, 0, 99));
     return buf;
 }
 
@@ -123,6 +113,24 @@ static void SetAsciiField(std::array<std::shared_ptr<Util::GameObject>, N>& digi
     }
 }
 
+template <size_t N>
+static void SetDigitFieldVisibility(std::array<std::shared_ptr<Util::GameObject>, N>& digits,
+                                    bool visible, float alpha) {
+    for (auto& obj : digits) {
+        if (!obj) continue;
+        obj->SetVisible(visible);
+        obj->SetAlpha(alpha);
+    }
+}
+
+template <size_t N>
+static void SetDigitFieldZ(std::array<std::shared_ptr<Util::GameObject>, N>& digits,
+                           float zIndex) {
+    for (auto& obj : digits) {
+        if (obj) obj->SetZIndex(zIndex);
+    }
+}
+
 Gui::Gui() {
     m_BgImage =
         std::make_shared<Util::Image>(GA_RESOURCE_DIR "/th06c/th06c_CM_output/front/bg.png");
@@ -190,25 +198,34 @@ Gui::Gui() {
     SetupDigitField(m_PowerDigits, m_Renderer, 176.0f, 54.0f);
     SetupDigitField(m_GrazeDigits, m_Renderer, 176.0f, 34.0f);
     SetupDigitField(m_PointDigits, m_Renderer, 176.0f, 14.0f);
+    SetupDigitField(m_BossLifeDigits, m_Renderer, -240.0f, 224.0f);
+    SetupDigitField(m_BossTimerDigits, m_Renderer, 64.0f, 224.0f);
+    SetDigitFieldZ(m_BossLifeDigits, 12.0f);
+    SetDigitFieldZ(m_BossTimerDigits, 12.0f);
 
-    SetupTextWithColor(m_BossLabelText, m_BossLabelObj, "BOSS", BOSS_COLOR, -288.0f, 218.0f);
-    SetupTextWithColor(m_BossBarText, m_BossBarObj, BuildBossBar(1, 0, 1), BOSS_COLOR, -252.0f,
-                       218.0f);
-    SetupTextWithColor(m_BossHpText, m_BossHpObj, "0000/0000", BOSS_HP_COLOR, -288.0f, 200.0f);
-    SetupTextWithColor(m_BossTimerText, m_BossTimerObj, "TIME 00", BOSS_TIME_COLOR, 132.0f, 218.0f);
     SetupTextWithColor(m_BossTitleText, m_BossTitleObj, " ", SPELL_NAME_COLOR, -160.0f, 196.0f);
 
-    m_Renderer.AddChild(m_BossLabelObj);
-    m_Renderer.AddChild(m_BossBarObj);
-    m_Renderer.AddChild(m_BossHpObj);
-    m_Renderer.AddChild(m_BossTimerObj);
+    m_Anm.SetScript(m_BossEnemyTextVm, off + FRONT_ENEMY_TEXT_SCRIPT, off);
+    m_BossEnemyTextVm.zIndex = 11.0f;
+    if (m_BossEnemyTextVm.obj) {
+        m_BossEnemyTextVm.obj->SetZIndex(11.0f);
+        m_BossEnemyTextVm.obj->SetVisible(false);
+        m_Renderer.AddChild(m_BossEnemyTextVm.obj);
+    }
+
+    m_Anm.SetScript(m_BossHealthBarVm, off + FRONT_BOSS_BAR_SCRIPT, off);
+    m_BossHealthBarVm.zIndex = 11.1f;
+    if (m_BossHealthBarVm.obj) {
+        m_BossHealthBarVm.obj->SetZIndex(11.1f);
+        m_BossHealthBarVm.obj->SetVisible(false);
+        m_Renderer.AddChild(m_BossHealthBarVm.obj);
+    }
+
     m_Renderer.AddChild(m_BossTitleObj);
 
-    m_BossLabelObj->SetVisible(false);
-    m_BossBarObj->SetVisible(false);
-    m_BossHpObj->SetVisible(false);
-    m_BossTimerObj->SetVisible(false);
     m_BossTitleObj->SetVisible(false);
+    SetDigitFieldVisibility(m_BossLifeDigits, false, 0.0f);
+    SetDigitFieldVisibility(m_BossTimerDigits, false, 0.0f);
 }
 
 void Gui::Update(const GameManager& gm, const BossHudState& bossHud, bool tick) {
@@ -267,30 +284,41 @@ void Gui::Update(const GameManager& gm, const BossHudState& bossHud, bool tick) 
     const int bossShow = bossHud.visible ? 1 : 0;
     if (m_LastBossShow != bossShow) {
         m_LastBossShow = bossShow;
-        if (!bossHud.visible) m_BossBarRatioDisplay = 0.0f;
+        if (bossHud.visible) {
+            m_Anm.SetScript(m_BossEnemyTextVm, Anm::FRONT.offset + FRONT_ENEMY_TEXT_SCRIPT,
+                            Anm::FRONT.offset);
+        } else {
+            m_Anm.SetScript(m_BossEnemyTextVm, Anm::FRONT.offset + FRONT_ENEMY_TEXT_OUT_SCRIPT,
+                            Anm::FRONT.offset);
+        }
     }
 
     if (tick) {
         if (bossHud.visible) {
-            m_BossUiAnim = std::min(1.0f, m_BossUiAnim + 0.08f);
+            m_BossUiAnim = std::min(1.0f, m_BossUiAnim + 4.0f / 255.0f);
         } else {
-            m_BossUiAnim = std::max(0.0f, m_BossUiAnim - 0.08f);
+            m_BossUiAnim = std::max(0.0f, m_BossUiAnim - 4.0f / 255.0f);
         }
     }
 
     const bool bossUiVisible = m_BossUiAnim > 0.0f;
-    m_BossLabelObj->SetVisible(bossUiVisible);
-    m_BossBarObj->SetVisible(bossUiVisible);
-    m_BossHpObj->SetVisible(bossUiVisible);
-    m_BossTimerObj->SetVisible(bossUiVisible && bossHud.secondsRemaining > 0);
+    if (!bossHud.visible && !bossUiVisible) m_BossBarRatioDisplay = 0.0f;
     m_BossTitleObj->SetVisible(bossUiVisible && bossHud.showSpellName && !bossHud.title.empty());
+    if (m_BossHealthBarVm.obj) m_BossHealthBarVm.obj->SetVisible(bossUiVisible);
 
-    const float showOffset = (1.0f - m_BossUiAnim) * 36.0f;
-    m_BossLabelObj->m_Transform.translation = {-288.0f - showOffset, 218.0f};
-    m_BossBarObj->m_Transform.translation   = {-252.0f - showOffset, 218.0f};
-    m_BossHpObj->m_Transform.translation    = {-288.0f - showOffset, 200.0f};
-    m_BossTimerObj->m_Transform.translation = {132.0f + showOffset, 218.0f};
-    m_BossTitleObj->m_Transform.translation = {-160.0f, 196.0f - showOffset * 0.35f};
+    m_Anm.UpdateObjects(m_BossEnemyTextVm);
+    m_Anm.UpdateObjects(m_BossHealthBarVm);
+    if (m_BossEnemyTextVm.obj) {
+        m_BossEnemyTextVm.obj->SetVisible(bossUiVisible);
+        m_BossEnemyTextVm.obj->SetAlpha(m_BossUiAnim);
+    }
+    m_BossTitleObj->SetAlpha(m_BossUiAnim);
+    if (m_BossHealthBarVm.obj) m_BossHealthBarVm.obj->SetAlpha(m_BossUiAnim);
+    SetDigitFieldVisibility(m_BossLifeDigits, bossUiVisible, m_BossUiAnim);
+    SetDigitFieldVisibility(m_BossTimerDigits,
+                            bossUiVisible && bossHud.secondsRemaining > 0, m_BossUiAnim);
+
+    m_BossTitleObj->m_Transform.translation = {-160.0f, 196.0f};
 
     bool bossBarChanged = false;
     if (bossHud.visible) {
@@ -315,18 +343,30 @@ void Gui::Update(const GameManager& gm, const BossHudState& bossHud, bool tick) 
         m_LastBossLife = bossHud.life;
         m_LastBossMin  = bossHud.minLife;
         m_LastBossMax  = bossHud.maxLife;
+    }
 
-        m_BossBarText->SetText(BuildBossBarFromRatio(m_BossBarRatioDisplay));
-
-        char hpBuf[32];
-        snprintf(hpBuf, sizeof(hpBuf), "%d/%d", std::max(0, bossHud.life),
-                 std::max(1, bossHud.maxLife));
-        m_BossHpText->SetText(hpBuf);
+    if (m_BossHealthBarVm.obj) {
+        const float width = BOSS_BAR_WIDTH * std::clamp(m_BossBarRatioDisplay, 0.0f, 1.0f);
+        m_BossHealthBarVm.obj->m_Transform.scale = {
+            width / BOSS_BAR_SPRITE_SIZE,
+            BOSS_BAR_HEIGHT_SCALE,
+        };
+        m_BossHealthBarVm.obj->m_Transform.translation =
+            Anm::Manager::ToPtsd(
+                {BOSS_BAR_LEFT + width * 0.5f,
+                 BOSS_BAR_TOP + BOSS_BAR_SPRITE_SIZE * BOSS_BAR_HEIGHT_SCALE * 0.5f});
     }
 
     if (m_LastBossSeconds != bossHud.secondsRemaining) {
         m_LastBossSeconds = bossHud.secondsRemaining;
-        m_BossTimerText->SetText(BuildTimerText(bossHud.secondsRemaining));
+        SetDigitField(m_BossTimerDigits, m_Anm, Anm::ASCII.offset,
+                      BuildTimerText(bossHud.secondsRemaining), false);
+    }
+
+    if (m_LastBossLifeCount != bossHud.bossLifeCount) {
+        m_LastBossLifeCount = bossHud.bossLifeCount;
+        SetDigitField(m_BossLifeDigits, m_Anm, Anm::ASCII.offset,
+                      std::to_string(std::clamp(bossHud.bossLifeCount, 0, 9)), false);
     }
 
     if (m_LastBossTitle != bossHud.title || m_LastBossShowName != bossHud.showSpellName) {
@@ -334,6 +374,10 @@ void Gui::Update(const GameManager& gm, const BossHudState& bossHud, bool tick) 
         m_LastBossShowName = bossHud.showSpellName;
         m_BossTitleText->SetText(BuildPhaseText(bossHud));
     }
+
+    SetDigitFieldVisibility(m_BossLifeDigits, bossUiVisible, m_BossUiAnim);
+    SetDigitFieldVisibility(m_BossTimerDigits,
+                            bossUiVisible && bossHud.secondsRemaining > 0, m_BossUiAnim);
 
     m_Renderer.Update();
 }

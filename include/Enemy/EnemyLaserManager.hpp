@@ -7,6 +7,8 @@
 #include "Enemy/EnemyLaser.hpp"
 #include "Util/Renderer.hpp"
 
+class ItemManager;
+
 class EnemyLaserManager {
    public:
     void SpawnAimed(glm::vec2 pos, glm::vec2 playerPos, float length, float maxWidth, int startTime,
@@ -17,6 +19,7 @@ class EnemyLaserManager {
     void Update();
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
+    void TurnAllLasersIntoPointItems(ItemManager& items);
 
     static constexpr int MAX_LASERS = 32;
 

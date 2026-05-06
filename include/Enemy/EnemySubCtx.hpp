@@ -23,6 +23,7 @@ struct EnemySubCtx {
     glm::vec2           playerPos;
 
     void TransitionToSub(Enemy& e, int newSub) const;
+    void BulletCancelIntoPointItems() const;
     void StartLerpTo(Enemy& e, float targetX, float targetY, int frames) const;
     void StartLerpDir(Enemy& e, float speed, int frames) const;
     void MoveRandInBounds(Enemy& e) const;

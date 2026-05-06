@@ -30,6 +30,15 @@ EnemyManager::EnemyManager() {
     m_EffectAnm.LoadAnm(Anm::EFF00.folder, Anm::EFF00.txt, Anm::EFF00.offset);
 }
 
+void EnemyManager::TurnAllBulletsIntoPointItems() {
+    if (!m_Items) {
+        ClearAllBullets();
+        return;
+    }
+    m_BulletManager.TurnAllBulletsIntoPointItems(*m_Items);
+    m_LaserManager.TurnAllLasersIntoPointItems(*m_Items);
+}
+
 void EnemyManager::SetScript(std::unique_ptr<IStageScript> script) {
     m_Script = std::move(script);
     if (m_Script) m_Script->Preload(m_Anm);
@@ -52,6 +61,7 @@ void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
         enemy.m_TimerCallbackThreshold = -1;
         enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
         enemy.m_CanTakeDamage          = false;
+        TurnAllBulletsIntoPointItems();
         for (auto& e : m_Enemies) {
             if (e.m_Alive && !e.m_IsBoss) e.m_Life = 0;
         }
@@ -70,8 +80,7 @@ void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
         enemy.m_TimerCallbackThreshold = -1;
         enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
         enemy.m_CanTakeDamage          = false;
-        m_BulletManager.ClearAll();
-        m_LaserManager.ClearAll();
+        TurnAllBulletsIntoPointItems();
         for (auto& e : m_Enemies) {
             if (e.m_Alive && !e.m_IsBoss) e.m_Life = 0;
         }
@@ -235,10 +244,10 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
     int totalScore = 0;
     for (auto& enemy : m_Enemies) {
         if (!enemy.m_Alive) continue;
-        if (enemy.m_IsBoss && !enemy.m_CanTakeDamage) continue;
 
         int dmg = player.CalcDamageToEnemy(enemy.m_Pos, enemy.m_HitboxSize);
         if (dmg <= 0) continue;
+        if (enemy.m_IsBoss && !enemy.m_CanTakeDamage) continue;
 
         // TH6: damage capped at 70/frame, hit score = (dmg/5)*10 on capped value,
         // spellcard divides damage by 7 (min 1).
@@ -261,6 +270,7 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
             enemy.m_TimerCallbackThreshold = -1;
             enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
             enemy.m_CanTakeDamage          = false;
+            TurnAllBulletsIntoPointItems();
             for (auto& e : m_Enemies) {
                 if (e.m_Alive && !e.m_IsBoss) e.m_Life = 0;
             }
@@ -276,12 +286,12 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                 int sub                  = enemy.m_DeathCallbackSub;
                 enemy.m_DeathCallbackSub = -1;
                 if (sub >= 0) {
-                    m_BulletManager.ClearAll();
-                    m_LaserManager.ClearAll();
+                    TurnAllBulletsIntoPointItems();
                     SpawnDeathEffect(enemy);
                     enemy.m_SubId      = sub;
                     enemy.m_FrameTimer = -1;
                 } else {
+                    TurnAllBulletsIntoPointItems();
                     totalScore += enemy.m_Score;
                     SpawnDeathEffect(enemy);
                     enemy.m_Alive = false;
@@ -408,6 +418,7 @@ BossHudState EnemyManager::GetBossHudState() const {
         state.life             = enemy.m_Life;
         state.minLife          = 0;
         state.maxLife          = enemy.m_BossMaxLife > 0 ? enemy.m_BossMaxLife : 1;
+        state.bossLifeCount    = enemy.m_BossLifeCount;
         state.title            = enemy.m_BossTitle;
         if (enemy.m_TimerCallbackThreshold >= 0) {
             const int framesLeft = std::max(0, enemy.m_TimerCallbackThreshold - enemy.m_BossTimer);
@@ -431,7 +442,8 @@ void EnemyManager::SkipToFrame(int frame) {
     m_BulletManager.ClearAll();
     m_LaserManager.ClearAll();
     m_Frame = frame;
-    while (m_TimelineIdx < m_TimelineSize && m_Timeline[m_TimelineIdx].frame <= frame) {
+    m_TimelineIdx = 0;
+    while (m_TimelineIdx < m_TimelineSize && m_Timeline[m_TimelineIdx].frame < frame) {
         m_TimelineIdx++;
     }
 }

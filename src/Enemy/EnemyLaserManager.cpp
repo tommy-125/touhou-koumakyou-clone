@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "Item/ItemManager.hpp"
+
 // Compromise: lasers rendered as white rectangles (Util::Image has no tint support).
 
 static constexpr const char WHITE_PNG[] = GA_RESOURCE_DIR "/white.png";
@@ -158,6 +160,32 @@ bool EnemyLaserManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitb
 void EnemyLaserManager::ClearAll() {
     for (auto& l : m_Lasers) {
         if (!l.m_Alive) continue;
+        l.m_Alive = false;
+        if (l.m_Obj) {
+            m_Renderer.RemoveChild(l.m_Obj);
+            l.m_Obj = nullptr;
+        }
+        if (l.m_CoreObj) {
+            m_Renderer.RemoveChild(l.m_CoreObj);
+            l.m_CoreObj = nullptr;
+        }
+        l.m_Img = nullptr;
+    }
+}
+
+void EnemyLaserManager::TurnAllLasersIntoPointItems(ItemManager& items) {
+    for (auto& l : m_Lasers) {
+        if (!l.m_Alive) continue;
+
+        items.SpawnItem(l.m_Pos, ItemType::PointBullet, 1);
+        for (float offset = 0.0f; offset <= l.m_Length; offset += 32.0f) {
+            glm::vec2 itemPos = {
+                l.m_Pos.x + std::cos(l.m_Angle) * offset,
+                l.m_Pos.y + std::sin(l.m_Angle) * offset,
+            };
+            items.SpawnItem(itemPos, ItemType::PointBullet, 1);
+        }
+
         l.m_Alive = false;
         if (l.m_Obj) {
             m_Renderer.RemoveChild(l.m_Obj);

@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
 
 EnemyBulletManager::EnemyBulletManager() {
@@ -154,6 +155,19 @@ bool EnemyBulletManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHit
 void EnemyBulletManager::ClearAll() {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
+        b.m_Alive = false;
+        if (b.m_Vm.obj) {
+            m_Renderer.RemoveChild(b.m_Vm.obj);
+            b.m_Vm.obj = nullptr;
+        }
+    }
+}
+
+void EnemyBulletManager::TurnAllBulletsIntoPointItems(ItemManager& items) {
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive) continue;
+
+        items.SpawnItem(b.m_Pos, ItemType::PointBullet, 1);
         b.m_Alive = false;
         if (b.m_Vm.obj) {
             m_Renderer.RemoveChild(b.m_Vm.obj);

@@ -1,6 +1,8 @@
 #include "Item/ItemManager.hpp"
 
 #include <algorithm>
+#include <cstdlib>
+#include <cmath>
 
 #include "Anm/AnmDefs.hpp"
 #include "GameManager.hpp"
@@ -13,13 +15,12 @@ static constexpr float ITEM_VEL_INIT_Y  = -2.2f;
 static constexpr float ITEM_GRAVITY     = 0.03f;
 static constexpr float ITEM_VEL_MAX_Y   = 3.0f;
 static constexpr float ITEM_AUTOGET_Y   = Util::FIELD_OFFSET_Y + 128.0f;
-static constexpr float ITEM_HOMING_GAIN = 0.18f;
 
 ItemManager::ItemManager() {
     m_Anm.LoadAnm(Anm::ETAMA3.folder, Anm::ETAMA3.txt, Anm::ETAMA3.offset);
 }
 
-void ItemManager::SpawnItem(glm::vec2 pos, ItemType type) {
+void ItemManager::SpawnItem(glm::vec2 pos, ItemType type, int state) {
     for (int i = 0; i < MAX_ITEMS; i++) {
         int idx = (m_NextIdx + i) % MAX_ITEMS;
 
@@ -29,7 +30,14 @@ void ItemManager::SpawnItem(glm::vec2 pos, ItemType type) {
             item.m_Alive = true;
             item.m_Pos   = pos;
             item.m_Vel   = {0.0f, ITEM_VEL_INIT_Y};
+            item.m_StartPos = pos;
+            item.m_TargetPos = {
+                Util::FIELD_OFFSET_X + 48.0f + static_cast<float>(std::rand() % 289),
+                Util::FIELD_OFFSET_Y - 64.0f + static_cast<float>(std::rand() % 193),
+            };
             item.m_Type  = type;
+            item.m_State = state;
+            item.m_Timer = 0;
             m_NextIdx    = (idx + 1) % MAX_ITEMS;
 
             int scriptIdx = Anm::ETAMA3.offset + 21 + static_cast<int>(type);
@@ -44,21 +52,31 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
     for (auto& item : m_Items) {
         if (!item.m_Alive) continue;
 
-        item.m_Pos += item.m_Vel;
-        if (item.m_Vel.y < ITEM_VEL_MAX_Y)
-            item.m_Vel.y += ITEM_GRAVITY;
-        else
-            item.m_Vel.y = ITEM_VEL_MAX_Y;
+        if (item.m_State == 2 && item.m_Timer < 60) {
+            const float t = static_cast<float>(item.m_Timer) / 60.0f;
+            item.m_Pos = item.m_StartPos * (1.0f - t) + item.m_TargetPos * t;
+        } else {
+            if (item.m_State == 1 || (gm.power >= 128 && playerPos.y <= ITEM_AUTOGET_Y)) {
+                glm::vec2 toPlayer = playerPos - item.m_Pos;
+                const float dist = std::max(1.0f, std::sqrt(toPlayer.x * toPlayer.x +
+                                                            toPlayer.y * toPlayer.y));
+                item.m_Vel = toPlayer / dist * 8.0f;
+                item.m_State = 1;
+            } else {
+                item.m_Vel.x = 0.0f;
+                if (item.m_Vel.y < ITEM_VEL_INIT_Y) item.m_Vel.y = ITEM_VEL_INIT_Y;
+                if (item.m_Vel.y < ITEM_VEL_MAX_Y)
+                    item.m_Vel.y += ITEM_GRAVITY;
+                else
+                    item.m_Vel.y = ITEM_VEL_MAX_Y;
+            }
+            item.m_Pos += item.m_Vel;
+        }
 
         item.m_Vm.pos = item.m_Pos;
         m_Anm.UpdateObjects(item.m_Vm);
 
-        if (gm.power >= 128 && playerPos.y <= ITEM_AUTOGET_Y) {
-            glm::vec2 toPlayer = playerPos - item.m_Pos;
-            item.m_Vel += toPlayer * ITEM_HOMING_GAIN;
-            item.m_Vel.x = std::clamp(item.m_Vel.x, -10.0f, 10.0f);
-            item.m_Vel.y = std::clamp(item.m_Vel.y, -10.0f, 10.0f);
-        }
+        item.m_Timer++;
 
         float dx = std::abs(item.m_Pos.x - playerPos.x);
         float dy = std::abs(item.m_Pos.y - playerPos.y);
@@ -82,6 +100,16 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                     gm.pointItems += 1;
                     break;
                 }
+                case ItemType::PointBullet: {
+                    int pts = (gm.graze / 3) * 10 + 500;
+                    if (pts < 100) pts = 100;
+                    gm.score += pts;
+                    break;
+                }
+                case ItemType::Bomb:
+                case ItemType::FullPower:
+                case ItemType::Life:
+                    break;
             }
             if (gm.score > gm.highScore) gm.highScore = gm.score;
             item.m_Alive = false;

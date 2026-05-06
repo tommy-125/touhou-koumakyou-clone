@@ -4,11 +4,19 @@
 #include <cstdlib>
 
 #include "Enemy/Enemy.hpp"
+#include "Enemy/EnemyBulletManager.hpp"
+#include "Enemy/EnemyLaserManager.hpp"
+#include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
 
 void EnemySubCtx::TransitionToSub(Enemy& e, int newSub) const {
     e.m_SubId      = newSub;
     e.m_FrameTimer = -1;
+}
+
+void EnemySubCtx::BulletCancelIntoPointItems() const {
+    bullets.TurnAllBulletsIntoPointItems(items);
+    lasers.TurnAllLasersIntoPointItems(items);
 }
 
 void EnemySubCtx::StartLerpTo(Enemy& e, float targetX, float targetY, int frames) const {
