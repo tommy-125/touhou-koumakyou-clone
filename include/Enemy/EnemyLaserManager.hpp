@@ -12,10 +12,10 @@ class ItemManager;
 class EnemyLaserManager {
    public:
     void SpawnAimed(glm::vec2 pos, glm::vec2 playerPos, float length, float maxWidth, int startTime,
-                    int duration, int endTime, int hitboxStart, int hitboxEnd);
+                    int duration, int endTime, int hitboxStart, int hitboxEnd, float speed = 0.0f);
     void SpawnAtAngle(glm::vec2 pos, float angle, float length, float maxWidth, int startTime,
                       int duration, int endTime, int hitboxStart, int hitboxEnd,
-                      float angularVelocity = 0.0f);
+                      float angularVelocity = 0.0f, float speed = 0.0f);
     void Update();
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();

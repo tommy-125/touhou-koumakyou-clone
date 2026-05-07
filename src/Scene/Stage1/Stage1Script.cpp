@@ -535,7 +535,6 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             // Each bullet redirects vertically after 40f at speed 1.5 (ECL ins_82 flag 0x40).
             if (t == 0) {
                 StartSpellPhase(enemy, ctx, "Demarcation", 3000000, 1500);
-                enemy.m_BossMaxLife = enemy.m_Life > 0 ? enemy.m_Life : 1;
             }
             if (t == 120) {
                 enemy.m_CanTakeDamage = true;

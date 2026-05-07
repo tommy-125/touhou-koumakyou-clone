@@ -54,6 +54,7 @@ struct EnemyBullet {
     bool      m_Alive        = false;
     bool      m_UseDecay     = false;
     int       m_DecayTimer   = 0;
+    bool      m_FrozenByPerfectFreeze = false;
     // TH06 auto-rotate style for angle-aware bullets.
     bool m_RotateWithAngle = false;
     // Direction change (ECL flag 0x40 / ins_82): every m_DirChangeInterval frames,

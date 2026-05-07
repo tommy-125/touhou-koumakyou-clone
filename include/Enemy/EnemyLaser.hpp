@@ -14,6 +14,8 @@ struct EnemyLaser {
     float     m_MaxWidth = 16.0f;
     float     m_CurWidth = 0.0f;
     float     m_CoreWidth = 0.0f;
+    float     m_Speed = 0.0f;
+    float     m_Offset = 0.0f;
 
     // Timing (frames)
     int m_StartTime   = 120;  // grow phase

@@ -195,6 +195,7 @@ void EnemyBulletManager::FreezeAllBulletsAsWhite() {
         b.m_DirChangeStartupFrames   = 0;
         b.m_DirChangeStartupSpeedScale = 1.0f;
         b.m_DecayTimer               = 0;
+        b.m_FrozenByPerfectFreeze    = true;
 
         m_Anm.SetScript(b.m_Vm, Anm::ETAMA3.offset + static_cast<int>(b.m_Type),
                         Anm::ETAMA3.offset + static_cast<int>(b.m_Color));
@@ -204,6 +205,7 @@ void EnemyBulletManager::FreezeAllBulletsAsWhite() {
 void EnemyBulletManager::AccelerateFrozenBulletsRandom(float acceleration, int frames) {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
+        if (!b.m_FrozenByPerfectFreeze) continue;
 
         const float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
         b.m_Angle              = r * 2.0f * Util::HALF_PI * 2.0f - Util::HALF_PI * 2.0f;
@@ -212,6 +214,7 @@ void EnemyBulletManager::AccelerateFrozenBulletsRandom(float acceleration, int f
         b.m_AccelerationFrames = frames;
         b.m_UseDecay           = false;
         b.m_DecayTimer         = 0;
+        b.m_FrozenByPerfectFreeze = false;
     }
 }
 
