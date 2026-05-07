@@ -11,6 +11,7 @@
 #include "Player.hpp"
 #include "Scene/IStageScript.hpp"
 #include "Scene/Scene.hpp"
+#include "Scene/StageBackground.hpp"
 #include "Scene/StageMenu.hpp"
 #include "Util/Color.hpp"
 #include "Util/GameObject.hpp"
@@ -26,7 +27,7 @@ class PlayableStage : public Scene {
     void Update() override;
 
    protected:
-    virtual void UpdateBackground() = 0;
+    virtual void UpdateBackground();
     virtual void OnAfterGameplayFrame(const BossHudState&) {}
     virtual void OnFrameEnd() {}
     virtual void OnMenuFrame() {}
@@ -34,6 +35,7 @@ class PlayableStage : public Scene {
     virtual int  BossSkipFrame() const { return -1; }
 
     void UpdateStageIntro();
+    void SetBackground(std::unique_ptr<StageBackground> background);
     bool ShouldReturnToTitle() const { return m_ReturnToTitle; }
 
     CharacterItem m_Character;
@@ -60,6 +62,7 @@ class PlayableStage : public Scene {
     std::shared_ptr<Util::GameObject> m_IntroStageNoObj;
     std::shared_ptr<Util::GameObject> m_IntroStageNameObj;
     std::shared_ptr<Util::GameObject> m_IntroSongObj;
+    std::unique_ptr<StageBackground>  m_Background;
     bool                              m_ReturnToTitle = false;
 };
 

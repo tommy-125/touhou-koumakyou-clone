@@ -75,6 +75,14 @@ void PlayableStage::UpdateStageIntro() {
     m_IntroSongObj->SetAlpha(1.0f);
 }
 
+void PlayableStage::SetBackground(std::unique_ptr<StageBackground> background) {
+    m_Background = std::move(background);
+}
+
+void PlayableStage::UpdateBackground() {
+    if (m_Background) m_Background->Update(m_StageFrame);
+}
+
 void PlayableStage::Update() {
     if (Util::Input::IsKeyDown(Util::Keycode::ESCAPE)) {
         m_StageMenu.Toggle();

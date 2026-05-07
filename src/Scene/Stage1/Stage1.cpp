@@ -52,10 +52,9 @@ Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
                     std::make_unique<Stage1Script>(), "STAGE 1",
                     "A Dream More Scarlet than Red",
                     "BGM: A Soul as Red as a Ground Cherry") {
-    m_BgImage = std::make_shared<Util::Image>(GA_RESOURCE_DIR "/stage1_bg.png");
-    m_BgObj   = std::make_shared<Util::GameObject>(m_BgImage, -10.0f);
-    m_BgObj->m_Transform.translation = {-96.0f, 901.0f};
-    m_Renderer.AddChild(m_BgObj);
+    SetBackground(std::make_unique<LongScrollStageBackground>(
+        m_Renderer, GA_RESOURCE_DIR "/stage1_bg.png", -10.0f, -96.0f, BG_CANVAS_H, FIELD_H,
+        STAGE_TOTAL_FRAMES));
 
     m_ClearTexts.reserve(8);
     m_ClearObjs.reserve(8);
@@ -75,14 +74,7 @@ Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
     }
 }
 
-int Stage1::BossSkipFrame() const {
-    return STAGE1_BOSS_SKIP_FRAME;
-}
-
-void Stage1::UpdateBackground() {
-    float scrollY = m_StageFrame * (BG_CANVAS_H - FIELD_H) / STAGE_TOTAL_FRAMES;
-    m_BgObj->m_Transform.translation.y = (BG_CANVAS_H / 2.0f - FIELD_H / 2.0f) - scrollY;
-}
+int Stage1::BossSkipFrame() const { return STAGE1_BOSS_SKIP_FRAME; }
 
 void Stage1::SetStageClearLine(size_t idx, const std::string& text, const Util::Color& color,
                                float y) {

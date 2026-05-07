@@ -1,6 +1,7 @@
 #ifndef SCENE_STAGE1_STAGE1_HPP
 #define SCENE_STAGE1_STAGE1_HPP
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -21,7 +22,6 @@ class Stage1 : public PlayableStage {
     static constexpr float BG_CANVAS_H        = 2250.0f;
     static constexpr float FIELD_H            = 448.0f;
 
-    void UpdateBackground() override;
     void OnAfterGameplayFrame(const BossHudState& bossHud) override;
     void OnFrameEnd() override;
     void OnMenuFrame() override;
@@ -35,8 +35,6 @@ class Stage1 : public PlayableStage {
     void SetStageClearLine(size_t idx, const std::string& text, const Util::Color& color,
                            float y);
 
-    std::shared_ptr<Util::Image>      m_BgImage;
-    std::shared_ptr<Util::GameObject> m_BgObj;
     Util::Renderer                    m_ClearRenderer;
     std::shared_ptr<Util::Image>      m_ClearLoadingImage;
     std::shared_ptr<Util::GameObject> m_ClearLoadingObj;
