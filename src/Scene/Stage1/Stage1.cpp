@@ -5,12 +5,10 @@
 
 #include "Scene/Stage1/Stage1Script.hpp"
 #include "Scene/Stage2/Stage2.hpp"
-#include "Scene/TimelineLoader.hpp"
+#include "Scene/Title.hpp"
 #include "Util/Input.hpp"
 
 namespace {
-static constexpr int        INTRO_FONT_SIZE   = 18;
-static constexpr int        INTRO_SMALL_SIZE  = 14;
 static constexpr int        CLEAR_FONT_SIZE   = 16;
 static constexpr const char INTRO_FONT_PATH[] = PTSD_FONT_PATH;
 static constexpr int        STAGE1_BOSS_SKIP_FRAME = 5279;
@@ -21,33 +19,11 @@ static constexpr int        CLEAR_LOADING_FADE_OUT = 60;
 static constexpr int        CLEAR_LOADING_TOTAL =
     CLEAR_LOADING_WAIT + CLEAR_LOADING_FADE_IN + CLEAR_LOADING_HOLD + CLEAR_LOADING_FADE_OUT;
 static constexpr float      CLEAR_TEXT_CENTER_X = 0.0f;
-// Center of the TH06 play field: field x 192 + screen offset 32 = screen x 224,
-// then converted to PTSD x: 224 - 320 = -96.
-static constexpr float      INTRO_CENTER_X    = -96.0f;
-static const Util::Color    INTRO_CYAN        = Util::Color::FromRGB(190, 245, 255);
 static const Util::Color    INTRO_YELLOW      = Util::Color::FromRGB(255, 230, 120);
 static const Util::Color    CLEAR_WHITE       = Util::Color::FromRGB(255, 255, 255);
 static const Util::Color    CLEAR_LAVENDER    = Util::Color::FromRGB(210, 190, 255);
 static const Util::Color    CLEAR_BLUE        = Util::Color::FromRGB(170, 220, 255);
 static const Util::Color    CLEAR_RED         = Util::Color::FromRGB(255, 160, 180);
-
-static std::shared_ptr<Util::GameObject> MakeIntroText(std::shared_ptr<Util::Text>& text,
-                                                       const std::string& str,
-                                                       const Util::Color& color, int fontSize,
-                                                       float x, float y) {
-    text = std::make_shared<Util::Text>(INTRO_FONT_PATH, fontSize, str, color);
-    auto obj = std::make_shared<Util::GameObject>(text, 30.0f);
-    obj->m_Transform.translation = {x, y};
-    obj->SetVisible(false);
-    return obj;
-}
-
-static float IntroAlpha(int frame) {
-    if (frame < 30) return static_cast<float>(frame) / 30.0f;
-    if (frame < 210) return 1.0f;
-    if (frame < 270) return 1.0f - static_cast<float>(frame - 210) / 60.0f;
-    return 0.0f;
-}
 
 static std::string FormatClearLine(const char* fmt, int value) {
     char buf[64];
@@ -72,31 +48,14 @@ static float ClearLoadingAlpha(int timer) {
 }  // namespace
 
 Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
-    : m_Character(character),
-      m_SpellCard(spellCard),
-      m_StageMenu(m_Renderer),
-      m_Player(character, spellCard) {
-    m_EnemyManager.SetItemManager(&m_ItemManager);
-    m_EnemyManager.SetTimeline(
-        LoadTimelineFromJson(GA_RESOURCE_DIR "/stages/stage1_timeline.json"));
-    m_EnemyManager.SetScript(std::make_unique<Stage1Script>());
-
+    : PlayableStage(character, spellCard, {}, GA_RESOURCE_DIR "/stages/stage1_timeline.json",
+                    std::make_unique<Stage1Script>(), "STAGE 1",
+                    "A Dream More Scarlet than Red",
+                    "BGM: A Soul as Red as a Ground Cherry") {
     m_BgImage = std::make_shared<Util::Image>(GA_RESOURCE_DIR "/stage1_bg.png");
     m_BgObj   = std::make_shared<Util::GameObject>(m_BgImage, -10.0f);
     m_BgObj->m_Transform.translation = {-96.0f, 901.0f};
     m_Renderer.AddChild(m_BgObj);
-
-    m_IntroStageNoObj = MakeIntroText(m_IntroStageNoText, "STAGE 1", INTRO_YELLOW,
-                                      INTRO_FONT_SIZE, 0.0f, 42.0f);
-    m_IntroStageNameObj = MakeIntroText(m_IntroStageNameText,
-                                        "A Dream More Scarlet than Red", INTRO_CYAN,
-                                        INTRO_FONT_SIZE, 0.0f, 16.0f);
-    m_IntroSongObj = MakeIntroText(m_IntroSongText, "BGM: A Soul as Red as a Ground Cherry",
-                                   INTRO_CYAN, INTRO_SMALL_SIZE, 0.0f, -12.0f);
-    m_IntroRenderer.AddChild(m_IntroStageNoObj);
-    m_IntroRenderer.AddChild(m_IntroStageNameObj);
-    m_IntroRenderer.AddChild(m_IntroSongObj);
-    UpdateStageIntro();
 
     m_ClearTexts.reserve(8);
     m_ClearObjs.reserve(8);
@@ -116,25 +75,13 @@ Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
     }
 }
 
-void Stage1::UpdateStageIntro() {
-    const float alpha   = IntroAlpha(m_StageFrame);
-    const bool  visible = alpha > 0.0f;
-    const auto  alphaByte = static_cast<Uint8>(alpha * 255.0f);
+int Stage1::BossSkipFrame() const {
+    return STAGE1_BOSS_SKIP_FRAME;
+}
 
-    m_IntroStageNoObj->SetVisible(visible);
-    m_IntroStageNameObj->SetVisible(visible);
-    m_IntroSongObj->SetVisible(visible);
-    if (!visible) return;
-
-    m_IntroStageNoText->SetColor(Util::Color::FromRGB(255, 230, 120, alphaByte));
-    m_IntroStageNameText->SetColor(Util::Color::FromRGB(190, 245, 255, alphaByte));
-    m_IntroSongText->SetColor(Util::Color::FromRGB(190, 245, 255, alphaByte));
-    m_IntroStageNoObj->SetAlpha(1.0f);
-    m_IntroStageNameObj->SetAlpha(1.0f);
-    m_IntroSongObj->SetAlpha(1.0f);
-    m_IntroStageNoObj->m_Transform.translation   = {INTRO_CENTER_X, 42.0f};
-    m_IntroStageNameObj->m_Transform.translation = {INTRO_CENTER_X, 16.0f};
-    m_IntroSongObj->m_Transform.translation      = {INTRO_CENTER_X, -12.0f};
+void Stage1::UpdateBackground() {
+    float scrollY = m_StageFrame * (BG_CANVAS_H - FIELD_H) / STAGE_TOTAL_FRAMES;
+    m_BgObj->m_Transform.translation.y = (BG_CANVAS_H / 2.0f - FIELD_H / 2.0f) - scrollY;
 }
 
 void Stage1::SetStageClearLine(size_t idx, const std::string& text, const Util::Color& color,
@@ -226,83 +173,31 @@ void Stage1::UpdateStageClear() {
     }
 }
 
-void Stage1::Update() {
-    if (Util::Input::IsKeyDown(Util::Keycode::ESCAPE)) {
-        m_StageMenu.Toggle();
-    }
+void Stage1::OnMenuFrame() {
+    UpdateStageClear();
+}
 
-    const auto stageMenuAction = m_StageMenu.Update();
-    if (stageMenuAction == StageMenu::Action::ReturnToTitle) {
-        m_Done = true;
-        return;
-    }
-
-    if (!m_StageMenu.IsOpen() && Util::Input::IsKeyDown(Util::Keycode::P)) {
-        m_StageFrame = STAGE1_BOSS_SKIP_FRAME;
-        m_EnemyManager.SkipToFrame(STAGE1_BOSS_SKIP_FRAME);
-    }
-
-    if (m_StageMenu.IsOpen()) {
-        m_Renderer.Update();
-        m_Gui.Update(m_GameManager, m_EnemyManager.GetBossHudState(), false);
-        UpdateStageIntro();
-        m_IntroRenderer.Update();
-        UpdateStageClear();
-        return;
-    }
-
-    if (m_StageClearStarted) {
-        m_Renderer.Update();
-        m_Gui.Update(m_GameManager, {}, true);
-        UpdateStageClear();
-        return;
-    }
-
-    ++m_StageFrame;
-    float scrollY = m_StageFrame * (BG_CANVAS_H - FIELD_H) / STAGE_TOTAL_FRAMES;
-    m_BgObj->m_Transform.translation.y = (BG_CANVAS_H / 2.0f - FIELD_H / 2.0f) - scrollY;
+bool Stage1::HandleStageOverlay() {
+    if (!m_StageClearStarted) return false;
     m_Renderer.Update();
+    m_Gui.Update(m_GameManager, {}, true);
+    UpdateStageClear();
+    return true;
+}
 
-    m_ItemManager.Update(m_Player.GetPos(), m_GameManager);
-    m_EnemyManager.Update(m_Player.GetPos(), m_GameManager);
-    m_Player.Update(m_GameManager);
-    if (m_Player.TryUseBomb(m_GameManager) || m_Player.IsBombActive()) {
-        m_EnemyManager.ClearAllBullets();
-    }
-
-    int scoreGained = m_EnemyManager.ApplyPlayerBulletDamage(m_Player);
-    if (scoreGained > 0) {
-        m_GameManager.score += scoreGained;
-        if (m_GameManager.score > m_GameManager.highScore)
-            m_GameManager.highScore = m_GameManager.score;
-    }
-
-    if (m_Player.IsVulnerable() &&
-        m_EnemyManager.CheckPlayerHit(m_Player.GetPos(), {PLAYER_HITBOX_X, PLAYER_HITBOX_Y})) {
-        m_Player.Die();
-        if (--m_GameManager.livesRemaining < 0) {
-            m_GameManager.livesRemaining = 0;
-            m_Done                       = true;
-        }
-    }
-
-    if (m_Player.JustEnteredSpawning()) {
-        m_EnemyManager.ClearAllBullets();
-    }
-
-    const BossHudState bossHud = m_EnemyManager.GetBossHudState();
+void Stage1::OnAfterGameplayFrame(const BossHudState& bossHud) {
     if (m_StageFrame >= STAGE1_BOSS_SKIP_FRAME && bossHud.visible) {
         m_FinalBossWasSeen = true;
     } else if (m_FinalBossWasSeen && !bossHud.visible) {
         StartStageClear();
     }
+}
 
-    m_Gui.Update(m_GameManager, bossHud, true);
-    UpdateStageIntro();
-    m_IntroRenderer.Update();
+void Stage1::OnFrameEnd() {
     UpdateStageClear();
 }
 
 std::unique_ptr<Scene> Stage1::NextScene() {
+    if (ShouldReturnToTitle()) return std::make_unique<Title>();
     return std::make_unique<Stage2>(m_Character, m_SpellCard, m_GameManager);
 }
