@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 
+#include "Anm/AnmManager.hpp"
 #include "Enemy/EnemyManager.hpp"
 #include "GameManager.hpp"
 #include "Gui.hpp"
@@ -14,9 +15,9 @@
 #include "Scene/StageBackground.hpp"
 #include "Scene/StageMenu.hpp"
 #include "Util/Color.hpp"
+#include "Util/AsciiTextLine.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/Renderer.hpp"
-#include "Util/Text.hpp"
 
 class PlayableStage : public Scene {
    public:
@@ -49,19 +50,16 @@ class PlayableStage : public Scene {
     Player       m_Player;
 
    private:
-    static std::shared_ptr<Util::GameObject> MakeIntroText(std::shared_ptr<Util::Text>& text,
-                                                           const std::string& str,
-                                                           const Util::Color& color, int fontSize,
-                                                           float x, float y);
+    void SetupIntroAsciiLine(Util::AsciiTextLine& line, const std::string& text, glm::vec2 pos,
+                             float scale, Util::AsciiTextAlign align,
+                             const Util::Color& color);
 
     StageMenu                   m_StageMenu;
     Util::Renderer              m_IntroRenderer;
-    std::shared_ptr<Util::Text> m_IntroStageNoText;
-    std::shared_ptr<Util::Text> m_IntroStageNameText;
-    std::shared_ptr<Util::Text> m_IntroSongText;
-    std::shared_ptr<Util::GameObject> m_IntroStageNoObj;
-    std::shared_ptr<Util::GameObject> m_IntroStageNameObj;
-    std::shared_ptr<Util::GameObject> m_IntroSongObj;
+    Anm::Manager                m_IntroAnm;
+    Util::AsciiTextLine         m_IntroStageNoLine;
+    Util::AsciiTextLine         m_IntroStageNameLine;
+    Util::AsciiTextLine         m_IntroSongLine;
     std::unique_ptr<StageBackground>  m_Background;
     bool                              m_ReturnToTitle = false;
 };

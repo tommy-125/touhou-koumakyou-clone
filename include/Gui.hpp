@@ -7,10 +7,10 @@
 #include "Anm/AnmManager.hpp"
 #include "Enemy/EnemyManager.hpp"
 #include "GameManager.hpp"
+#include "Util/AsciiTextLine.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/Image.hpp"
 #include "Util/Renderer.hpp"
-#include "Util/Text.hpp"
 
 class Gui {
    public:
@@ -46,8 +46,7 @@ class Gui {
     std::array<std::shared_ptr<Util::GameObject>, MAX_GRAZE_DIGITS> m_GrazeDigits;
     std::array<std::shared_ptr<Util::GameObject>, MAX_POINT_DIGITS> m_PointDigits;
 
-    std::shared_ptr<Util::Text>       m_BossTitleText;
-    std::shared_ptr<Util::GameObject> m_BossTitleObj;
+    Util::AsciiTextLine               m_BossTitleLine;
     Anm::Vm                           m_BossEnemyTextVm;
     Anm::Vm                           m_BossHealthBarVm;
     std::array<std::shared_ptr<Util::GameObject>, MAX_BOSS_LIFE_DIGITS> m_BossLifeDigits;

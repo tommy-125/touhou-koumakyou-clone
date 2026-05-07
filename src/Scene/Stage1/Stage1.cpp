@@ -9,8 +9,6 @@
 #include "Util/Input.hpp"
 
 namespace {
-static constexpr int        CLEAR_FONT_SIZE   = 16;
-static constexpr const char INTRO_FONT_PATH[] = PTSD_FONT_PATH;
 static constexpr int        STAGE1_BOSS_SKIP_FRAME = 5279;
 static constexpr int        CLEAR_LOADING_WAIT     = 0;
 static constexpr int        CLEAR_LOADING_FADE_IN  = 60;
@@ -18,12 +16,14 @@ static constexpr int        CLEAR_LOADING_HOLD     = 240;
 static constexpr int        CLEAR_LOADING_FADE_OUT = 60;
 static constexpr int        CLEAR_LOADING_TOTAL =
     CLEAR_LOADING_WAIT + CLEAR_LOADING_FADE_IN + CLEAR_LOADING_HOLD + CLEAR_LOADING_FADE_OUT;
-static constexpr float      CLEAR_TEXT_CENTER_X = 0.0f;
-static const Util::Color    INTRO_YELLOW      = Util::Color::FromRGB(255, 230, 120);
-static const Util::Color    CLEAR_WHITE       = Util::Color::FromRGB(255, 255, 255);
-static const Util::Color    CLEAR_LAVENDER    = Util::Color::FromRGB(210, 190, 255);
-static const Util::Color    CLEAR_BLUE        = Util::Color::FromRGB(170, 220, 255);
-static const Util::Color    CLEAR_RED         = Util::Color::FromRGB(255, 160, 180);
+static constexpr float      CLEAR_TEXT_CENTER_X = -96.0f;
+static constexpr float      CLEAR_TITLE_SCALE   = 1.0f;
+static constexpr float      CLEAR_LINE_SCALE    = 1.0f;
+static const Util::Color    CLEAR_SUNSHINE_YELLOW = Util::Color::FromRGB(255, 255, 64);
+static const Util::Color    CLEAR_WHITE           = Util::Color::FromRGB(255, 255, 255);
+static const Util::Color    CLEAR_LAVENDER        = Util::Color::FromRGB(224, 224, 255);
+static const Util::Color    CLEAR_LIGHT_BLUE      = Util::Color::FromRGB(208, 208, 255);
+static const Util::Color    CLEAR_LIGHT_RED       = Util::Color::FromRGB(255, 128, 128);
 
 static std::string FormatClearLine(const char* fmt, int value) {
     char buf[64];
@@ -56,8 +56,8 @@ Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
         m_Renderer, GA_RESOURCE_DIR "/stage1_bg.png", -10.0f, -96.0f, BG_CANVAS_H, FIELD_H,
         STAGE_TOTAL_FRAMES));
 
-    m_ClearTexts.reserve(8);
-    m_ClearObjs.reserve(8);
+    m_ClearLines.reserve(8);
+    m_ClearAnm.LoadAnm(Anm::ASCII.folder, Anm::ASCII.txt, Anm::ASCII.offset);
     m_ClearLoadingImage = std::make_shared<Util::Image>(
         GA_RESOURCE_DIR "/th06c/th06c_CM/loading.png");
     m_ClearLoadingObj = std::make_shared<Util::GameObject>(m_ClearLoadingImage, 29.0f);
@@ -65,25 +65,20 @@ Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
     m_ClearLoadingObj->SetVisible(false);
     m_ClearRenderer.AddChild(m_ClearLoadingObj);
     for (int i = 0; i < 8; i++) {
-        auto text = std::make_shared<Util::Text>(INTRO_FONT_PATH, CLEAR_FONT_SIZE, " ", CLEAR_WHITE);
-        auto obj  = std::make_shared<Util::GameObject>(text, 31.0f);
-        obj->SetVisible(false);
-        m_ClearTexts.push_back(text);
-        m_ClearObjs.push_back(obj);
-        m_ClearRenderer.AddChild(obj);
+        m_ClearLines.emplace_back();
+        m_ClearLines.back().Configure(m_ClearRenderer, m_ClearAnm, 31.0f);
     }
 }
 
 int Stage1::BossSkipFrame() const { return STAGE1_BOSS_SKIP_FRAME; }
 
-void Stage1::SetStageClearLine(size_t idx, const std::string& text, const Util::Color& color,
-                               float y) {
-    if (idx >= m_ClearTexts.size()) return;
+void Stage1::SetStageClearLine(size_t idx, const std::string& text, float y, float scale,
+                               const Util::Color& color) {
+    if (idx >= m_ClearLines.size()) return;
 
-    m_ClearTexts[idx]->SetText(text);
-    m_ClearTexts[idx]->SetColor(color);
-    m_ClearObjs[idx]->m_Transform.translation = {CLEAR_TEXT_CENTER_X, y};
-    m_ClearObjs[idx]->SetVisible(true);
+    m_ClearLines[idx].SetText(text, {CLEAR_TEXT_CENTER_X, y}, scale,
+                              Util::AsciiTextAlign::Center, color);
+    m_ClearLines[idx].SetVisible(true);
 }
 
 void Stage1::ShowStageClearText() {
@@ -92,15 +87,18 @@ void Stage1::ShowStageClearText() {
     const int powerBonus = m_GameManager.power * 100;
     const int grazeBonus = m_GameManager.graze * 10;
 
-    SetStageClearLine(0, "Stage Clear", INTRO_YELLOW, 112.0f);
-    SetStageClearLine(1, FormatClearLine("Stage * 1000 = %5d", stageBonus), CLEAR_WHITE, 80.0f);
-    SetStageClearLine(2, FormatClearLine("Power *  100 = %5d", powerBonus), CLEAR_LAVENDER, 64.0f);
-    SetStageClearLine(3, FormatClearLine("Graze *   10 = %5d", grazeBonus), CLEAR_BLUE, 48.0f);
+    SetStageClearLine(0, "Stage Clear", 112.0f, CLEAR_TITLE_SCALE, CLEAR_SUNSHINE_YELLOW);
+    SetStageClearLine(1, FormatClearLine("Stage * 1000 = %5d", stageBonus), 80.0f,
+                      CLEAR_LINE_SCALE, CLEAR_WHITE);
+    SetStageClearLine(2, FormatClearLine("Power *  100 = %5d", powerBonus), 64.0f,
+                      CLEAR_LINE_SCALE, CLEAR_LAVENDER);
+    SetStageClearLine(3, FormatClearLine("Graze *   10 = %5d", grazeBonus), 48.0f,
+                      CLEAR_LINE_SCALE, CLEAR_LIGHT_BLUE);
     SetStageClearLine(4, FormatClearLine("    * Point Item %3d", m_GameManager.pointItems),
-                      CLEAR_RED, 32.0f);
-    SetStageClearLine(5, "Normal Rank    * 1.0", CLEAR_RED, 0.0f);
-    SetStageClearLine(6, FormatClearLine("Total     = %8d", m_StageClearScore), CLEAR_WHITE,
-                      -16.0f);
+                      32.0f, CLEAR_LINE_SCALE, CLEAR_LIGHT_RED);
+    SetStageClearLine(5, "Normal Rank    * 1.0", 0.0f, CLEAR_LINE_SCALE, CLEAR_LIGHT_RED);
+    SetStageClearLine(6, FormatClearLine("Total     = %8d", m_StageClearScore), -16.0f,
+                      CLEAR_LINE_SCALE, CLEAR_WHITE);
     m_StageClearTextShown = true;
 }
 
@@ -133,14 +131,14 @@ void Stage1::UpdateStageClearLoading() {
     }
 
     const bool textVisible = m_StageClearTextShown && m_StageClearTimer < CLEAR_LOADING_TOTAL;
-    for (auto& obj : m_ClearObjs) {
-        obj->SetVisible(textVisible);
-        obj->SetAlpha(alpha);
+    for (auto& line : m_ClearLines) {
+        line.SetVisible(textVisible);
+        line.SetAlpha(alpha);
     }
 
     if (m_StageClearTimer >= CLEAR_LOADING_TOTAL) {
         m_ClearLoadingObj->SetVisible(false);
-        for (auto& obj : m_ClearObjs) obj->SetVisible(false);
+        for (auto& line : m_ClearLines) line.SetVisible(false);
     }
 }
 

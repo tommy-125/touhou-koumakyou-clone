@@ -2,6 +2,10 @@
 
 #include <cmath>
 
+namespace {
+constexpr float TILE_OVERLAP = 2.0f;
+}
+
 LongScrollStageBackground::LongScrollStageBackground(Util::Renderer& renderer,
                                                      const char* imagePath, float zIndex,
                                                      float centerX, float canvasHeight,
@@ -48,13 +52,14 @@ TiledStageBackground::TiledStageBackground(Util::Renderer& renderer, const char*
 }
 
 void TiledStageBackground::Update(int frame) {
-    const float scroll = std::fmod(static_cast<float>(frame) * m_ScrollSpeed, m_TileHeight);
+    const float tileStride = m_TileHeight - TILE_OVERLAP;
+    const float scroll = std::fmod(static_cast<float>(frame) * m_ScrollSpeed, tileStride);
     const float sway   = m_SwayAmplitude * std::sin(static_cast<float>(frame) * m_SwayRate);
 
     for (size_t i = 0; i < m_Objs.size(); i++) {
         auto& obj = m_Objs[i];
         if (!obj) continue;
-        const float tileOffset = (static_cast<float>(i) - 1.0f) * m_TileHeight;
+        const float tileOffset = (static_cast<float>(i) - 1.0f) * tileStride;
         obj->m_Transform.translation = {m_CenterX + sway, tileOffset - scroll};
     }
 }

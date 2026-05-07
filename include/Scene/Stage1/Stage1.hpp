@@ -7,10 +7,10 @@
 
 #include "Scene/PlayableStage.hpp"
 #include "Util/Color.hpp"
+#include "Util/AsciiTextLine.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/Image.hpp"
 #include "Util/Renderer.hpp"
-#include "Util/Text.hpp"
 
 class Stage1 : public PlayableStage {
    public:
@@ -32,14 +32,14 @@ class Stage1 : public PlayableStage {
     void UpdateStageClear();
     void UpdateStageClearLoading();
     void ShowStageClearText();
-    void SetStageClearLine(size_t idx, const std::string& text, const Util::Color& color,
-                           float y);
+    void SetStageClearLine(size_t idx, const std::string& text, float y, float scale,
+                           const Util::Color& color);
 
     Util::Renderer                    m_ClearRenderer;
+    Anm::Manager                      m_ClearAnm;
     std::shared_ptr<Util::Image>      m_ClearLoadingImage;
     std::shared_ptr<Util::GameObject> m_ClearLoadingObj;
-    std::vector<std::shared_ptr<Util::Text>>       m_ClearTexts;
-    std::vector<std::shared_ptr<Util::GameObject>> m_ClearObjs;
+    std::vector<Util::AsciiTextLine>  m_ClearLines;
     bool m_FinalBossWasSeen   = false;
     bool m_StageClearStarted  = false;
     bool m_StageClearTextShown = false;

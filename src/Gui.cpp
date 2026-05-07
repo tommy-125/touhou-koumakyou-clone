@@ -5,15 +5,14 @@
 #include <string>
 
 #include "Anm/AnmDefs.hpp"
-#include "Util/Color.hpp"
 
-static constexpr int        FONT_SIZE     = 12;
-static constexpr const char FONT_PATH[]   = PTSD_FONT_PATH;
 static constexpr float      DIGIT_SCALE   = 1.0f;
 static constexpr float      DIGIT_ADVANCE = 14.0f;
 static constexpr float      DIGIT_WIDTH   = 16.0f;
 static constexpr float      DIGIT_HEIGHT  = 16.0f;
-static const Util::Color    SPELL_NAME_COLOR = Util::Color::FromRGB(220, 240, 255);
+static constexpr float      SPELL_NAME_SCALE = 0.8f;
+static const glm::vec2      SPELL_NAME_POS   = {-160.0f, 196.0f};
+static const Util::Color    SPELL_NAME_COLOR = Util::Color::FromRGB(255, 240, 240);
 static constexpr int        FRONT_ENEMY_TEXT_SCRIPT = 19;
 static constexpr int        FRONT_ENEMY_TEXT_OUT_SCRIPT = 20;
 static constexpr int        FRONT_BOSS_BAR_SCRIPT = 21;
@@ -22,14 +21,6 @@ static constexpr float      BOSS_BAR_TOP = 24.0f;
 static constexpr float      BOSS_BAR_WIDTH = 288.0f;
 static constexpr float      BOSS_BAR_SPRITE_SIZE = 14.0f;
 static constexpr float      BOSS_BAR_HEIGHT_SCALE = 0.3f;
-
-static void SetupTextWithColor(std::shared_ptr<Util::Text>&       text,
-                               std::shared_ptr<Util::GameObject>& obj, const std::string& str,
-                               const Util::Color& color, float x, float y) {
-    text                         = std::make_shared<Util::Text>(FONT_PATH, FONT_SIZE, str, color);
-    obj                          = std::make_shared<Util::GameObject>(text, 10.0f);
-    obj->m_Transform.translation = {x, y};
-}
 
 static std::string BuildTimerText(int secondsRemaining) {
     char buf[16];
@@ -203,7 +194,9 @@ Gui::Gui() {
     SetDigitFieldZ(m_BossLifeDigits, 12.0f);
     SetDigitFieldZ(m_BossTimerDigits, 12.0f);
 
-    SetupTextWithColor(m_BossTitleText, m_BossTitleObj, " ", SPELL_NAME_COLOR, -160.0f, 196.0f);
+    m_BossTitleLine.Configure(m_Renderer, m_Anm, 12.0f);
+    m_BossTitleLine.SetText(" ", SPELL_NAME_POS, SPELL_NAME_SCALE,
+                            Util::AsciiTextAlign::Left, SPELL_NAME_COLOR);
 
     m_Anm.SetScript(m_BossEnemyTextVm, off + FRONT_ENEMY_TEXT_SCRIPT, off);
     m_BossEnemyTextVm.zIndex = 11.0f;
@@ -221,9 +214,7 @@ Gui::Gui() {
         m_Renderer.AddChild(m_BossHealthBarVm.obj);
     }
 
-    m_Renderer.AddChild(m_BossTitleObj);
-
-    m_BossTitleObj->SetVisible(false);
+    m_BossTitleLine.SetVisible(false);
     SetDigitFieldVisibility(m_BossLifeDigits, false, 0.0f);
     SetDigitFieldVisibility(m_BossTimerDigits, false, 0.0f);
 }
@@ -303,7 +294,8 @@ void Gui::Update(const GameManager& gm, const BossHudState& bossHud, bool tick) 
 
     const bool bossUiVisible = m_BossUiAnim > 0.0f;
     if (!bossHud.visible && !bossUiVisible) m_BossBarRatioDisplay = 0.0f;
-    m_BossTitleObj->SetVisible(bossUiVisible && bossHud.showSpellName && !bossHud.title.empty());
+    const bool spellNameVisible = bossUiVisible && bossHud.showSpellName && !bossHud.title.empty();
+    m_BossTitleLine.SetVisible(spellNameVisible);
     if (m_BossHealthBarVm.obj) m_BossHealthBarVm.obj->SetVisible(bossUiVisible);
 
     m_Anm.UpdateObjects(m_BossEnemyTextVm);
@@ -312,13 +304,11 @@ void Gui::Update(const GameManager& gm, const BossHudState& bossHud, bool tick) 
         m_BossEnemyTextVm.obj->SetVisible(bossUiVisible);
         m_BossEnemyTextVm.obj->SetAlpha(m_BossUiAnim);
     }
-    m_BossTitleObj->SetAlpha(m_BossUiAnim);
+    m_BossTitleLine.SetAlpha(m_BossUiAnim);
     if (m_BossHealthBarVm.obj) m_BossHealthBarVm.obj->SetAlpha(m_BossUiAnim);
     SetDigitFieldVisibility(m_BossLifeDigits, bossUiVisible, m_BossUiAnim);
     SetDigitFieldVisibility(m_BossTimerDigits,
                             bossUiVisible && bossHud.secondsRemaining > 0, m_BossUiAnim);
-
-    m_BossTitleObj->m_Transform.translation = {-160.0f, 196.0f};
 
     bool bossBarChanged = false;
     if (bossHud.visible) {
@@ -372,7 +362,8 @@ void Gui::Update(const GameManager& gm, const BossHudState& bossHud, bool tick) 
     if (m_LastBossTitle != bossHud.title || m_LastBossShowName != bossHud.showSpellName) {
         m_LastBossTitle    = bossHud.title;
         m_LastBossShowName = bossHud.showSpellName;
-        m_BossTitleText->SetText(BuildPhaseText(bossHud));
+        m_BossTitleLine.SetText(BuildPhaseText(bossHud), SPELL_NAME_POS, SPELL_NAME_SCALE,
+                                Util::AsciiTextAlign::Left, SPELL_NAME_COLOR);
     }
 
     SetDigitFieldVisibility(m_BossLifeDigits, bossUiVisible, m_BossUiAnim);
