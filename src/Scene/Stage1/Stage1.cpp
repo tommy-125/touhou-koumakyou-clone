@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "Scene/Stage1/Stage1Script.hpp"
+#include "Scene/Stage2/Stage2.hpp"
 #include "Scene/TimelineLoader.hpp"
-#include "Scene/Title.hpp"
 #include "Util/Input.hpp"
 
 namespace {
@@ -72,7 +72,10 @@ static float ClearLoadingAlpha(int timer) {
 }  // namespace
 
 Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
-    : m_StageMenu(m_Renderer), m_Player(character, spellCard) {
+    : m_Character(character),
+      m_SpellCard(spellCard),
+      m_StageMenu(m_Renderer),
+      m_Player(character, spellCard) {
     m_EnemyManager.SetItemManager(&m_ItemManager);
     m_EnemyManager.SetTimeline(
         LoadTimelineFromJson(GA_RESOURCE_DIR "/stages/stage1_timeline.json"));
@@ -205,18 +208,21 @@ void Stage1::UpdateStageClearLoading() {
 void Stage1::UpdateStageClear() {
     if (!m_StageClearStarted) return;
     m_StageClearTimer++;
-    UpdateStageClearLoading();
-    m_ClearRenderer.Update();
 
-    if (m_StageClearTextShown && m_StageClearTimer > CLEAR_LOADING_FADE_IN + 30 &&
-        (Util::Input::IsKeyDown(Util::Keycode::Z) ||
-         Util::Input::IsKeyDown(Util::Keycode::RETURN))) {
+    if (m_StageClearTimer >= CLEAR_LOADING_TOTAL) {
         m_Done = true;
         return;
     }
 
-    if (m_StageClearTimer > CLEAR_LOADING_TOTAL + 30) {
+    UpdateStageClearLoading();
+    m_ClearRenderer.Update();
+
+    if (m_StageClearTextShown &&
+        m_StageClearTimer > CLEAR_LOADING_FADE_IN + CLEAR_LOADING_HOLD &&
+        (Util::Input::IsKeyDown(Util::Keycode::Z) ||
+         Util::Input::IsKeyDown(Util::Keycode::RETURN))) {
         m_Done = true;
+        return;
     }
 }
 
@@ -298,5 +304,5 @@ void Stage1::Update() {
 }
 
 std::unique_ptr<Scene> Stage1::NextScene() {
-    return std::make_unique<Title>();
+    return std::make_unique<Stage2>(m_Character, m_SpellCard, m_GameManager);
 }

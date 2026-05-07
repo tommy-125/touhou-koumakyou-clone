@@ -142,6 +142,22 @@ constexpr Entry STG1ENM2 = {
     340 + 200,  // 540 (same offset as STG1ENM)
 };
 
+// ── Stage 2 enemy sprites ────────────────────────────────────────────────────
+// These reuse the stage enemy offset because each stage owns its own enemy ANM
+// manager.
+constexpr Entry STG2ENM = {
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg2enm",
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg2enm/stg2enm.txt",
+    340 + 200,  // 540
+};
+
+constexpr Entry STG2ENM2 = {
+    // Boss Cirno sprites (scripts 128+)
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg2enm2",
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg2enm2/stg2enm2.txt",
+    340 + 200,  // 540 (same offset as STG2ENM)
+};
+
 // ── Enemy bullet sprites ─────────────────────────────────────────────────────
 constexpr Entry ETAMA3 = {
     GA_RESOURCE_DIR "/th06c/th06c_CM_output/etama3",
