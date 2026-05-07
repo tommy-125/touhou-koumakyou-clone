@@ -1,6 +1,7 @@
 #include "Enemy/EnemyBulletManager.hpp"
 
 #include <cmath>
+#include <cstdlib>
 
 #include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
@@ -48,6 +49,8 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
         *b                   = EnemyBullet{};
         b->m_Alive           = true;
         b->m_Pos             = pos;
+        b->m_Type            = type;
+        b->m_Color           = color;
         b->m_Angle           = aimAngle + delta;
         b->m_Speed           = speed;
         b->m_UseDecay        = useDecay;
@@ -62,10 +65,12 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
 
 void EnemyBulletManager::SpawnFanStack(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
                                        EBulletColor color, int ways, int stacks, float speed1,
-                                       float speed2, float aimOffset, float spread) {
+                                       float speed2, float aimOffset, float spread,
+                                       bool rotateWithAngle) {
     for (int s = 0; s < stacks; s++) {
         float speed = speed1 - (speed1 - speed2) * s / stacks;
-        SpawnFanAimed(pos, playerPos, type, color, ways, speed, aimOffset, spread);
+        SpawnFanAimed(pos, playerPos, type, color, ways, speed, aimOffset, spread, false,
+                      rotateWithAngle);
     }
 }
 
@@ -92,6 +97,8 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
         *b                     = EnemyBullet{};
         b->m_Alive             = true;
         b->m_Pos               = pos;
+        b->m_Type              = type;
+        b->m_Color             = color;
         b->m_Angle             = aimAngle + i * step;
         b->m_Speed             = speed;
         b->m_UseDecay          = useDecay;
@@ -116,7 +123,8 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
 
 void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count,
                                      float speed, float baseAngle, bool useDecay,
-                                     float acceleration, int accelerationFrames) {
+                                     float acceleration, int accelerationFrames,
+                                     bool rotateWithAngle) {
     int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
     int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
@@ -126,15 +134,35 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
         *b             = EnemyBullet{};
         b->m_Alive     = true;
         b->m_Pos       = pos;
+        b->m_Type      = type;
+        b->m_Color     = color;
         b->m_Angle     = baseAngle + i * step;
         b->m_Speed              = speed;
         b->m_UseDecay           = useDecay;
         b->m_Acceleration       = acceleration;
         b->m_AccelerationFrames = accelerationFrames;
+        b->m_RotateWithAngle    = rotateWithAngle;
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
             m_Renderer.AddChild(b->m_Vm.obj);
         }
+    }
+}
+
+void EnemyBulletManager::SpawnCircleStack(glm::vec2 pos, EBulletType type, EBulletColor color,
+                                          int count, int stacks, float speed1, float speed2,
+                                          float baseAngle, bool useDecay, bool rotateWithAngle) {
+    if (stacks <= 1) {
+        SpawnCircle(pos, type, color, count, speed1, baseAngle, useDecay, 0.0f, 0,
+                    rotateWithAngle);
+        return;
+    }
+
+    for (int s = 0; s < stacks; s++) {
+        float speed = speed1 - (speed1 - speed2) * static_cast<float>(s) /
+                                   static_cast<float>(stacks);
+        SpawnCircle(pos, type, color, count, speed, baseAngle, useDecay, 0.0f, 0,
+                    rotateWithAngle);
     }
 }
 
@@ -150,6 +178,41 @@ bool EnemyBulletManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHit
         }
     }
     return false;
+}
+
+void EnemyBulletManager::FreezeAllBulletsAsWhite() {
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive) continue;
+
+        b.m_Color                    = EBulletColor::White;
+        b.m_Speed                    = 0.0f;
+        b.m_Acceleration             = 0.0f;
+        b.m_AccelerationFrames       = 0;
+        b.m_UseDecay                 = false;
+        b.m_DirChangeInterval        = -1;
+        b.m_DirChangeNumTimes        = 0;
+        b.m_DirChangeMaxTimes        = 0;
+        b.m_DirChangeStartupFrames   = 0;
+        b.m_DirChangeStartupSpeedScale = 1.0f;
+        b.m_DecayTimer               = 0;
+
+        m_Anm.SetScript(b.m_Vm, Anm::ETAMA3.offset + static_cast<int>(b.m_Type),
+                        Anm::ETAMA3.offset + static_cast<int>(b.m_Color));
+    }
+}
+
+void EnemyBulletManager::AccelerateFrozenBulletsRandom(float acceleration, int frames) {
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive) continue;
+
+        const float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+        b.m_Angle              = r * 2.0f * Util::HALF_PI * 2.0f - Util::HALF_PI * 2.0f;
+        b.m_Speed              = 0.0f;
+        b.m_Acceleration       = acceleration;
+        b.m_AccelerationFrames = frames;
+        b.m_UseDecay           = false;
+        b.m_DecayTimer         = 0;
+    }
 }
 
 void EnemyBulletManager::ClearAll() {

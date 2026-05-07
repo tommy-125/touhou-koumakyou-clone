@@ -124,6 +124,8 @@ void Manager::SetScript(Vm& vm, int globalScriptIdx,
     vm.scale         = {1, 1};
     vm.scaleSpeed    = {0, 0};
     vm.alpha         = 1.0f;
+    vm.usePosOffset  = false;
+    vm.posOffset     = {0, 0};
     vm.flipX         = false;
     vm.flipY         = false;
     vm.anchorTopLeft = false;
@@ -220,7 +222,13 @@ void Manager::ExecuteScript(Vm& vm) {
                 break;
 
             case SetPosition:
-                if (instr.args.size() >= 2) vm.pos = {instr.args[0], instr.args[1]};
+                if (instr.args.size() >= 2) {
+                    if (vm.usePosOffset) {
+                        vm.posOffset = {instr.args[0], instr.args[1]};
+                    } else {
+                        vm.pos = {instr.args[0], instr.args[1]};
+                    }
+                }
                 break;
 
             case PosTimeLinear:
@@ -229,7 +237,7 @@ void Manager::ExecuteScript(Vm& vm) {
                 if (instr.args.size() >= 4) {
                     vm.posInterp         = true;
                     vm.posInterpMode     = instr.opcode - PosTimeLinear;
-                    vm.posInterpStart    = vm.pos;
+                    vm.posInterpStart    = vm.usePosOffset ? vm.posOffset : vm.pos;
                     vm.posInterpEnd      = {instr.args[0], instr.args[1]};
                     vm.posInterpDuration = static_cast<int>(instr.args[3]);
                     vm.posInterpTimer    = 0;
@@ -310,6 +318,14 @@ void Manager::ExecuteScript(Vm& vm) {
                 if (instr.args.size() >= 2) vm.scaleSpeed = {instr.args[0], instr.args[1]};
                 break;
 
+            case UsePosOffset:
+                if (!instr.args.empty()) vm.usePosOffset = static_cast<int>(instr.args[0]) != 0;
+                break;
+
+            case SetVisibility:
+                if (!instr.args.empty()) vm.isVisible = static_cast<int>(instr.args[0]) != 0;
+                break;
+
             case SetBlendAdditive:
             case SetBlendDefault:
             case SetZWriteDisable:
@@ -356,11 +372,19 @@ update_interp:
     if (vm.posInterp) {
         float t =
             (vm.posInterpDuration > 0) ? (float)vm.posInterpTimer / vm.posInterpDuration : 1.0f;
-        vm.pos = glm::mix(vm.posInterpStart, vm.posInterpEnd, Easing(t, vm.posInterpMode));
+        if (vm.usePosOffset) {
+            vm.posOffset = glm::mix(vm.posInterpStart, vm.posInterpEnd, Easing(t, vm.posInterpMode));
+        } else {
+            vm.pos = glm::mix(vm.posInterpStart, vm.posInterpEnd, Easing(t, vm.posInterpMode));
+        }
         vm.posInterpTimer++;
         if (vm.posInterpTimer > vm.posInterpDuration) {
             vm.posInterp = false;
-            vm.pos       = vm.posInterpEnd;
+            if (vm.usePosOffset) {
+                vm.posOffset = vm.posInterpEnd;
+            } else {
+                vm.pos = vm.posInterpEnd;
+            }
         }
     }
 }
@@ -381,7 +405,7 @@ void Manager::UpdateObjects(std::vector<Vm>& vms) {
             obj.SetDrawable(sprites[vm.spriteIdx].image);
         }
 
-        glm::vec2 translation = ToPtsd(vm.pos);
+        glm::vec2 translation = ToPtsd(vm.pos + (vm.usePosOffset ? vm.posOffset : glm::vec2{}));
         if (vm.anchorTopLeft) {
             const auto& spr = sprites[vm.spriteIdx];
             translation += glm::vec2{spr.width / 2.0f, -spr.height / 2.0f};
@@ -409,7 +433,7 @@ void Manager::UpdateObjects(Vm& vm) {
         obj.SetDrawable(sprites[vm.spriteIdx].image);
     }
 
-    glm::vec2 translation = ToPtsd(vm.pos);
+    glm::vec2 translation = ToPtsd(vm.pos + (vm.usePosOffset ? vm.posOffset : glm::vec2{}));
     if (vm.anchorTopLeft) {
         const auto& spr = sprites[vm.spriteIdx];
         translation += glm::vec2{spr.width / 2.0f, -spr.height / 2.0f};

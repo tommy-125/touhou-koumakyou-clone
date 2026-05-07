@@ -27,6 +27,7 @@ struct Enemy {
     int  m_SubId         = -1;
     int  m_FrameTimer    = 0;
     bool m_Mirrored      = false;
+    bool m_RotateWithAngle = false;
     int  m_ItemDrop      = -1;
     int  m_ItemDropCount = 1;
     int  m_DeathEffectPrimary   = 670;

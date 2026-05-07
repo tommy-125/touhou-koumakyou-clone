@@ -73,6 +73,8 @@ struct Vm {
 
     int       spriteIdx        = -1;      // global index into AnmManager::sprites[]
     glm::vec2 pos              = {0, 0};  // th06 coords: (0,0) = top-left, y-down
+    bool      usePosOffset     = false;
+    glm::vec2 posOffset        = {0, 0};
     float     rotation         = 0;
     glm::vec2 scale            = {1, 1};
     float     alpha            = 1.0f;

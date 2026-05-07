@@ -44,6 +44,8 @@ enum class EBulletColor {
 struct EnemyBullet {
     Anm::Vm   m_Vm;
     glm::vec2 m_Pos          = {0, 0};
+    EBulletType  m_Type      = EBulletType::Pellet;
+    EBulletColor m_Color     = EBulletColor::Gray;
     float     m_Angle        = 0;
     float     m_Speed        = 0;
     glm::vec2 m_HitboxSize   = {5, 5};
@@ -90,7 +92,7 @@ class EnemyBulletManager {
     // ECL-style: speed1 = outermost ring, speed2 = innermost ring (speed1 → speed2 linearly)
     void SpawnFanStack(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
                        int ways, int stacks, float speed1, float speed2, float aimOffset,
-                       float spread);
+                       float spread, bool rotateWithAngle = false);
     // CIRCLE_AIMED: full 360° ring rotated toward player + aimOffset
     void SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
                           int count, float speed, float aimOffset = 0.0f, bool useDecay = false,
@@ -103,12 +105,18 @@ class EnemyBulletManager {
     // CIRCLE: full 360° ring at absolute baseAngle (no player aiming)
     void SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count, float speed,
                      float baseAngle = 0.0f, bool useDecay = false,
-                     float acceleration = 0.0f, int accelerationFrames = 0);
+                     float acceleration = 0.0f, int accelerationFrames = 0,
+                     bool rotateWithAngle = false);
+    void SpawnCircleStack(glm::vec2 pos, EBulletType type, EBulletColor color, int count,
+                          int stacks, float speed1, float speed2, float baseAngle = 0.0f,
+                          bool useDecay = false, bool rotateWithAngle = false);
 
     void Update(glm::vec2 playerPos);
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
     void TurnAllBulletsIntoPointItems(ItemManager& items);
+    void FreezeAllBulletsAsWhite();
+    void AccelerateFrozenBulletsRandom(float acceleration, int frames);
 
     static constexpr int MAX_BULLETS = 640;
 

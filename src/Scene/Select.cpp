@@ -5,6 +5,7 @@
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
 #include "Scene/Stage1/Stage1.hpp"
+#include "Scene/Stage2/Stage2.hpp"
 #include "Scene/Title.hpp"
 #include "Util/Image.hpp"
 #include "Util/Input.hpp"
@@ -105,6 +106,13 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
 
 void Select::Update() {
     m_EnterSelectBlackMask.Update();
+
+    if (Util::Input::IsKeyDown(Util::Keycode::NUM_2)) {
+        m_DebugStartStage2 = true;
+        m_Done             = true;
+        return;
+    }
+
     switch (m_CurrentState) {
         case SelectState::Difficulty:
             if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
@@ -209,6 +217,10 @@ void Select::Update() {
 
 std::unique_ptr<Scene> Select::NextScene() {
     if (m_Done) {
+        if (m_DebugStartStage2) {
+            return std::make_unique<Stage2>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
+        }
+
         switch (m_CurrentState) {
             case SelectState::Difficulty:
                 return std::make_unique<Title>();  // go back to title

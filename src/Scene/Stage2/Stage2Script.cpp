@@ -14,6 +14,7 @@
 
 namespace {
 constexpr float PI     = 3.14159265f;
+constexpr glm::vec2 CIRNO_SHOOT_OFFSET = {0.0f, -12.0f};
 
 float RandFloat(float min, float max) {
     return min + (max - min) * (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX));
@@ -22,6 +23,10 @@ float RandFloat(float min, float max) {
 float AimAngle(glm::vec2 from, glm::vec2 to) {
     const glm::vec2 d = to - from;
     return std::atan2(d.y, d.x);
+}
+
+glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = {}) {
+    return enemy.m_Pos + offset;
 }
 
 void SetDeathEffects(Enemy& enemy, int primary, int secondary) {
@@ -65,21 +70,90 @@ void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, in
     ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
 }
 
-void SpawnCirnoShardStack(Enemy& enemy, EnemySubCtx& ctx, float spread, int stackBoost = 0) {
-    for (int i = 0; i < 6; i++) {
-        ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Shard,
-                                  EBulletColor::Blue, i + 1, 5.0f - i * 0.45f, 0.0f, spread,
-                                  false, true);
-    }
-    if (stackBoost > 0) {
-        ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Ball,
-                                  EBulletColor::Yellow, stackBoost, 2.0f, 0.0f, 0.2617994f);
+void SpawnRandomBullets(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulletColor color,
+                        int count, float speed, float speedVariance = 0.0f) {
+    for (int i = 0; i < count; i++) {
+        const float bulletSpeed = speed + RandFloat(-speedVariance, speedVariance);
+        ctx.bullets.SpawnCircle(pos, type, color, 1, std::max(0.1f, bulletSpeed),
+                                RandFloat(-PI, PI), false, 0.0f, 0);
     }
 }
 
-void SpawnRandomRing(Enemy& enemy, EnemySubCtx& ctx, EBulletType type, EBulletColor color,
-                     int count, float speed) {
-    ctx.bullets.SpawnCircle(enemy.m_Pos, type, color, count, speed, RandFloat(-PI, PI));
+void SpawnAtRandomArea(Enemy& enemy, EnemySubCtx& ctx, float width, int count) {
+    const glm::vec2 pos = enemy.m_Pos + glm::vec2{
+        RandFloat(-width * 0.5f, width * 0.5f),
+        RandFloat(-width * 0.375f, width * 0.375f),
+    };
+    SpawnRandomBullets(pos, ctx, EBulletType::Shard, EBulletColor::Blue, count, 1.2f, 0.8f);
+}
+
+void RunDaiyouseiMove(Enemy& enemy, EnemySubCtx& ctx, int local) {
+    const int offset = Anm::STG2ENM.offset;
+    if (local == 0) {
+        const float currentX = enemy.m_Pos.x - Util::FIELD_OFFSET_X;
+        const float targetX = RandFloat(32.0f, 352.0f);
+        enemy.m_CanTakeDamage = false;
+        enemy.m_LerpTarget.x  = targetX;
+        ctx.anm.SetScript(enemy.m_Vm, offset + (currentX >= 192.0f ? 66 : 67), offset);
+    } else if (local == 40) {
+        const float targetX = enemy.m_LerpTarget.x;
+        ctx.anm.SetScript(enemy.m_Vm, offset + (targetX >= 192.0f ? 68 : 69), offset);
+        enemy.m_Pos           = Util::GameFieldToScreen(targetX, 96.0f);
+        enemy.m_IsLerping     = false;
+        enemy.m_CanTakeDamage = true;
+    }
+}
+
+int DaiyouseiAttackDuration(int attackType) {
+    return attackType == 2 ? 200 : 88;
+}
+
+void RunDaiyouseiAttack(Enemy& enemy, EnemySubCtx& ctx, int attackType, int local) {
+    if (attackType == 0 || attackType == 1) {
+        if (local < 40 || local >= 88) return;
+
+        const int   step      = local - 40;
+        const float speed1    = 1.5f + static_cast<float>(step) * 0.05f;
+        const float speed2    = 1.4f - static_cast<float>(step) * 0.02f;
+        const float direction = Util::HALF_PI +
+                                static_cast<float>(step) *
+                                    (attackType == 0 ? 0.1308997f : -0.1308997f);
+        ctx.bullets.SpawnCircleStack(
+            enemy.m_Pos, EBulletType::Kunai,
+            attackType == 0 ? EBulletColor::Green : EBulletColor::Red, 1, 2, speed1, speed2,
+            direction, false, true);
+        return;
+    }
+
+    if (local < 40 || local >= 200 || (local - 40) % 10 != 0) return;
+
+    ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Shard,
+                              EBulletColor::White, 3, 2, 4.0f, 2.0f, 0.0f, 0.5235988f, true);
+    ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Shard,
+                              EBulletColor::Blue, 3, 2.5f, 0.0f, 0.5235988f, false, true);
+}
+
+void RunDaiyouseiPattern(Enemy& enemy, EnemySubCtx& ctx, int frame) {
+    int cursor = 0;
+    for (int cycle = 0; cycle < 8; cycle++) {
+        const int attackType     = cycle % 3;
+        const int attackDuration = DaiyouseiAttackDuration(attackType);
+
+        if (frame >= cursor && frame < cursor + attackDuration) {
+            RunDaiyouseiAttack(enemy, ctx, attackType, frame - cursor);
+            return;
+        }
+        cursor += attackDuration;
+
+        if (frame >= cursor && frame < cursor + 80) {
+            RunDaiyouseiMove(enemy, ctx, frame - cursor);
+            return;
+        }
+        cursor += 80;
+
+        if (frame >= cursor && frame < cursor + 80) return;
+        cursor += 80;
+    }
 }
 
 }  // namespace
@@ -108,6 +182,9 @@ void Stage2Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_Acceleration = -0.015f;
             enemy.m_ItemDrop    = -1;
             SetDeathEffects(enemy, 669, 678);
+            if (enemy.m_SubId == 0 || enemy.m_SubId == 2 || enemy.m_SubId == 4) {
+                enemy.m_DeathCallbackSub = 5;
+            }
             break;
         }
 
@@ -138,6 +215,7 @@ void Stage2Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_Angle      = RandFloat(0.7853982f, 2.3561945f);
             enemy.m_Speed      = 5.0f;
             enemy.m_ItemDrop   = -1;
+            enemy.m_RotateWithAngle = true;
             SetDeathEffects(enemy, 670, 678);
             break;
 
@@ -201,7 +279,7 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
         case 2:
         case 3:
         case 4:
-            if (t == 180) {
+            if (t == 180 && (enemy.m_SubId == 0 || enemy.m_SubId == 2 || enemy.m_SubId == 4)) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Kunai,
                                              EBulletColor::Lime, 4, 2.0f, 0.0f, false, 0.0f, {},
                                              true);
@@ -209,11 +287,17 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t >= 10000) enemy.m_Alive = false;
             break;
 
-        case 6:
-            if (t == 120) {
-                ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Pellet,
-                                          EBulletColor::Blue, 3, 2.5f, 0.0f, 0.19634955f);
+        case 5:
+            if (t == 0) {
+                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
+                                             EBulletColor::Red, 4, 1.2f, PI * 0.25f, false, 0.0f,
+                                             {},
+                                             true);
+                enemy.m_Alive = false;
             }
+            break;
+
+        case 6:
             if (t == 180) enemy.m_AngularVelocity = -0.024543693f;
             if (t == 280) enemy.m_AngularVelocity = 0.0f;
             if (t >= 10000) enemy.m_Alive = false;
@@ -234,13 +318,9 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_Speed = 0.0f;
             }
             if (t == 70 && enemy.m_SubId == 12) {
-                ctx.bullets.SpawnFanAimed(enemy.m_Pos + glm::vec2{12.0f, -12.0f}, ctx.playerPos,
-                                          EBulletType::RingBall, EBulletColor::DarkRed, 7, 1.4f,
-                                          0.0f, 0.62831855f);
-            } else if (t == 70) {
-                ctx.bullets.SpawnFanAimed(enemy.m_Pos + glm::vec2{12.0f, -12.0f}, ctx.playerPos,
-                                          EBulletType::RingBall, EBulletColor::DarkRed, 5, 1.4f,
-                                          0.0f, 0.2617994f);
+                ctx.bullets.SpawnFanStack(enemy.m_Pos + glm::vec2{12.0f, -12.0f}, ctx.playerPos,
+                                          EBulletType::RingBall, EBulletColor::DarkRed, 7, 2,
+                                          1.4f, 0.8f, 0.0f, 0.62831855f);
             }
             if (t == 130) {
                 enemy.m_Acceleration    = 0.05f;
@@ -254,21 +334,7 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t == 0) ctx.StartLerpTo(enemy, 192.0f, 96.0f, 60);
             if (t == 60) enemy.m_CanTakeDamage = true;
 
-            const int loopT = t >= 130 ? (t - 130) % 240 : -1;
-            if (loopT == 0) {
-                ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Kunai, EBulletColor::Green, 12,
-                                        1.6f, RandFloat(-PI, PI));
-            }
-            if (loopT == 28) {
-                ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Kunai, EBulletColor::Red, 12,
-                                        1.8f, RandFloat(-PI, PI));
-            }
-            if (loopT == 56) {
-                ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Shard,
-                                          EBulletColor::White, 5, 2, 4.0f, 2.5f, 0.0f,
-                                          0.31415927f);
-            }
-            if (loopT == 80) StartRandomAttackMove(enemy, ctx, 1.5f, 60);
+            if (t >= 130) RunDaiyouseiPattern(enemy, ctx, t - 130);
             break;
         }
 
@@ -325,30 +391,40 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
         case 23: {
             if (t == 0) ctx.StartLerpTo(enemy, 192.0f, 96.0f, 40);
             if (t == 41) ctx.anm.SetScript(enemy.m_Vm, Anm::STG2ENM2.offset + 131, Anm::STG2ENM2.offset);
-            if (t >= 41 && t <= 111 && (t - 41) % 18 == 0) {
-                SpawnCirnoShardStack(enemy, ctx, 0.05609987f, 5);
+            if (t >= 41 && t < 41 + 3 * 70) {
+                const int rel   = t - 41;
+                const int cycle = rel / 70;
+                const int local = rel % 70;
+                if (local <= 10 && local % 2 == 0) {
+                    const int   fanIdx = local / 2;
+                    const float spread = 0.05609987f + static_cast<float>(cycle) * 0.049087387f;
+                    ctx.bullets.SpawnFanAimed(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx.playerPos,
+                                              EBulletType::Shard, EBulletColor::Blue, fanIdx + 1,
+                                              5.0f - static_cast<float>(fanIdx) * 0.5f, 0.0f,
+                                              spread, false, true);
+                }
             }
-            if (t == 160) ctx.TransitionToSub(enemy, 24);
+            if (t == 251) ctx.TransitionToSub(enemy, 24);
             break;
         }
 
         case 24: {
-            const int loopT = t % 180;
-            if (loopT == 0) StartRandomAttackMove(enemy, ctx, 3.0f, 60);
-            if (loopT == 20) {
-                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                             EBulletColor::Blue, 16, 2.0f);
+            const int loopT = t % 100;
+            if (loopT == 0 && t < 300) StartRandomAttackMove(enemy, ctx, 3.0f, 60);
+            if (loopT == 20 && t < 300) {
+                ctx.bullets.SpawnCircleAimed(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx.playerPos,
+                                             EBulletType::RingBall, EBulletColor::Blue, 16, 2.0f);
             }
-            if (loopT == 45) {
-                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Shard,
-                                             EBulletColor::White, 24, 3.0f, 0.0f, false, 0.0f,
-                                             {}, true);
+            if (loopT == 40 && t < 300) {
+                ctx.bullets.SpawnCircleAimed(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx.playerPos,
+                                             EBulletType::Shard, EBulletColor::White, 24, 3.0f,
+                                             0.0f, false, 0.0f, {}, true);
             }
-            if (loopT == 75) {
-                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                             EBulletColor::Blue, 14, 3.0f);
+            if (loopT == 60 && t < 300) {
+                ctx.bullets.SpawnCircleAimed(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx.playerPos,
+                                             EBulletType::RingBall, EBulletColor::Blue, 14, 3.0f);
             }
-            if (t > 0 && loopT == 150) ctx.TransitionToSub(enemy, 23);
+            if (t == 300) ctx.TransitionToSub(enemy, 23);
             break;
         }
 
@@ -361,10 +437,13 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t >= 120) {
                 const int loopT = (t - 120) % 260;
                 if (loopT < 160 && loopT % 20 == 0) {
-                    int count = 8 + (t / 260);
-                    count     = std::clamp(count, 8, 18);
-                    ctx.bullets.SpawnCircle(enemy.m_Pos, EBulletType::Shard, EBulletColor::Blue,
-                                            count, 5.0f, RandFloat(-PI, PI));
+                    const int cycle = (t - 120) / 260;
+                    const int count = std::clamp(8 + cycle, 8, 18);
+                    const float baseAngle =
+                        RandFloat(-PI, PI) + (cycle % 2 == 0 ? 0.3926991f : -0.3926991f);
+                    ctx.bullets.SpawnCircleStack(ShootPos(enemy, CIRNO_SHOOT_OFFSET),
+                                                 EBulletType::Shard, EBulletColor::Blue, count, 3,
+                                                 5.0f, 1.5f, baseAngle, true);
                 }
                 if (loopT == 160) StartRandomAttackMove(enemy, ctx, 1.0f, 120);
             }
@@ -395,36 +474,35 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
 
         case 26: {
-            const int loopT = t % 320;
-            if (loopT == 0) StartRandomAttackMove(enemy, ctx, 3.0f, 60);
-            if (loopT >= 0 && loopT < 160 && loopT % 20 == 0) {
-                const int count = 8 + (loopT / 20);
-                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                             EBulletColor::Blue, count, 2.5f + loopT / 80.0f);
+            if (t == 0) StartRandomAttackMove(enemy, ctx, 3.0f, 60);
+            if (t >= 0 && t < 160 && t % 20 == 0) {
+                const int count = std::clamp(8 + enemy.m_BossTimer / 600, 8, 14);
+                ctx.bullets.SpawnCircleAimed(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx.playerPos,
+                                             EBulletType::RingBall, EBulletColor::Blue, count,
+                                             3.0f);
             }
-            if (loopT >= 10 && loopT < 170 && loopT % 20 == 10) {
-                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Pellet,
-                                             EBulletColor::DarkBlue, 8, 1.3f, 0.0f, false, 0.0f,
-                                             {}, true);
+            if (t >= 10 && t < 170 && t % 20 == 10) {
+                ctx.bullets.SpawnCircleAimed(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx.playerPos,
+                                             EBulletType::Pellet, EBulletColor::DarkBlue, 8, 1.3f,
+                                             0.0f, false, 0.0f, {}, true);
             }
-            if (loopT == 200) ctx.TransitionToSub(enemy, 27);
+            if (t == 160) ctx.TransitionToSub(enemy, 27);
             break;
         }
 
         case 27: {
-            const int loopT = t % 220;
-            if (loopT == 0) StartRandomAttackMove(enemy, ctx, 3.0f, 60);
-            if (loopT == 20 || loopT == 70 || loopT == 120) {
-                ctx.lasers.SpawnAimed(enemy.m_Pos, ctx.playerPos, 192.0f, 6.0f, 30, 60, 30, 0,
-                                      30);
-                ctx.lasers.SpawnAtAngle(enemy.m_Pos, AimAngle(enemy.m_Pos, ctx.playerPos) + 0.3926991f,
-                                        192.0f, 6.0f, 30, 60, 30, 0, 30);
-                ctx.lasers.SpawnAtAngle(enemy.m_Pos, AimAngle(enemy.m_Pos, ctx.playerPos) - 0.3926991f,
-                                        192.0f, 6.0f, 30, 60, 30, 0, 30);
-                ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
+            if (t == 0) StartRandomAttackMove(enemy, ctx, 3.0f, 60);
+            if (t == 0 || t == 50 || t == 100) {
+                const glm::vec2 pos = ShootPos(enemy, CIRNO_SHOOT_OFFSET);
+                ctx.lasers.SpawnAimed(pos, ctx.playerPos, 192.0f, 6.0f, 30, 60, 30, 0, 30);
+                ctx.lasers.SpawnAtAngle(pos, AimAngle(pos, ctx.playerPos) + 0.3926991f, 192.0f,
+                                        6.0f, 30, 60, 30, 0, 30);
+                ctx.lasers.SpawnAtAngle(pos, AimAngle(pos, ctx.playerPos) - 0.3926991f, 192.0f,
+                                        6.0f, 30, 60, 30, 0, 30);
+                ctx.bullets.SpawnCircleAimed(pos, ctx.playerPos, EBulletType::RingBall,
                                              EBulletColor::Blue, 16, 2.0f);
             }
-            if (loopT == 190) ctx.TransitionToSub(enemy, 26);
+            if (t == 150) ctx.TransitionToSub(enemy, 26);
             break;
         }
 
@@ -432,25 +510,55 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t == 0) {
                 enemy.m_BossLifeCount = 0;
                 StartSpellPhase(enemy, ctx, "Perfect Freeze", 2400, 28, 32, 1400);
+                ctx.anm.SetScript(enemy.m_Vm, Anm::STG2ENM2.offset + 131, Anm::STG2ENM2.offset);
             }
             if (t == 120) enemy.m_CanTakeDamage = true;
             if (t >= 120) {
                 const int loopT = (t - 120) % 595;
                 if (loopT == 0 || loopT == 265) StartRandomAttackMove(enemy, ctx, 2.0f, 120);
                 if (loopT >= 5 && loopT < 145 && loopT % 25 == 5) {
-                    SpawnRandomRing(enemy, ctx, EBulletType::RingBall, EBulletColor::Blue, 10,
-                                    4.0f);
-                    SpawnRandomRing(enemy, ctx, EBulletType::RingBall, EBulletColor::Red, 10,
-                                    4.0f);
-                    SpawnRandomRing(enemy, ctx, EBulletType::RingBall, EBulletColor::Green, 10,
-                                    4.0f);
-                    SpawnRandomRing(enemy, ctx, EBulletType::RingBall, EBulletColor::Yellow, 10,
-                                    4.0f);
+                    const int cycle = (t - 120) / 595;
+                    const int count = std::clamp(7 + cycle, 7, 16);
+                    SpawnRandomBullets(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx,
+                                       EBulletType::RingBall,
+                                       EBulletColor::Blue, count, 4.0f);
+                    SpawnRandomBullets(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx,
+                                       EBulletType::RingBall,
+                                       EBulletColor::Red, count, 4.0f);
+                    SpawnRandomBullets(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx,
+                                       EBulletType::RingBall,
+                                       EBulletColor::Green, count, 4.0f);
+                    SpawnRandomBullets(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx,
+                                       EBulletType::RingBall,
+                                       EBulletColor::Yellow, count, 4.0f);
+                    SpawnRandomBullets(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx,
+                                       EBulletType::RingBall,
+                                       EBulletColor::Orange, count, 4.0f);
+                }
+                if (loopT == 205) {
+                    ctx.bullets.FreezeAllBulletsAsWhite();
                 }
                 if (loopT >= 275 && loopT < 335 && loopT % 10 == 5) {
-                    ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Ball,
-                                              EBulletColor::Blue, 5, 3, 4.0f, 2.0f, 0.0f,
-                                              0.3926991f);
+                    const int cycle = (t - 120) / 595;
+                    if (cycle < 3) {
+                        ctx.bullets.SpawnFanStack(ShootPos(enemy, CIRNO_SHOOT_OFFSET),
+                                                  ctx.playerPos, EBulletType::Ball,
+                                                  EBulletColor::Blue, 3, 3, 4.0f, 2.0f, 0.0f,
+                                                  0.3926991f);
+                    } else if (cycle < 6) {
+                        ctx.bullets.SpawnFanStack(ShootPos(enemy, CIRNO_SHOOT_OFFSET),
+                                                  ctx.playerPos, EBulletType::Ball,
+                                                  EBulletColor::Blue, 5, 3, 4.0f, 2.0f, 0.0f,
+                                                  0.3926991f);
+                    } else {
+                        ctx.bullets.SpawnFanStack(ShootPos(enemy, CIRNO_SHOOT_OFFSET),
+                                                  ctx.playerPos, EBulletType::Ball,
+                                                  EBulletColor::Blue, 5, 3, 5.0f, 2.0f, 0.0f,
+                                                  0.19634955f);
+                    }
+                }
+                if (loopT == 415) {
+                    ctx.bullets.AccelerateFrozenBulletsRandom(0.01f, 220);
                 }
             }
             break;
@@ -461,14 +569,19 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_BossLifeCount = 0;
                 StartSpellPhase(enemy, ctx, "Diamond Blizzard", 1980, 28);
             }
-            if (t == 120) enemy.m_CanTakeDamage = true;
-            if (t >= 120) {
-                const int loopT = (t - 120) % 180;
+            if (t == 60) {
+                ctx.anm.SetScript(enemy.m_Vm, Anm::STG2ENM2.offset + 131, Anm::STG2ENM2.offset);
+                DropPowerItems(enemy, ctx, 5);
+                SpawnRandomBullets(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx, EBulletType::Shard,
+                                   EBulletColor::Blue, 10, 2.0f, 1.6f);
+            }
+            if (t == 180) enemy.m_CanTakeDamage = true;
+            if (t >= 180) {
+                const int loopT = (t - 180) % 120;
                 if (loopT == 0) StartRandomAttackMove(enemy, ctx, 1.2f, 120);
-                if (loopT >= 10 && loopT < 130 && loopT % 10 == 0) {
-                    ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Shard,
-                                              EBulletColor::Blue, 7, RandFloat(2.0f, 4.0f), 0.0f,
-                                              0.2617994f, false, true);
+                if (loopT % 10 == 0) {
+                    const int cycle = (t - 180) / 120;
+                    SpawnAtRandomArea(enemy, ctx, 128.0f, std::clamp(10 + cycle, 10, 18));
                 }
             }
             break;

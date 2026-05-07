@@ -81,7 +81,7 @@ void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
         enemy.m_TimerCallbackThreshold = -1;
         enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
         enemy.m_CanTakeDamage          = false;
-        TurnAllBulletsIntoPointItems();
+        ClearAllBullets();
         for (auto& e : m_Enemies) {
             if (e.m_Alive && !e.m_IsBoss) e.m_Life = 0;
         }
@@ -219,6 +219,7 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
         UpdateBossPose(enemy, enemy.m_Pos.x - oldX);
 
         enemy.m_Vm.pos = enemy.m_Pos;
+        if (enemy.m_RotateWithAngle) enemy.m_Vm.rotation = Util::HALF_PI - enemy.m_Angle;
         m_Anm.UpdateObjects(enemy.m_Vm);
 
         enemy.m_FrameTimer++;
@@ -301,7 +302,6 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                     }
                 }
             } else {
-                enemy.m_Alive = false;
                 totalScore += enemy.m_Score;
                 SpawnDeathEffect(enemy);
 
@@ -317,6 +317,22 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                     }
                 }
 
+                int sub                  = enemy.m_DeathCallbackSub;
+                enemy.m_DeathCallbackSub = -1;
+                if (sub >= 0) {
+                    enemy.m_SubId           = sub;
+                    enemy.m_FrameTimer      = -1;
+                    enemy.m_Life            = 1;
+                    enemy.m_Speed           = 0.0f;
+                    enemy.m_Acceleration    = 0.0f;
+                    enemy.m_AngularVelocity = 0.0f;
+                    enemy.m_IsLerping       = false;
+                    enemy.m_HitboxSize      = {0.0f, 0.0f};
+                    enemy.m_ItemDropCount   = 0;
+                    continue;
+                }
+
+                enemy.m_Alive = false;
                 if (enemy.m_Vm.obj) {
                     m_Renderer.RemoveChild(enemy.m_Vm.obj);
                     enemy.m_Vm.obj = nullptr;
