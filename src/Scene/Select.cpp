@@ -6,6 +6,7 @@
 #include "Anm/AnmManager.hpp"
 #include "Scene/Stage1/Stage1.hpp"
 #include "Scene/Stage2/Stage2.hpp"
+#include "Scene/Stage3/Stage3.hpp"
 #include "Scene/Title.hpp"
 #include "Util/Image.hpp"
 #include "Util/Input.hpp"
@@ -109,6 +110,11 @@ void Select::Update() {
 
     if (Util::Input::IsKeyDown(Util::Keycode::NUM_2)) {
         m_DebugStartStage2 = true;
+        m_Done             = true;
+        return;
+    }
+    if (Util::Input::IsKeyDown(Util::Keycode::NUM_3)) {
+        m_DebugStartStage3 = true;
         m_Done             = true;
         return;
     }
@@ -217,6 +223,9 @@ void Select::Update() {
 
 std::unique_ptr<Scene> Select::NextScene() {
     if (m_Done) {
+        if (m_DebugStartStage3) {
+            return std::make_unique<Stage3>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
+        }
         if (m_DebugStartStage2) {
             return std::make_unique<Stage2>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
         }

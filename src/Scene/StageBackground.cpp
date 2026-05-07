@@ -1,9 +1,19 @@
 #include "Scene/StageBackground.hpp"
 
 #include <cmath>
+#include <string>
 
 namespace {
 constexpr float TILE_OVERLAP = 2.0f;
+
+std::shared_ptr<Util::Image> LoadSprite(const char* folder, int idx) {
+    return std::make_shared<Util::Image>(std::string(folder) + "/sprite_" + std::to_string(idx) +
+                                         ".png");
+}
+
+float WrapCentered(float y, float span) {
+    return std::fmod(y + span * 0.5f + span * 100.0f, span) - span * 0.5f;
+}
 }
 
 LongScrollStageBackground::LongScrollStageBackground(Util::Renderer& renderer,
@@ -61,5 +71,93 @@ void TiledStageBackground::Update(int frame) {
         if (!obj) continue;
         const float tileOffset = (static_cast<float>(i) - 1.0f) * tileStride;
         obj->m_Transform.translation = {m_CenterX + sway, tileOffset - scroll};
+    }
+}
+
+Stage3CourtyardBackground::Stage3CourtyardBackground(Util::Renderer& renderer,
+                                                     const char* spriteFolder, float zIndex) {
+    m_TileImages = {
+        LoadSprite(spriteFolder, 3),  // red wall block
+        LoadSprite(spriteFolder, 0),  // blue floor block
+        LoadSprite(spriteFolder, 1),  // yellow worn block
+        LoadSprite(spriteFolder, 2),  // gray stone block
+    };
+    m_CloudImages = {
+        LoadSprite(spriteFolder, 10),
+        LoadSprite(spriteFolder, 11),
+    };
+
+    static constexpr int   COLS      = 11;
+    static constexpr int   ROWS      = 14;
+    static constexpr float TILE_SIZE = 48.0f;
+    static constexpr float CENTER_X  = -96.0f;
+
+    m_Tiles.reserve(COLS * ROWS);
+    for (int row = 0; row < ROWS; row++) {
+        for (int col = 0; col < COLS; col++) {
+            int variant = 1;
+            if (col <= 1 || col >= COLS - 2) {
+                variant = 0;
+            } else if ((row + col) % 7 == 0) {
+                variant = 2;
+            } else if ((row * 2 + col) % 9 == 0) {
+                variant = 3;
+            }
+
+            auto obj = std::make_shared<Util::GameObject>(m_TileImages[variant], zIndex);
+            obj->m_Transform.scale = {1.55f, 1.55f};
+            renderer.AddChild(obj);
+
+            m_Tiles.push_back({
+                obj,
+                variant,
+                CENTER_X + (static_cast<float>(col) - (static_cast<float>(COLS) - 1.0f) * 0.5f) *
+                               TILE_SIZE,
+                (static_cast<float>(row) - (static_cast<float>(ROWS) - 1.0f) * 0.5f) * TILE_SIZE,
+            });
+        }
+    }
+
+    for (int i = 0; i < 6; i++) {
+        auto obj = std::make_shared<Util::GameObject>(m_CloudImages[i % 2], zIndex + 0.5f);
+        obj->m_Transform.scale = {1.6f + static_cast<float>(i % 3) * 0.25f,
+                                  1.4f + static_cast<float>(i % 2) * 0.2f};
+        obj->SetAlpha(0.45f);
+        renderer.AddChild(obj);
+        m_Clouds.push_back({
+            obj,
+            -250.0f + static_cast<float>(i) * 78.0f,
+            -260.0f + static_cast<float>((i * 91) % 520),
+            0.18f + static_cast<float>(i % 3) * 0.05f,
+        });
+    }
+
+    Update(0);
+}
+
+void Stage3CourtyardBackground::Update(int frame) {
+    static constexpr float TILE_SPAN    = 48.0f * 14.0f;
+    static constexpr float TILE_SCROLL  = 0.55f;
+    static constexpr float CLOUD_SPAN   = 640.0f;
+    static constexpr float CLOUD_SCROLL = 0.18f;
+
+    const float scroll = static_cast<float>(frame) * TILE_SCROLL;
+    const float sway   = 1.5f * std::sin(static_cast<float>(frame) * 0.008f);
+
+    for (auto& tile : m_Tiles) {
+        if (!tile.obj) continue;
+        tile.obj->m_Transform.translation = {
+            tile.baseX + sway * (tile.variant == 0 ? 0.4f : 1.0f),
+            WrapCentered(tile.baseY - scroll, TILE_SPAN),
+        };
+    }
+
+    for (auto& cloud : m_Clouds) {
+        if (!cloud.obj) continue;
+        cloud.obj->m_Transform.translation = {
+            cloud.baseX + 10.0f * std::sin(static_cast<float>(frame) * 0.006f + cloud.speed * 12.0f),
+            WrapCentered(cloud.baseY - static_cast<float>(frame) * (CLOUD_SCROLL + cloud.speed),
+                         CLOUD_SPAN),
+        };
     }
 }

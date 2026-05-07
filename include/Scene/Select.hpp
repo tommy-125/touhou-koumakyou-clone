@@ -101,6 +101,7 @@ class Select : public Scene {
     bool m_Quitting  = false;
     int  m_QuitTimer = 0;  // quit timer for animation
     bool m_DebugStartStage2 = false;
+    bool m_DebugStartStage3 = false;
 };
 
 #endif

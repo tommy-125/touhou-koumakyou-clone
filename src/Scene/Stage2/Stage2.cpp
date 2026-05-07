@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "Scene/Stage2/Stage2Script.hpp"
-#include "Scene/Title.hpp"
+#include "Scene/Stage3/Stage3.hpp"
 
 namespace {
 static constexpr int        STAGE2_FINAL_BOSS_FRAME = 5984;
@@ -41,5 +41,5 @@ void Stage2::OnAfterGameplayFrame(const BossHudState& bossHud) {
 }
 
 std::unique_ptr<Scene> Stage2::NextScene() {
-    return std::make_unique<Title>();
+    return std::make_unique<Stage3>(m_Character, m_SpellCard, m_GameManager);
 }
