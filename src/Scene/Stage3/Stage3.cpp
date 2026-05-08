@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "Scene/Stage4/Stage4.hpp"
 #include "Scene/Stage3/Stage3Script.hpp"
 #include "Scene/Title.hpp"
 
@@ -17,8 +18,8 @@ PlayableStageConfig MakeStage3Config() {
         "BGM: Shanghai Teahouse ~ Chinese Tea",
         STAGE3_FINAL_BOSS_FRAME,
         STAGE3_TOTAL_FRAMES,
-        0,
-        false,
+        3000,
+        true,
         60,
     };
 }
@@ -34,5 +35,8 @@ Stage3::Stage3(CharacterItem character, SpellCardItem spellCard, GameManager gam
 }
 
 std::unique_ptr<Scene> Stage3::NextScene() {
-    return std::make_unique<Title>();
+    if (ShouldReturnToTitle() || WasGameOver() || !StageClearStarted()) {
+        return std::make_unique<Title>();
+    }
+    return std::make_unique<Stage4>(m_Character, m_SpellCard, m_GameManager);
 }

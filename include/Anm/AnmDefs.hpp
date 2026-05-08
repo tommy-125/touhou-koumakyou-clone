@@ -164,6 +164,12 @@ constexpr Entry STG3ENM = {
     340 + 200,  // 540
 };
 
+constexpr Entry STG4ENM = {
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg4enm",
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg4enm/stg4enm.txt",
+    340 + 200,  // 540
+};
+
 // ── Enemy bullet sprites ─────────────────────────────────────────────────────
 constexpr Entry ETAMA3 = {
     GA_RESOURCE_DIR "/th06c/th06c_CM_output/etama3",
