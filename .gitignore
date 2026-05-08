@@ -72,6 +72,8 @@ Testing/
 resources/*
 !resources/stages/
 !resources/stages/*.json
+!resources/stage_backgrounds/
+!resources/stage_backgrounds/*.png
 
 # Other files
 *.claude/

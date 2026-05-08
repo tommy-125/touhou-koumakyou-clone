@@ -13,7 +13,9 @@ class Stage2 : public PlayableStage {
     std::unique_ptr<Scene> NextScene() override;
 
    private:
-    static constexpr int STAGE_TOTAL_FRAMES = 7600;
+    static constexpr int   STAGE_TOTAL_FRAMES = 7600;
+    static constexpr float BG_CANVAS_H        = 4096.0f;
+    static constexpr float FIELD_H            = 448.0f;
 };
 
 #endif  // SCENE_STAGE2_STAGE2_HPP

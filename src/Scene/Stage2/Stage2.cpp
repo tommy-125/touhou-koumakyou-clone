@@ -9,10 +9,6 @@
 namespace {
 static constexpr int   STAGE2_FINAL_BOSS_FRAME = 5984;
 static constexpr int   STAGE2_TOTAL_FRAMES     = 7600;
-static constexpr float BG_CENTER_X             = -96.0f;
-static constexpr float BG_SCALE                = 1.85f;
-static constexpr float BG_TILE_SIZE            = 256.0f;
-static constexpr float BG_SCROLL_SPEED         = 0.75f;
 
 PlayableStageConfig MakeStage2Config() {
     return {
@@ -33,9 +29,9 @@ PlayableStageConfig MakeStage2Config() {
 Stage2::Stage2(CharacterItem character, SpellCardItem spellCard, GameManager gameManager)
     : PlayableStage(character, spellCard, gameManager, MakeStage2Config(),
                     std::make_unique<Stage2Script>()) {
-    SetBackground(std::make_unique<TiledStageBackground>(
-        m_Renderer, GA_RESOURCE_DIR "/th06c/th06c_ST/stg2bg.png", -10.0f, BG_CENTER_X,
-        BG_SCALE, BG_TILE_SIZE, BG_SCROLL_SPEED, 2.0f, 0.01f));
+    SetBackground(std::make_unique<LongScrollStageBackground>(
+        m_Renderer, GA_RESOURCE_DIR "/stage_backgrounds/stage2.png", -10.0f, -96.0f,
+        BG_CANVAS_H, FIELD_H, STAGE_TOTAL_FRAMES));
 }
 
 std::unique_ptr<Scene> Stage2::NextScene() {

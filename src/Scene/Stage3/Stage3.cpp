@@ -28,8 +28,9 @@ PlayableStageConfig MakeStage3Config() {
 Stage3::Stage3(CharacterItem character, SpellCardItem spellCard, GameManager gameManager)
     : PlayableStage(character, spellCard, gameManager, MakeStage3Config(),
                     std::make_unique<Stage3Script>()) {
-    SetBackground(std::make_unique<Stage3CourtyardBackground>(
-        m_Renderer, GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg3bg", -10.0f));
+    SetBackground(std::make_unique<LongScrollStageBackground>(
+        m_Renderer, GA_RESOURCE_DIR "/stage_backgrounds/stage3.png", -10.0f, -96.0f,
+        BG_CANVAS_H, FIELD_H, STAGE_TOTAL_FRAMES));
 }
 
 std::unique_ptr<Scene> Stage3::NextScene() {

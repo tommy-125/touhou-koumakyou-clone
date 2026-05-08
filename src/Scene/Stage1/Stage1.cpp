@@ -30,8 +30,8 @@ Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
     : PlayableStage(character, spellCard, {}, MakeStage1Config(),
                     std::make_unique<Stage1Script>()) {
     SetBackground(std::make_unique<LongScrollStageBackground>(
-        m_Renderer, GA_RESOURCE_DIR "/stage1_bg.png", -10.0f, -96.0f, BG_CANVAS_H, FIELD_H,
-        STAGE_TOTAL_FRAMES));
+        m_Renderer, GA_RESOURCE_DIR "/stage_backgrounds/stage1.png", -10.0f, -96.0f,
+        BG_CANVAS_H, FIELD_H, STAGE_TOTAL_FRAMES));
 }
 
 std::unique_ptr<Scene> Stage1::NextScene() {
