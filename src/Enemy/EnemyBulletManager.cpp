@@ -124,7 +124,9 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
 void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count,
                                      float speed, float baseAngle, bool useDecay,
                                      float acceleration, int accelerationFrames,
-                                     bool rotateWithAngle) {
+                                     bool rotateWithAngle, glm::vec2 vectorAcceleration,
+                                     int vectorAccelerationFrames, int spawnMoveFrames,
+                                     float spawnMoveScale, BulletCurve curve) {
     int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
     int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
@@ -141,6 +143,19 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
         b->m_UseDecay           = useDecay;
         b->m_Acceleration       = acceleration;
         b->m_AccelerationFrames = accelerationFrames;
+        b->m_VectorAcceleration = vectorAcceleration;
+        b->m_VectorAccelerationFrames = vectorAccelerationFrames;
+        b->m_SpawnMoveFrames    = spawnMoveFrames;
+        b->m_SpawnMoveScale     = spawnMoveScale;
+        b->m_DirChangeInterval = curve.at;
+        b->m_DirChangeNumTimes = 0;
+        b->m_DirChangeMaxTimes = curve.times;
+        b->m_DirChangeAngle    = curve.angle;
+        b->m_DirChangeSpeed    = curve.speed;
+        b->m_DirChangeRelative = curve.relative;
+        b->m_DirChangeAimAtPlayer = curve.aimAtPlayer;
+        b->m_DirChangeStartupFrames = curve.startupFrames;
+        b->m_DirChangeStartupSpeedScale = curve.startupSpeedScale;
         b->m_RotateWithAngle    = rotateWithAngle;
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
@@ -247,7 +262,11 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
         if (!b.m_Alive) continue;
 
         float effectiveSpeed = b.m_Speed;
-        if (b.m_UseDecay) {
+        const bool inSpawnMove = b.m_SpawnMoveFrames > 0;
+        if (inSpawnMove) {
+            effectiveSpeed *= b.m_SpawnMoveScale;
+            --b.m_SpawnMoveFrames;
+        } else if (b.m_UseDecay) {
             if (b.m_DecayTimer <= 16) {
                 effectiveSpeed += 5.0f - b.m_DecayTimer * 5.0f / 16.0f;
             } else {
@@ -296,11 +315,20 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
 
         b.m_DecayTimer++;
 
-        b.m_Pos.x += std::cos(b.m_Angle) * effectiveSpeed;
-        b.m_Pos.y += std::sin(b.m_Angle) * effectiveSpeed;
+        if (!inSpawnMove && b.m_VectorAccelerationFrames > 0) {
+            b.m_VectorVelocity += b.m_VectorAcceleration;
+            --b.m_VectorAccelerationFrames;
+        }
+
+        const float dx = std::cos(b.m_Angle) * effectiveSpeed + b.m_VectorVelocity.x;
+        const float dy = std::sin(b.m_Angle) * effectiveSpeed + b.m_VectorVelocity.y;
+        b.m_Pos.x += dx;
+        b.m_Pos.y += dy;
 
         b.m_Vm.pos = b.m_Pos;
-        if (b.m_RotateWithAngle) b.m_Vm.rotation = Util::HALF_PI - b.m_Angle;
+        if (b.m_RotateWithAngle) {
+            b.m_Vm.rotation = Util::HALF_PI - std::atan2(dy, dx);
+        }
         m_Anm.UpdateObjects(b.m_Vm);
 
         if (!Util::IsInGameBounds(b.m_Pos.x, b.m_Pos.y, 0, 0)) {

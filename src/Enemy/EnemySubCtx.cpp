@@ -1,5 +1,6 @@
 #include "Enemy/EnemySubCtx.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 
@@ -12,6 +13,12 @@
 void EnemySubCtx::TransitionToSub(Enemy& e, int newSub) const {
     e.m_SubId      = newSub;
     e.m_FrameTimer = -1;
+}
+
+Enemy* EnemySubCtx::SpawnEnemy(int subId, float x, float y, int life, int score, bool mirrored,
+                               int itemDrop) const {
+    if (!spawnEnemy) return nullptr;
+    return spawnEnemy(subId, x, y, life, score, mirrored, itemDrop);
 }
 
 void EnemySubCtx::BulletCancelIntoPointItems() const {
@@ -32,6 +39,10 @@ void EnemySubCtx::StartLerpDir(Enemy& e, float speed, int frames) const {
     e.m_LerpOrigin = e.m_Pos;
     e.m_LerpTarget =
         e.m_Pos + glm::vec2{std::cos(e.m_Angle), std::sin(e.m_Angle)} * (speed * frames / 2.0f);
+    if (e.m_BoundsMax.x > e.m_BoundsMin.x && e.m_BoundsMax.y > e.m_BoundsMin.y) {
+        e.m_LerpTarget.x = std::clamp(e.m_LerpTarget.x, e.m_BoundsMin.x, e.m_BoundsMax.x);
+        e.m_LerpTarget.y = std::clamp(e.m_LerpTarget.y, e.m_BoundsMin.y, e.m_BoundsMax.y);
+    }
     e.m_LerpFrames  = frames;
     e.m_LerpElapsed = 0;
     e.m_Speed       = 0;

@@ -84,6 +84,7 @@ class EnemyManager {
     size_t                     m_TimelineIdx = 0;
 
     int       m_Frame                = 0;
+    int       m_TimelineFrame        = 0;
     glm::vec2 m_PlayerPos            = {192, 384};
     int       m_RandomItemSpawnIndex = 0;
     int       m_RandomItemTableIndex = 0;

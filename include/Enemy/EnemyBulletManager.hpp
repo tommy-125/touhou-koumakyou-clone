@@ -51,6 +51,11 @@ struct EnemyBullet {
     glm::vec2 m_HitboxSize   = {5, 5};
     float     m_Acceleration = 0.0f;
     int       m_AccelerationFrames = 0;
+    glm::vec2 m_VectorVelocity      = {0.0f, 0.0f};
+    glm::vec2 m_VectorAcceleration  = {0.0f, 0.0f};
+    int       m_VectorAccelerationFrames = 0;
+    int       m_SpawnMoveFrames = 0;
+    float     m_SpawnMoveScale  = 1.0f;
     bool      m_Alive        = false;
     bool      m_UseDecay     = false;
     int       m_DecayTimer   = 0;
@@ -107,7 +112,12 @@ class EnemyBulletManager {
     void SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count, float speed,
                      float baseAngle = 0.0f, bool useDecay = false,
                      float acceleration = 0.0f, int accelerationFrames = 0,
-                     bool rotateWithAngle = false);
+                     bool rotateWithAngle = false,
+                     glm::vec2 vectorAcceleration = {0.0f, 0.0f},
+                     int vectorAccelerationFrames = 0,
+                     int spawnMoveFrames = 0,
+                     float spawnMoveScale = 1.0f,
+                     BulletCurve curve = {});
     void SpawnCircleStack(glm::vec2 pos, EBulletType type, EBulletColor color, int count,
                           int stacks, float speed1, float speed2, float baseAngle = 0.0f,
                           bool useDecay = false, bool rotateWithAngle = false);

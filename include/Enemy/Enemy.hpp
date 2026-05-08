@@ -33,6 +33,11 @@ struct Enemy {
     int  m_DeathEffectPrimary   = 670;
     int  m_DeathEffectSecondary = 678;
 
+    // Stage scripts use these to keep locked shot / exit angles across frames.
+    float m_LockedShotAngle    = 0.0f;
+    float m_SecondaryShotAngle = 0.0f;
+    float m_ExitMoveAngle      = 0.0f;
+
     // Boss
     bool m_IsBoss           = false;
     bool m_CanTakeDamage    = true;
@@ -43,6 +48,7 @@ struct Enemy {
     int  m_SpellcardBonus   = 0;
     bool m_ShowSpellName    = false;
     int  m_DeathCallbackSub = -1;
+    bool m_SpawnDeathEffectOnRemoval = false;
     std::string m_BossTitle;
 
     int m_AnmDefault   = -1;

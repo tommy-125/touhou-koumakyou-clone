@@ -46,7 +46,11 @@ void EnemyManager::SetScript(std::unique_ptr<IStageScript> script) {
 }
 
 EnemySubCtx EnemyManager::MakeCtx() {
-    return EnemySubCtx{m_Anm, m_BulletManager, m_LaserManager, *m_Items, m_Renderer, m_PlayerPos};
+    return EnemySubCtx{
+        m_Anm, m_BulletManager, m_LaserManager, *m_Items, m_Renderer, m_PlayerPos,
+        [this](int subId, float x, float y, int life, int score, bool mirrored, int itemDrop) {
+            return SpawnEnemy(subId, x, y, life, score, mirrored, itemDrop);
+        }};
 }
 
 void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
@@ -176,6 +180,7 @@ void EnemyManager::UpdateBossPose(Enemy& enemy, float horizontalDelta) {
 void EnemyManager::SetTimeline(std::vector<TimelineEntry> entries) {
     m_Timeline    = std::move(entries);
     m_TimelineIdx = 0;
+    m_TimelineFrame = 0;
 }
 
 void EnemyManager::RunTimeline() {
@@ -183,13 +188,24 @@ void EnemyManager::RunTimeline() {
     for (auto& e : m_Enemies) {
         if (e.m_Alive && e.m_BlocksTimeline) return;
     }
-    while (m_TimelineIdx < m_Timeline.size() && m_Timeline[m_TimelineIdx].frame <= m_Frame) {
+    while (m_TimelineIdx < m_Timeline.size() &&
+           m_Timeline[m_TimelineIdx].frame <= m_TimelineFrame) {
         const auto& e = m_Timeline[m_TimelineIdx];
-        if (e.frame == m_Frame) {
+        if (e.frame == m_TimelineFrame) {
             float spawnX = e.randomX ? static_cast<float>(rand() % 353 + 16) : e.x;
             SpawnEnemy(e.subId, spawnX, e.y, e.life, e.score, e.mirrored, e.itemDrop);
         }
         m_TimelineIdx++;
+    }
+    bool blockedAfterSpawn = false;
+    for (auto& e : m_Enemies) {
+        if (e.m_Alive && e.m_BlocksTimeline) {
+            blockedAfterSpawn = true;
+            break;
+        }
+    }
+    if (!blockedAfterSpawn) {
+        m_TimelineFrame++;
     }
 }
 
@@ -207,6 +223,10 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
         if (m_Script) m_Script->RunSub(enemy, ctx);
 
         if (!enemy.m_Alive) {
+            if (enemy.m_SpawnDeathEffectOnRemoval) {
+                SpawnDeathEffect(enemy);
+                enemy.m_SpawnDeathEffectOnRemoval = false;
+            }
             if (enemy.m_Vm.obj) {
                 m_Renderer.RemoveChild(enemy.m_Vm.obj);
                 enemy.m_Vm.obj = nullptr;
@@ -289,6 +309,7 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                 if (sub >= 0) {
                     TurnAllBulletsIntoPointItems();
                     SpawnDeathEffect(enemy);
+                    enemy.m_SpawnDeathEffectOnRemoval = true;
                     enemy.m_SubId      = sub;
                     enemy.m_FrameTimer = -1;
                 } else {
@@ -458,6 +479,7 @@ void EnemyManager::SkipToFrame(int frame) {
     m_BulletManager.ClearAll();
     m_LaserManager.ClearAll();
     m_Frame = frame;
+    m_TimelineFrame = frame;
     m_TimelineIdx = 0;
     while (m_TimelineIdx < m_Timeline.size() && m_Timeline[m_TimelineIdx].frame < frame) {
         m_TimelineIdx++;
