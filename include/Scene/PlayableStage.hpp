@@ -38,6 +38,7 @@ class PlayableStage : public Scene {
     void UpdateStageIntro();
     void SetBackground(std::unique_ptr<StageBackground> background);
     bool ShouldReturnToTitle() const { return m_ReturnToTitle; }
+    bool WasGameOver() const { return m_GameOver; }
 
     CharacterItem m_Character;
     SpellCardItem m_SpellCard;
@@ -62,6 +63,7 @@ class PlayableStage : public Scene {
     Util::AsciiTextLine         m_IntroSongLine;
     std::unique_ptr<StageBackground>  m_Background;
     bool                              m_ReturnToTitle = false;
+    bool                              m_GameOver      = false;
 };
 
 #endif  // SCENE_PLAYABLE_STAGE_HPP

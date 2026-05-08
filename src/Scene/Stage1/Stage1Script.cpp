@@ -598,10 +598,6 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_SpellcardBonus = 0;
                 ctx.bullets.ClearAll();
                 ctx.lasers.ClearAll();
-                ctx.MoveRandInBounds(enemy);
-                ctx.StartLerpDir(enemy, 0.6f, 60);
-            }
-            if (t == 90) {
                 enemy.m_Alive = false;
             }
             break;

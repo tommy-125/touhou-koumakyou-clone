@@ -43,6 +43,7 @@ class Stage1 : public PlayableStage {
     bool m_FinalBossWasSeen   = false;
     bool m_StageClearStarted  = false;
     bool m_StageClearTextShown = false;
+    int  m_FinalBossClearDelay = -1;
     int  m_StageClearTimer    = 0;
     int  m_StageClearScore    = 0;
 };

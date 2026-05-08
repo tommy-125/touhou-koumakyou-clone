@@ -131,6 +131,7 @@ void PlayableStage::Update() {
         m_Player.Die();
         if (--m_GameManager.livesRemaining < 0) {
             m_GameManager.livesRemaining = 0;
+            m_GameOver                   = true;
             m_Done                       = true;
         }
     }

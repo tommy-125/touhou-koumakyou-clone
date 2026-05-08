@@ -772,9 +772,8 @@ void Stage3Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_ShowSpellName = false;
                 ctx.bullets.ClearAll();
                 ctx.lasers.ClearAll();
-                ctx.StartLerpTo(enemy, 192.0f, 96.0f, 90);
+                enemy.m_Alive = false;
             }
-            if (t == 150) enemy.m_Alive = false;
             break;
 
         default:

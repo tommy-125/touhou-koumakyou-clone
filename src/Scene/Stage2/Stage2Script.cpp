@@ -608,8 +608,6 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t == 60) {
                 StartSpellPhase(enemy, ctx, "Diamond Blizzard", 1980, 28);
                 ctx.anm.SetScript(enemy.m_Vm, Anm::STG2ENM2.offset + 131, Anm::STG2ENM2.offset);
-                SpawnRandomBullets(ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx, EBulletType::Shard,
-                                   EBulletColor::Blue, 10, 2.0f, 1.6f, true);
             }
             if (t == 180) enemy.m_CanTakeDamage = true;
             if (t >= 180) {
@@ -631,9 +629,6 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_ShowSpellName = false;
                 ctx.bullets.ClearAll();
                 ctx.lasers.ClearAll();
-                StartRandomAttackMove(enemy, ctx, 0.6f, 60);
-            }
-            if (t == 150) {
                 enemy.m_Alive = false;
             }
             break;

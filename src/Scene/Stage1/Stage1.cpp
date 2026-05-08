@@ -16,6 +16,7 @@ static constexpr int        CLEAR_LOADING_HOLD     = 240;
 static constexpr int        CLEAR_LOADING_FADE_OUT = 60;
 static constexpr int        CLEAR_LOADING_TOTAL =
     CLEAR_LOADING_WAIT + CLEAR_LOADING_FADE_IN + CLEAR_LOADING_HOLD + CLEAR_LOADING_FADE_OUT;
+static constexpr int        BOSS_DEATH_RESULT_DELAY = 60;
 static constexpr float      CLEAR_TEXT_CENTER_X = -96.0f;
 static constexpr float      CLEAR_TITLE_SCALE   = 1.0f;
 static constexpr float      CLEAR_LINE_SCALE    = 1.0f;
@@ -42,6 +43,16 @@ static float ClearLoadingAlpha(int timer) {
         return 1.0f - static_cast<float>(local - CLEAR_LOADING_FADE_IN - CLEAR_LOADING_HOLD) /
                           static_cast<float>(CLEAR_LOADING_FADE_OUT);
     }
+    return 0.0f;
+}
+
+static float ClearLoadingImageAlpha(int timer) {
+    const int local = timer - CLEAR_LOADING_WAIT;
+    if (local < 0) return 0.0f;
+    if (local < CLEAR_LOADING_FADE_IN) {
+        return static_cast<float>(local) / static_cast<float>(CLEAR_LOADING_FADE_IN);
+    }
+    if (local < CLEAR_LOADING_TOTAL) return 1.0f;
     return 0.0f;
 }
 
@@ -121,9 +132,10 @@ void Stage1::StartStageClear() {
 void Stage1::UpdateStageClearLoading() {
     if (!m_StageClearStarted) return;
 
-    const float alpha = ClearLoadingAlpha(m_StageClearTimer);
-    m_ClearLoadingObj->SetVisible(alpha > 0.0f);
-    m_ClearLoadingObj->SetAlpha(alpha);
+    const float imageAlpha = ClearLoadingImageAlpha(m_StageClearTimer);
+    const float textAlpha  = ClearLoadingAlpha(m_StageClearTimer);
+    m_ClearLoadingObj->SetVisible(imageAlpha > 0.0f);
+    m_ClearLoadingObj->SetAlpha(imageAlpha);
     m_ClearLoadingObj->m_Transform.translation = {-96.0f, 0.0f};
 
     if (!m_StageClearTextShown && m_StageClearTimer >= CLEAR_LOADING_FADE_IN) {
@@ -133,7 +145,7 @@ void Stage1::UpdateStageClearLoading() {
     const bool textVisible = m_StageClearTextShown && m_StageClearTimer < CLEAR_LOADING_TOTAL;
     for (auto& line : m_ClearLines) {
         line.SetVisible(textVisible);
-        line.SetAlpha(alpha);
+        line.SetAlpha(textAlpha);
     }
 
     if (m_StageClearTimer >= CLEAR_LOADING_TOTAL) {
@@ -144,12 +156,6 @@ void Stage1::UpdateStageClearLoading() {
 
 void Stage1::UpdateStageClear() {
     if (!m_StageClearStarted) return;
-    m_StageClearTimer++;
-
-    if (m_StageClearTimer >= CLEAR_LOADING_TOTAL) {
-        m_Done = true;
-        return;
-    }
 
     UpdateStageClearLoading();
     m_ClearRenderer.Update();
@@ -160,6 +166,11 @@ void Stage1::UpdateStageClear() {
          Util::Input::IsKeyDown(Util::Keycode::RETURN))) {
         m_Done = true;
         return;
+    }
+
+    m_StageClearTimer++;
+    if (m_StageClearTimer >= CLEAR_LOADING_TOTAL) {
+        m_Done = true;
     }
 }
 
@@ -179,7 +190,12 @@ void Stage1::OnAfterGameplayFrame(const BossHudState& bossHud) {
     if (m_StageFrame >= STAGE1_BOSS_SKIP_FRAME && bossHud.visible) {
         m_FinalBossWasSeen = true;
     } else if (m_FinalBossWasSeen && !bossHud.visible) {
-        StartStageClear();
+        if (m_FinalBossClearDelay < 0) m_FinalBossClearDelay = BOSS_DEATH_RESULT_DELAY;
+        if (m_FinalBossClearDelay == 0) {
+            StartStageClear();
+        } else {
+            m_FinalBossClearDelay--;
+        }
     }
 }
 
@@ -188,6 +204,6 @@ void Stage1::OnFrameEnd() {
 }
 
 std::unique_ptr<Scene> Stage1::NextScene() {
-    if (ShouldReturnToTitle()) return std::make_unique<Title>();
+    if (ShouldReturnToTitle() || WasGameOver()) return std::make_unique<Title>();
     return std::make_unique<Stage2>(m_Character, m_SpellCard, m_GameManager);
 }
