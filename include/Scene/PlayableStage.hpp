@@ -13,35 +13,49 @@
 #include "Scene/IStageScript.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/StageBackground.hpp"
+#include "Scene/StageClearOverlay.hpp"
 #include "Scene/StageMenu.hpp"
 #include "Util/Color.hpp"
 #include "Util/AsciiTextLine.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/Renderer.hpp"
 
+struct PlayableStageConfig {
+    const char* timelinePath = "";
+    std::string stageNo;
+    std::string stageName;
+    std::string songName;
+    int bossSkipFrame = -1;
+    int totalFrames = -1;
+    int stageBonus = 0;
+    bool hasStageClear = false;
+    int bossDeathResultDelay = 60;
+};
+
 class PlayableStage : public Scene {
    public:
     PlayableStage(CharacterItem character, SpellCardItem spellCard, GameManager gameManager,
-                  const char* timelinePath, std::unique_ptr<IStageScript> script,
-                  const std::string& stageNo, const std::string& stageName,
-                  const std::string& songName);
+                  PlayableStageConfig config, std::unique_ptr<IStageScript> script);
     void Update() override;
 
    protected:
     virtual void UpdateBackground();
-    virtual void OnAfterGameplayFrame(const BossHudState&) {}
-    virtual void OnFrameEnd() {}
-    virtual void OnMenuFrame() {}
-    virtual bool HandleStageOverlay() { return false; }
-    virtual int  BossSkipFrame() const { return -1; }
+    virtual void OnAfterGameplayFrame(const BossHudState& bossHud);
+    virtual void OnFrameEnd();
+    virtual void OnMenuFrame();
+    virtual bool HandleStageOverlay();
+    virtual int  BossSkipFrame() const { return m_Config.bossSkipFrame; }
 
     void UpdateStageIntro();
     void SetBackground(std::unique_ptr<StageBackground> background);
+    void UpdateFinalBossClearFlow(const BossHudState& bossHud);
     bool ShouldReturnToTitle() const { return m_ReturnToTitle; }
     bool WasGameOver() const { return m_GameOver; }
+    bool StageClearStarted() const { return m_ClearOverlay.HasStarted(); }
 
     CharacterItem m_Character;
     SpellCardItem m_SpellCard;
+    PlayableStageConfig m_Config;
 
     int          m_StageFrame = 0;
     GameManager  m_GameManager;
@@ -62,8 +76,11 @@ class PlayableStage : public Scene {
     Util::AsciiTextLine         m_IntroStageNameLine;
     Util::AsciiTextLine         m_IntroSongLine;
     std::unique_ptr<StageBackground>  m_Background;
+    StageClearOverlay                 m_ClearOverlay;
     bool                              m_ReturnToTitle = false;
     bool                              m_GameOver      = false;
+    bool                              m_FinalBossWasSeen = false;
+    int                               m_FinalBossClearDelay = -1;
 };
 
 #endif  // SCENE_PLAYABLE_STAGE_HPP

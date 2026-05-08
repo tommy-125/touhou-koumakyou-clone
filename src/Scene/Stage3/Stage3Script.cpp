@@ -6,85 +6,87 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
+#include "Enemy/BossPhaseUtil.hpp"
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
+#include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
 
 namespace {
 constexpr float     PI                   = 3.14159265f;
 constexpr glm::vec2 MEILING_SHOOT_OFFSET = {0.0f, -12.0f};
+namespace ScriptUtil = EnemyScriptUtil;
 
-float RandFloat(float min, float max) {
-    return min + (max - min) * (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX));
-}
-
-glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = MEILING_SHOOT_OFFSET) {
-    return enemy.m_Pos + offset;
-}
-
+constexpr int SUB_MEILING_MIDBOSS_MAIN       = 9;
+constexpr int SUB_MEILING_MIDBOSS_SPELL_A    = 13;
+constexpr int SUB_MEILING_MIDBOSS_SPELL_B    = 14;
+constexpr int SUB_MEILING_MIDBOSS_DEATH      = 15;
+constexpr int SUB_MEILING_MIDBOSS_ESCAPE     = 16;
+constexpr int SUB_MEILING_SUPPORT_FAIRY      = 25;
+constexpr int SUB_MEILING_ENTRY              = 17;
+constexpr int SUB_MEILING_FIRST_NONSPELL     = 18;
+constexpr int SUB_MEILING_RAINBOW_WIND_CHIME = 29;
+constexpr int SUB_MEILING_SECOND_NONSPELL    = 20;
+constexpr int SUB_MEILING_FINAL_NONSPELL     = 26;
+constexpr int SUB_MEILING_COLORFUL_RAIN_A    = 31;
+constexpr int SUB_MEILING_COLORFUL_RAIN_B    = 32;
+constexpr int SUB_MEILING_EXTREME_TYPHOON    = 33;
+constexpr int SUB_MEILING_DEATH              = 34;
 float AngleToPlayer(const Enemy& enemy, const EnemySubCtx& ctx) {
     const glm::vec2 d = ctx.playerPos - enemy.m_Pos;
     return std::atan2(d.y, d.x);
 }
 
-void SetDeathEffects(Enemy& enemy, int primary, int secondary) {
-    enemy.m_DeathEffectPrimary   = primary;
-    enemy.m_DeathEffectSecondary = secondary;
+glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = MEILING_SHOOT_OFFSET) {
+    return ScriptUtil::ShootPos(enemy, offset);
 }
 
-void SetBossPoses(Enemy& enemy) {
-    enemy.m_AnmDefault   = Anm::STG3ENM.offset + 64;
-    enemy.m_AnmFarLeft   = Anm::STG3ENM.offset + 65;
-    enemy.m_AnmFarRight  = Anm::STG3ENM.offset + 65;
-    enemy.m_AnmLeft      = Anm::STG3ENM.offset + 65;
-    enemy.m_AnmRight     = Anm::STG3ENM.offset + 65;
-    enemy.m_AnmMoveState = 0xff;
-}
-
-void DropPowerItems(Enemy& enemy, EnemySubCtx& ctx, int count) {
-    for (int i = 0; i < count; i++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
-}
-
-void StartRandomBossMove(Enemy& enemy, const EnemySubCtx& ctx, float speed, int frames) {
-    ctx.MoveRandInBounds(enemy);
-    ctx.StartLerpDir(enemy, speed, frames);
+void SetMeilingBossPoses(Enemy& enemy) {
+    ScriptUtil::SetBossPoses(enemy, Anm::STG3ENM.offset + 64, Anm::STG3ENM.offset + 65,
+                             Anm::STG3ENM.offset + 65, Anm::STG3ENM.offset + 65,
+                             Anm::STG3ENM.offset + 65);
 }
 
 void StartNonSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, int life, int lifeCount,
                         int timerFrames, int nextSub, int deathSub) {
-    ctx.BulletCancelIntoPointItems();
-    enemy.m_CanTakeDamage          = false;
-    enemy.m_InSpellcard            = false;
-    enemy.m_ShowSpellName          = false;
-    enemy.m_BossTitle              = "Hong Meiling";
-    enemy.m_Life                   = life;
-    enemy.m_BossMaxLife            = life;
-    enemy.m_BossLifeCount          = lifeCount;
-    enemy.m_BossTimer              = 0;
-    enemy.m_TimerCallbackThreshold = timerFrames;
-    enemy.m_TimerCallbackSub       = nextSub;
-    enemy.m_LifeCallbackThreshold  = std::max(1200, life / 8);
-    enemy.m_LifeCallbackSub        = nextSub;
-    enemy.m_DeathCallbackSub       = deathSub;
+    BossPhaseUtil::StartPhase(enemy, ctx,
+                              {
+                                  "Hong Meiling",
+                                  life,
+                                  lifeCount,
+                                  timerFrames,
+                                  nextSub,
+                                  deathSub,
+                                  std::max(1200, life / 8),
+                                  nextSub,
+                                  false,
+                                  false,
+                                  0,
+                                  false,
+                                  true,
+                              });
 }
 
 void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int lifeCount,
                      int timerFrames, int nextSub) {
-    ctx.BulletCancelIntoPointItems();
-    enemy.m_CanTakeDamage          = false;
-    enemy.m_InSpellcard            = true;
-    enemy.m_ShowSpellName          = true;
-    enemy.m_BossTitle              = title;
-    enemy.m_BossLifeCount          = lifeCount;
-    enemy.m_SpellcardBonus         = 0;
-    enemy.m_BossTimer              = 0;
-    enemy.m_TimerCallbackThreshold = timerFrames;
-    enemy.m_TimerCallbackSub       = nextSub;
-    enemy.m_LifeCallbackThreshold  = -1;
-    enemy.m_LifeCallbackSub        = -1;
-    enemy.m_DeathCallbackSub       = nextSub;
+    BossPhaseUtil::StartPhase(enemy, ctx,
+                              {
+                                  title,
+                                  -1,
+                                  lifeCount,
+                                  timerFrames,
+                                  nextSub,
+                                  nextSub,
+                                  -1,
+                                  -1,
+                                  true,
+                                  true,
+                                  0,
+                                  false,
+                                  true,
+                              });
     ctx.StartLerpTo(enemy, 192.0f, 64.0f, 120);
 }
 
@@ -93,8 +95,8 @@ void SpawnRandomCircle(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulle
                        bool rotateWithAngle = false) {
     for (int i = 0; i < count; i++) {
         ctx.bullets.SpawnCircle(pos, type, color, 1,
-                                std::max(0.1f, speed + RandFloat(-variance, variance)),
-                                RandFloat(-PI, PI), false, 0.0f, 0, rotateWithAngle);
+                                std::max(0.1f, speed + ScriptUtil::RandFloat(-variance, variance)),
+                                ScriptUtil::RandFloat(-PI, PI), false, 0.0f, 0, rotateWithAngle);
     }
 }
 
@@ -102,8 +104,8 @@ void SpawnRandomSpeedRange(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type,
                            EBulletColor color, int count, float minSpeed, float maxSpeed,
                            bool rotateWithAngle = false) {
     for (int i = 0; i < count; i++) {
-        ctx.bullets.SpawnCircle(pos, type, color, 1, RandFloat(minSpeed, maxSpeed),
-                                RandFloat(-PI, PI), false, 0.0f, 0, rotateWithAngle);
+        ctx.bullets.SpawnCircle(pos, type, color, 1, ScriptUtil::RandFloat(minSpeed, maxSpeed),
+                                ScriptUtil::RandFloat(-PI, PI), false, 0.0f, 0, rotateWithAngle);
     }
 }
 
@@ -112,8 +114,8 @@ void SpawnRandomVectorAccel(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, E
                             float accelAngle, bool rotateWithAngle = true) {
     const glm::vec2 accel = {std::cos(accelAngle) * accelSpeed, std::sin(accelAngle) * accelSpeed};
     for (int i = 0; i < count; i++) {
-        ctx.bullets.SpawnCircle(pos, type, color, 1, RandFloat(minSpeed, maxSpeed),
-                                RandFloat(-PI, PI), true, 0.0f, 0, rotateWithAngle, accel,
+        ctx.bullets.SpawnCircle(pos, type, color, 1, ScriptUtil::RandFloat(minSpeed, maxSpeed),
+                                ScriptUtil::RandFloat(-PI, PI), true, 0.0f, 0, rotateWithAngle, accel,
                                 9999, 12, 0.5f);
     }
 }
@@ -153,7 +155,7 @@ void RunMediumKunai(Enemy& enemy, EnemySubCtx& ctx, int t) {
                                 enemy.m_LockedShotAngle, false, 0.0f, 0, true);
     }
     if (t == 130) {
-        enemy.m_Angle = RandFloat(0.7853982f, 2.3561945f);
+        enemy.m_Angle = ScriptUtil::RandFloat(0.7853982f, 2.3561945f);
         enemy.m_Speed = 1.5f;
     }
 }
@@ -163,9 +165,9 @@ void RunMediumRing(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 70) {
         enemy.m_Acceleration = 0.0f;
         enemy.m_Speed        = 0.0f;
-        enemy.m_ExitMoveAngle = RandFloat(0.7853982f, 2.3561945f);
+        enemy.m_ExitMoveAngle = ScriptUtil::RandFloat(0.7853982f, 2.3561945f);
         ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
-                                  EBulletColor::Red, 16, RandFloat(1.0f, 2.0f), 0.0f,
+                                  EBulletColor::Red, 16, ScriptUtil::RandFloat(1.0f, 2.0f), 0.0f,
                                   0.2617994f);
     }
     if (t == 100) {
@@ -194,7 +196,7 @@ void RunFixedDownKunaiFairy(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 70) {
         enemy.m_Acceleration = 0.0f;
         enemy.m_Speed        = 0.0f;
-        enemy.m_ExitMoveAngle = RandFloat(0.7853982f, 2.3561945f);
+        enemy.m_ExitMoveAngle = ScriptUtil::RandFloat(0.7853982f, 2.3561945f);
     }
     if (t >= 70 && t < 102 && (t - 70) % 2 == 0) {
         const int   step  = (t - 70) / 2;
@@ -215,7 +217,7 @@ void RunWhiteRandomBalls(Enemy& enemy, EnemySubCtx& ctx, int t) {
         enemy.m_Speed        = 0.0f;
         SpawnRandomCircle(enemy.m_Pos, ctx, EBulletType::Ball, EBulletColor::White, 14, 2.0f,
                           0.3f);
-        enemy.m_Angle = RandFloat(0.7853982f, 2.3561945f);
+        enemy.m_Angle = ScriptUtil::RandFloat(0.7853982f, 2.3561945f);
         enemy.m_Speed = 1.5f;
     }
 }
@@ -227,19 +229,19 @@ void RunMeilingMidbossPattern(Enemy& enemy, EnemySubCtx& ctx, int frame) {
 
     if (pairT < BLUE_CYCLE_FRAMES) {
         if (pairT >= 20 && pairT < 84 && (pairT - 20) % 8 == 0) {
-            const glm::vec2 pos = ShootPos(enemy, {RandFloat(-16.0f, 16.0f),
-                                                   RandFloat(-16.0f, 16.0f)});
+            const glm::vec2 pos = ShootPos(enemy, {ScriptUtil::RandFloat(-16.0f, 16.0f),
+                                                   ScriptUtil::RandFloat(-16.0f, 16.0f)});
             SpawnRandomSpeedRange(pos, ctx, EBulletType::Ball, EBulletColor::Blue, 16, 1.7f,
                                   3.0f);
         }
-        if (pairT == 124) StartRandomBossMove(enemy, ctx, 5.0f, 50);
+        if (pairT == 124) ScriptUtil::StartRandomMove(enemy, ctx, 5.0f, 50);
     } else {
         const int redT = pairT - BLUE_CYCLE_FRAMES;
         if (redT == 0) {
             ctx.bullets.SpawnCircle(ShootPos(enemy, {0.0f, 0.0f}), EBulletType::RingBall,
                                     EBulletColor::Red, 76, 1.1f);
         }
-        if (redT == 10) StartRandomBossMove(enemy, ctx, 5.0f, 50);
+        if (redT == 10) ScriptUtil::StartRandomMove(enemy, ctx, 5.0f, 50);
     }
 }
 
@@ -251,10 +253,10 @@ void RunMeilingMidbossSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
         enemy.m_BossTitle     = "Flower Sign \"Gorgeous Sweet Flower\"";
         enemy.m_BossTimer     = 0;
         enemy.m_TimerCallbackThreshold = 1200;
-        enemy.m_TimerCallbackSub       = 16;
-        enemy.m_DeathCallbackSub       = 15;
-        enemy.m_LockedShotAngle        = RandFloat(-PI, PI);
-        enemy.m_SecondaryShotAngle     = RandFloat(-PI, PI);
+        enemy.m_TimerCallbackSub       = SUB_MEILING_MIDBOSS_ESCAPE;
+        enemy.m_DeathCallbackSub       = SUB_MEILING_MIDBOSS_DEATH;
+        enemy.m_LockedShotAngle        = ScriptUtil::RandFloat(-PI, PI);
+        enemy.m_SecondaryShotAngle     = ScriptUtil::RandFloat(-PI, PI);
         ctx.BulletCancelIntoPointItems();
         ctx.StartLerpTo(enemy, 192.0f, 144.0f, 120);
     }
@@ -285,7 +287,7 @@ void RunMeilingFirstNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
     const int cycle = (t - 50) / 272;
 
     if (loopT == 0) {
-        enemy.m_LockedShotAngle = RandFloat(-PI, PI);
+        enemy.m_LockedShotAngle = ScriptUtil::RandFloat(-PI, PI);
     }
 
     if (loopT < 30 * 4 && loopT % 4 == 0) {
@@ -299,7 +301,7 @@ void RunMeilingFirstNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
                                      0.0f, 0, {}, true);
     }
     if (loopT == 120) {
-        StartRandomBossMove(enemy, ctx, 5.0f, 40);
+        ScriptUtil::StartRandomMove(enemy, ctx, 5.0f, 40);
     }
     if (loopT >= 120 && loopT < 152 && loopT % 2 == 0) {
         const int   burst       = (loopT - 120) / 2;
@@ -388,7 +390,7 @@ void RunMeilingSupportFairy(Enemy& enemy, EnemySubCtx& ctx, int t) {
     }
 
     if (t == 950) {
-        enemy.m_Angle = RandFloat(0.7853982f, 2.3561945f);
+        enemy.m_Angle = ScriptUtil::RandFloat(0.7853982f, 2.3561945f);
         enemy.m_Speed = 1.5f;
     }
     if (t >= 10000) enemy.m_Alive = false;
@@ -402,12 +404,12 @@ void RunMeilingSecondNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (loopT == 60) SpawnMeilingSupportFairies(ctx, 2);
 
     if (loopT == 0) {
-        enemy.m_LockedShotAngle = RandFloat(-PI, PI);
+        enemy.m_LockedShotAngle = ScriptUtil::RandFloat(-PI, PI);
     }
     if (loopT == 0 || loopT == 70 || loopT == 140) {
         ctx.bullets.SpawnCircleStack(ShootPos(enemy), EBulletType::Ball,
                                      loopT == 70 ? EBulletColor::Blue : EBulletColor::DarkBlue,
-                                     16, 2, 3.0f, 2.0f, RandFloat(-PI, PI), false, false);
+                                     16, 2, 3.0f, 2.0f, ScriptUtil::RandFloat(-PI, PI), false, false);
     }
 
     if (loopT == 200 || loopT == 270 || loopT == 340) {
@@ -417,7 +419,7 @@ void RunMeilingSecondNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
     }
 
     if (loopT == 120 || loopT == 320) {
-        StartRandomBossMove(enemy, ctx, 2.0f, 80);
+        ScriptUtil::StartRandomMove(enemy, ctx, 2.0f, 80);
     }
     if (loopT == 240 || loopT == 310 || loopT == 380) {
         const int count = loopT == 310 ? 16 : 24;
@@ -450,7 +452,7 @@ void RunMeilingFinalNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
                              1.0f, 0.3f, true);
     }
     if (loopT == 160) {
-        StartRandomBossMove(enemy, ctx, 4.0f, 80);
+        ScriptUtil::StartRandomMove(enemy, ctx, 4.0f, 80);
     }
 }
 
@@ -470,7 +472,7 @@ void RunColorfulRainSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
                              EBulletColor::Cyan, 1, 1.0f, 0.3f, true);
     }
     if (loopT == 100) {
-        StartRandomBossMove(enemy, ctx, 3.0f, 80);
+        ScriptUtil::StartRandomMove(enemy, ctx, 3.0f, 80);
     }
     if (loopT >= 120 && loopT < 180 && loopT % 3 == 0) {
         const glm::vec2 pos = ShootPos(enemy, {0.0f, 0.0f});
@@ -493,11 +495,11 @@ void RunGorgeousTyphoonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
         enemy.m_BossTitle     = "Extreme Color Typhoon";
         enemy.m_BossTimer     = 0;
         enemy.m_TimerCallbackThreshold = 2160;
-        enemy.m_TimerCallbackSub       = 34;
+        enemy.m_TimerCallbackSub       = SUB_MEILING_DEATH;
         enemy.m_LifeCallbackThreshold  = -1;
         enemy.m_LifeCallbackSub        = -1;
-        enemy.m_DeathCallbackSub       = 34;
-        DropPowerItems(enemy, ctx, 5);
+        enemy.m_DeathCallbackSub       = SUB_MEILING_DEATH;
+        ScriptUtil::DropPowerItems(enemy, ctx, 5);
         ctx.BulletCancelIntoPointItems();
     }
     if (t == 60) {
@@ -554,7 +556,7 @@ void Stage3Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_HitboxSize = {28.0f, 28.0f};
             enemy.m_Angle      = enemy.m_Mirrored ? 2.6179938f : 0.5235988f;
             enemy.m_Speed      = 4.5f;
-            SetDeathEffects(enemy, 669, 678);
+            ScriptUtil::SetDeathEffects(enemy, 669, 678);
             break;
 
         case 2:
@@ -563,18 +565,18 @@ void Stage3Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_HitboxSize = {28.0f, 28.0f};
             enemy.m_Angle      = enemy.m_Mirrored ? -2.0943952f : -1.0471976f;
             enemy.m_Speed      = 4.0f;
-            SetDeathEffects(enemy, 669, 678);
+            ScriptUtil::SetDeathEffects(enemy, 669, 678);
             break;
 
         case 4:
         case 7:
         case 8:
-        case 25:
+        case SUB_MEILING_SUPPORT_FAIRY:
             ctx.anm.SetScript(enemy.m_Vm, offset + 15, offset);
             enemy.m_HitboxSize = {28.0f, 28.0f};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = enemy.m_SubId == 8 ? 2.5f : 1.5f;
-            SetDeathEffects(enemy, 670, 678);
+            ScriptUtil::SetDeathEffects(enemy, 670, 678);
             break;
 
         case 5:
@@ -582,7 +584,7 @@ void Stage3Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_HitboxSize = {28.0f, 28.0f};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 1.5f;
-            SetDeathEffects(enemy, 670, 678);
+            ScriptUtil::SetDeathEffects(enemy, 670, 678);
             break;
 
         case 6:
@@ -590,10 +592,10 @@ void Stage3Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_HitboxSize = {28.0f, 28.0f};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
-            SetDeathEffects(enemy, 670, 678);
+            ScriptUtil::SetDeathEffects(enemy, 670, 678);
             break;
 
-        case 9:
+        case SUB_MEILING_MIDBOSS_MAIN:
             ctx.anm.SetScript(enemy.m_Vm, offset + 64, offset);
             enemy.m_Pos                    = Util::GameFieldToScreen(352.0f, -96.0f);
             enemy.m_HitboxSize             = {56.0f, 56.0f};
@@ -605,17 +607,17 @@ void Stage3Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_BossLifeCount          = 0;
             enemy.m_BossMaxLife            = std::max(1, enemy.m_Life);
             enemy.m_TimerCallbackThreshold = 1800;
-            enemy.m_TimerCallbackSub       = 16;
+            enemy.m_TimerCallbackSub       = SUB_MEILING_MIDBOSS_ESCAPE;
             enemy.m_LifeCallbackThreshold  = 1300;
-            enemy.m_LifeCallbackSub        = 13;
-            enemy.m_DeathCallbackSub       = 15;
+            enemy.m_LifeCallbackSub        = SUB_MEILING_MIDBOSS_SPELL_A;
+            enemy.m_DeathCallbackSub       = SUB_MEILING_MIDBOSS_DEATH;
             enemy.m_BoundsMin              = Util::GameFieldToScreen(32.0f, 48.0f);
             enemy.m_BoundsMax              = Util::GameFieldToScreen(352.0f, 144.0f);
-            SetBossPoses(enemy);
-            SetDeathEffects(enemy, 671, 676);
+            SetMeilingBossPoses(enemy);
+            ScriptUtil::SetDeathEffects(enemy, 671, 676);
             break;
 
-        case 17:
+        case SUB_MEILING_ENTRY:
             ctx.anm.SetScript(enemy.m_Vm, offset + 64, offset);
             enemy.m_Pos              = Util::GameFieldToScreen(352.0f, -96.0f);
             enemy.m_HitboxSize       = {56.0f, 56.0f};
@@ -627,9 +629,9 @@ void Stage3Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_BossLifeCount    = 2;
             enemy.m_BoundsMin        = Util::GameFieldToScreen(32.0f, 48.0f);
             enemy.m_BoundsMax        = Util::GameFieldToScreen(352.0f, 144.0f);
-            enemy.m_DeathCallbackSub = 34;
-            SetBossPoses(enemy);
-            SetDeathEffects(enemy, 671, 676);
+            enemy.m_DeathCallbackSub = SUB_MEILING_DEATH;
+            SetMeilingBossPoses(enemy);
+            ScriptUtil::SetDeathEffects(enemy, 671, 676);
             break;
 
         default:
@@ -671,25 +673,25 @@ void Stage3Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             RunWhiteRandomBalls(enemy, ctx, t);
             break;
 
-        case 9:
+        case SUB_MEILING_MIDBOSS_MAIN:
             if (t == 0) ctx.StartLerpTo(enemy, 192.0f, 150.0f, 100);
             if (t == 100) enemy.m_CanTakeDamage = true;
             if (t >= 130) RunMeilingMidbossPattern(enemy, ctx, t - 130);
             break;
 
-        case 13:
-        case 14:
+        case SUB_MEILING_MIDBOSS_SPELL_A:
+        case SUB_MEILING_MIDBOSS_SPELL_B:
             RunMeilingMidbossSpell(enemy, ctx, t);
             break;
 
-        case 15:
+        case SUB_MEILING_MIDBOSS_DEATH:
             if (t == 0) {
                 ctx.items.SpawnItem(enemy.m_Pos, ItemType::Life);
-                ctx.TransitionToSub(enemy, 16);
+                ctx.TransitionToSub(enemy, SUB_MEILING_MIDBOSS_ESCAPE);
             }
             break;
 
-        case 16:
+        case SUB_MEILING_MIDBOSS_ESCAPE:
             if (t == 0) {
                 enemy.m_CanTakeDamage = false;
                 enemy.m_ShowSpellName = false;
@@ -702,70 +704,70 @@ void Stage3Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t == 190) enemy.m_Alive = false;
             break;
 
-        case 25:
+        case SUB_MEILING_SUPPORT_FAIRY:
             RunMeilingSupportFairy(enemy, ctx, t);
             break;
 
-        case 17:
+        case SUB_MEILING_ENTRY:
             if (t == 0) ctx.StartLerpTo(enemy, 192.0f, 150.0f, 100);
-            if (t == 120) ctx.TransitionToSub(enemy, 18);
+            if (t == 120) ctx.TransitionToSub(enemy, SUB_MEILING_FIRST_NONSPELL);
             break;
 
-        case 18:
+        case SUB_MEILING_FIRST_NONSPELL:
             if (t == 0) {
-                StartNonSpellPhase(enemy, ctx, 14000, 2, 1800, 29, 20);
+                StartNonSpellPhase(enemy, ctx, 14000, 2, 1800, SUB_MEILING_RAINBOW_WIND_CHIME, SUB_MEILING_SECOND_NONSPELL);
                 enemy.m_LifeCallbackThreshold = 1900;
-                enemy.m_LifeCallbackSub       = 29;
+                enemy.m_LifeCallbackSub       = SUB_MEILING_RAINBOW_WIND_CHIME;
                 enemy.m_CanTakeDamage = true;
             }
             if (t >= 50) RunMeilingFirstNonSpell(enemy, ctx, t);
             break;
 
-        case 29:
+        case SUB_MEILING_RAINBOW_WIND_CHIME:
             if (t == 0) {
-                StartSpellPhase(enemy, ctx, "Rainbow Wind Chime", 2, 1800, 20);
+                StartSpellPhase(enemy, ctx, "Rainbow Wind Chime", 2, 1800, SUB_MEILING_SECOND_NONSPELL);
                 enemy.m_LockedShotAngle = 0.87266463f;
             }
             RunRainbowWindChimeSpell(enemy, ctx, t);
             break;
 
-        case 20:
+        case SUB_MEILING_SECOND_NONSPELL:
             if (t == 0) {
-                StartNonSpellPhase(enemy, ctx, 12000, 1, 2400, 26, 26);
+                StartNonSpellPhase(enemy, ctx, 12000, 1, 2400, SUB_MEILING_FINAL_NONSPELL, SUB_MEILING_FINAL_NONSPELL);
                 enemy.m_LifeCallbackThreshold = -1;
                 enemy.m_LifeCallbackSub       = -1;
-                DropPowerItems(enemy, ctx, 5);
+                ScriptUtil::DropPowerItems(enemy, ctx, 5);
                 enemy.m_CanTakeDamage = true;
             }
             if (t >= 160) RunMeilingSecondNonSpell(enemy, ctx, t);
             break;
 
-        case 26:
+        case SUB_MEILING_FINAL_NONSPELL:
             if (t == 0) {
-                StartNonSpellPhase(enemy, ctx, 16500, 0, 2400, 31, 34);
+                StartNonSpellPhase(enemy, ctx, 16500, 0, 2400, SUB_MEILING_COLORFUL_RAIN_A, SUB_MEILING_DEATH);
                 enemy.m_LifeCallbackThreshold = 3400;
-                enemy.m_LifeCallbackSub       = 31;
-                DropPowerItems(enemy, ctx, 5);
+                enemy.m_LifeCallbackSub       = SUB_MEILING_COLORFUL_RAIN_A;
+                ScriptUtil::DropPowerItems(enemy, ctx, 5);
                 enemy.m_CanTakeDamage = true;
             }
             if (t >= 160) RunMeilingFinalNonSpell(enemy, ctx, t);
             break;
 
-        case 31:
-        case 32:
+        case SUB_MEILING_COLORFUL_RAIN_A:
+        case SUB_MEILING_COLORFUL_RAIN_B:
             if (t == 0) {
-                StartSpellPhase(enemy, ctx, "Colorful Rain", 0, 2160, 33);
+                StartSpellPhase(enemy, ctx, "Colorful Rain", 0, 2160, SUB_MEILING_EXTREME_TYPHOON);
                 enemy.m_LifeCallbackThreshold = 2000;
-                enemy.m_LifeCallbackSub       = 33;
+                enemy.m_LifeCallbackSub       = SUB_MEILING_EXTREME_TYPHOON;
             }
             RunColorfulRainSpell(enemy, ctx, t);
             break;
 
-        case 33:
+        case SUB_MEILING_EXTREME_TYPHOON:
             RunGorgeousTyphoonSpell(enemy, ctx, t);
             break;
 
-        case 34:
+        case SUB_MEILING_DEATH:
             if (t == 0) {
                 enemy.m_CanTakeDamage = false;
                 enemy.m_InSpellcard   = false;

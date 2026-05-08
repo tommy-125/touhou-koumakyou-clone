@@ -33,11 +33,10 @@ void AsciiTextLine::SetText(const std::string& text, glm::vec2 pos, float scale,
     EnsureCapacity(text.size());
     m_Text = text;
 
-    const float width = text.empty()
-                            ? 0.0f
-                            : (static_cast<float>(text.size() - 1) * ASCII_CHAR_ADVANCE +
-                               ASCII_CHAR_SIZE) *
-                                  scale;
+    const float width =
+        text.empty()
+            ? 0.0f
+            : (static_cast<float>(text.size() - 1) * ASCII_CHAR_ADVANCE + ASCII_CHAR_SIZE) * scale;
     float firstCenterX = pos.x + ASCII_CHAR_SIZE * scale * 0.5f;
     if (align == AsciiTextAlign::Center) {
         firstCenterX = pos.x - width * 0.5f + ASCII_CHAR_SIZE * scale * 0.5f;
@@ -61,7 +60,7 @@ void AsciiTextLine::SetText(const std::string& text, glm::vec2 pos, float scale,
         obj->SetZIndex(m_ZIndex);
 
         m_DrawableChars[i] = false;
-        const auto ch = static_cast<unsigned char>(text[i]);
+        const auto ch      = static_cast<unsigned char>(text[i]);
         if (m_Anm && ch != ' ' && ch >= ASCII_FIRST_CHAR) {
             const int spriteIdx = Anm::ASCII.offset + static_cast<int>(ch) - ASCII_FIRST_CHAR;
             if (spriteIdx >= 0 && spriteIdx < Anm::Manager::MAX_ENTRIES &&
@@ -75,11 +74,11 @@ void AsciiTextLine::SetText(const std::string& text, glm::vec2 pos, float scale,
 }
 
 void AsciiTextLine::SetLayout(glm::vec2 pos, float scale, AsciiTextAlign align) {
-    const float width = m_Text.empty()
-                            ? 0.0f
-                            : (static_cast<float>(m_Text.size() - 1) * ASCII_CHAR_ADVANCE +
-                               ASCII_CHAR_SIZE) *
-                                  scale;
+    const float width =
+        m_Text.empty()
+            ? 0.0f
+            : (static_cast<float>(m_Text.size() - 1) * ASCII_CHAR_ADVANCE + ASCII_CHAR_SIZE) *
+                  scale;
     float firstCenterX = pos.x + ASCII_CHAR_SIZE * scale * 0.5f;
     if (align == AsciiTextAlign::Center) {
         firstCenterX = pos.x - width * 0.5f + ASCII_CHAR_SIZE * scale * 0.5f;

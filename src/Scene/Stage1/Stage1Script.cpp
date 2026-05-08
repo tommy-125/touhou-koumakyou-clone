@@ -4,33 +4,34 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
+#include "Enemy/BossPhaseUtil.hpp"
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
+#include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
 
 namespace {
+namespace ScriptUtil = EnemyScriptUtil;
 
-void SetDeathEffects(Enemy& enemy, int primary, int secondary) {
-    enemy.m_DeathEffectPrimary   = primary;
-    enemy.m_DeathEffectSecondary = secondary;
-}
-
-void SetBossPoses(Enemy& enemy, int defaults, int farLeft, int farRight, int left, int right) {
-    enemy.m_AnmDefault   = defaults;
-    enemy.m_AnmFarLeft   = farLeft;
-    enemy.m_AnmFarRight  = farRight;
-    enemy.m_AnmLeft      = left;
-    enemy.m_AnmRight     = right;
-    enemy.m_AnmMoveState = 0xff;
-}
-
-void StartRandomAttackMove(Enemy& enemy, const EnemySubCtx& ctx, float speed = 3.0f, int frames = 60) {
-    ctx.MoveRandInBounds(enemy);
-    ctx.StartLerpDir(enemy, speed, frames);
-}
-
+constexpr int SUB_MIDBOSS_MAIN         = 8;
+constexpr int SUB_MIDBOSS_ESCAPE       = 7;
+constexpr int SUB_MIDBOSS_DEATH        = 6;
+constexpr int SUB_BOSS_ENTRY           = 10;
+constexpr int SUB_BOSS_PHASE1_INIT     = 11;
+constexpr int SUB_BOSS_PHASE1_ATTACK_A = 12;
+constexpr int SUB_BOSS_PHASE1_ATTACK_B = 13;
+constexpr int SUB_BOSS_PHASE1_ATTACK_C = 14;
+constexpr int SUB_BOSS_PHASE1_ATTACK_D = 15;
+constexpr int SUB_BOSS_PHASE1_SPELL    = 22;
+constexpr int SUB_BOSS_PHASE2_INIT     = 16;
+constexpr int SUB_BOSS_PHASE2_ATTACK_A = 18;
+constexpr int SUB_BOSS_PHASE2_ATTACK_B = 19;
+constexpr int SUB_BOSS_PHASE2_ATTACK_C = 20;
+constexpr int SUB_BOSS_PHASE2_ATTACK_D = 21;
+constexpr int SUB_BOSS_PHASE2_SPELL    = 23;
+constexpr int SUB_BOSS_DEATH           = 17;
 void TransitionToRandomSub(Enemy& enemy, const EnemySubCtx& ctx, int subA, int subB, int subC) {
     const int roll = rand() % 3;
     ctx.TransitionToSub(enemy, roll == 0 ? subA : (roll == 1 ? subB : subC));
@@ -38,14 +39,22 @@ void TransitionToRandomSub(Enemy& enemy, const EnemySubCtx& ctx, int subA, int s
 
 void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int spellBonus,
                      int timerFrames) {
-    ctx.BulletCancelIntoPointItems();
-    enemy.m_CanTakeDamage          = false;
-    enemy.m_InSpellcard            = true;
-    enemy.m_ShowSpellName          = true;
-    enemy.m_BossTitle              = title;
-    enemy.m_SpellcardBonus         = spellBonus;
-    enemy.m_BossTimer              = 0;
-    enemy.m_TimerCallbackThreshold = timerFrames;
+    BossPhaseUtil::StartPhase(enemy, ctx,
+                              {
+                                  title,
+                                  -1,
+                                  enemy.m_BossLifeCount,
+                                  timerFrames,
+                                  enemy.m_DeathCallbackSub,
+                                  enemy.m_DeathCallbackSub,
+                                  -1,
+                                  -1,
+                                  true,
+                                  true,
+                                  spellBonus,
+                                  false,
+                                  true,
+                              });
     ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
 }
 
@@ -60,33 +69,33 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
     int offset = Anm::STG1ENM.offset;
 
     switch (enemy.m_SubId) {
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
         // Regular enemies (small/medium fairies)
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        case 0:  // Small fairy â€” straight-down with angular drift
-        case 1:  // Small fairy â€” single-turn variant
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        case 0:  // Small fairy ??straight-down with angular drift
+        case 1:  // Small fairy ??single-turn variant
             ctx.anm.SetScript(enemy.m_Vm, offset + 0, offset);
             enemy.m_HitboxSize = {28, 28};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
             enemy.m_ItemDrop   = -1;
-            SetDeathEffects(enemy, 670, 678);
+            ScriptUtil::SetDeathEffects(enemy, 670, 678);
             break;
 
-        case 2:  // Medium fairy â€” stops and shoots fan
-        case 3:  // Medium fairy â€” same movement, no shot on Normal
+        case 2:  // Medium fairy ??stops and shoots fan
+        case 3:  // Medium fairy ??same movement, no shot on Normal
             ctx.anm.SetScript(enemy.m_Vm, offset + 3, offset);
             enemy.m_HitboxSize = {28, 28};
             enemy.m_Angle      = Util::HALF_PI;
             enemy.m_Speed      = 2.0f;
             enemy.m_ItemDrop   = 0;
-            SetDeathEffects(enemy, 669, 678);
+            ScriptUtil::SetDeathEffects(enemy, 669, 678);
             break;
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        // Mid-boss (Rumia â€” stg1enm sprite 128, short preview encounter)
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        case 8: {  // Mid-boss main pattern entry
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        // Mid-boss (Rumia ??stg1enm sprite 128, short preview encounter)
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        case SUB_MIDBOSS_MAIN: {  // Mid-boss main pattern entry
             ctx.anm.SetScript(enemy.m_Vm, offset + 128, offset);
             enemy.m_HitboxSize             = {48, 56};
             enemy.m_ItemDrop               = -1;
@@ -95,23 +104,23 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_IsBoss                 = true;
             enemy.m_CanTakeDamage          = false;
             enemy.m_BossMaxLife            = 6000;
-            enemy.m_DeathCallbackSub       = 6;
+            enemy.m_DeathCallbackSub       = SUB_MIDBOSS_DEATH;
             enemy.m_LifeCallbackThreshold  = -1;  // Normal has no mid-boss life callback
             enemy.m_LifeCallbackSub        = -1;
             enemy.m_TimerCallbackThreshold = 1440;
-            enemy.m_TimerCallbackSub       = 7;
+            enemy.m_TimerCallbackSub       = SUB_MIDBOSS_ESCAPE;
             enemy.m_BlocksTimeline         = true;
             enemy.m_BossTitle              = "Rumia";
             enemy.m_BossLifeCount          = 0;
-            SetDeathEffects(enemy, 671, 676);
-            SetBossPoses(enemy, 128, 131, 132, 129, 130);
+            ScriptUtil::SetDeathEffects(enemy, 671, 676);
+            ScriptUtil::SetBossPoses(enemy, 128, 131, 132, 129, 130);
             break;
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        // Boss (Rumia â€” stg1enm2 sprite 128)
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        case 10: {  // Boss entry
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        // Boss (Rumia ??stg1enm2 sprite 128)
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        case SUB_BOSS_ENTRY: {  // Boss entry
             int off2 = Anm::STG1ENM2.offset;
             ctx.anm.SetScript(enemy.m_Vm, off2 + 128, off2);
             enemy.m_HitboxSize       = {48, 56};
@@ -120,10 +129,10 @@ void Stage1Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_Pos              = Util::GameFieldToScreen(320.0f, -32.0f);
             enemy.m_IsBoss           = true;
             enemy.m_CanTakeDamage    = false;
-            enemy.m_DeathCallbackSub = 16;
+            enemy.m_DeathCallbackSub = SUB_BOSS_PHASE2_INIT;
             enemy.m_BossTitle        = "Rumia";
-            SetDeathEffects(enemy, 671, 676);
-            SetBossPoses(enemy, 128, 131, 132, 129, 130);
+            ScriptUtil::SetDeathEffects(enemy, 671, 676);
+            ScriptUtil::SetBossPoses(enemy, 128, 131, 132, 129, 130);
             break;
         }
 
@@ -138,23 +147,23 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
     float dir    = enemy.m_Mirrored ? -1.0f : 1.0f;
 
     switch (enemy.m_SubId) {
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        // Regular enemies (small/medium fairies) â€” Stage waves 1â€“3
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        case 0:  // Small fairy â€” angular drift pattern A
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        // Regular enemies (small/medium fairies) ??Stage waves 1??
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        case 0:  // Small fairy ??angular drift pattern A
             if (t == 40) enemy.m_AngularVelocity = dir * -0.024543693f;
             if (t == 120) enemy.m_AngularVelocity = dir * 0.019634955f;
             if (t == 220) enemy.m_AngularVelocity = 0.0f;
             if (t >= 10000) enemy.m_Alive = false;
             break;
 
-        case 1:  // Small fairy â€” angular drift pattern B
+        case 1:  // Small fairy ??angular drift pattern B
             if (t == 100) enemy.m_AngularVelocity = dir * 0.019634955f;
             if (t == 200) enemy.m_AngularVelocity = 0.0f;
             if (t >= 10000) enemy.m_Alive = false;
             break;
 
-        case 2:  // Medium fairy â€” stops, shoots 7-way fan, re-accelerates
+        case 2:  // Medium fairy ??stops, shoots 7-way fan, re-accelerates
             if (t == 60) {
                 ctx.anm.SetScript(enemy.m_Vm, offset + 5, offset);
                 enemy.m_Speed = 0.0f;
@@ -172,7 +181,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t >= 10000) enemy.m_Alive = false;
             break;
 
-        case 3:  // Medium fairy â€” same movement, no shot on Normal
+        case 3:  // Medium fairy ??same movement, no shot on Normal
             if (t == 60) {
                 ctx.anm.SetScript(enemy.m_Vm, offset + 5, offset);
                 enemy.m_Speed = 0.0f;
@@ -185,10 +194,10 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             if (t >= 10000) enemy.m_Alive = false;
             break;
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        // Mid-boss (Rumia â€” preview encounter)
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        case 8: {  // Mid-boss main pattern (Sub4 scatter waves + Sub5 random + circle3 rings)
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        // Mid-boss (Rumia ??preview encounter)
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        case SUB_MIDBOSS_MAIN: {  // Mid-boss main pattern (Sub4 scatter waves + Sub5 random + circle3 rings)
             auto circle3 = [&](EBulletColor c) {
                 constexpr float s1 = 2.0f, s2 = 1.5f;
                 constexpr int   n = 3;
@@ -245,7 +254,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 7: {  // Mid-boss escape (timer callback from Sub8)
+        case SUB_MIDBOSS_ESCAPE: {  // Mid-boss escape (timer callback from Sub8)
             if (t == 0) {
                 enemy.m_CanTakeDamage = false;
                 enemy.m_ShowSpellName = false;
@@ -264,7 +273,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 6: {  // Mid-boss death (death callback from Sub8)
+        case SUB_MIDBOSS_DEATH: {  // Mid-boss death (death callback from Sub8)
             if (t == 0) {
                 enemy.m_CanTakeDamage = false;
                 enemy.m_ShowSpellName = false;
@@ -284,24 +293,24 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        // Boss (Rumia) â€” Phase 1
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        case 10: {  // Boss entry â€” lerp in, swap sprite, go non-spell
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        // Boss (Rumia) ??Phase 1
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        case SUB_BOSS_ENTRY: {  // Boss entry ??lerp in, swap sprite, go non-spell
             if (t == 0) {
                 ctx.StartLerpTo(enemy, 192.0f, 96.0f, 60);
             }
             if (t == 65) {
                 int off2 = Anm::STG1ENM2.offset;
                 ctx.anm.SetScript(enemy.m_Vm, off2 + 133, off2);
-                ctx.TransitionToSub(enemy, 11);
+                ctx.TransitionToSub(enemy, SUB_BOSS_PHASE1_INIT);
             }
             break;
         }
 
-        case 11: {  // Phase 1 non-spell init (HP 7000, lifeâ†’22 @900, timerâ†’22 @2100)
+        case SUB_BOSS_PHASE1_INIT: {  // Phase 1 non-spell init (HP 7000, life??2 @900, timer??2 @2100)
             if (t == 0) {
-                SetDeathEffects(enemy, 671, 676);
+                ScriptUtil::SetDeathEffects(enemy, 671, 676);
                 enemy.m_CanTakeDamage          = true;
                 enemy.m_ShowSpellName          = false;
                 enemy.m_BossTitle              = "Rumia";
@@ -311,17 +320,17 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_BossMaxLife            = 7000;
                 enemy.m_BossTimer              = 0;
                 enemy.m_LifeCallbackThreshold  = 900;
-                enemy.m_LifeCallbackSub        = 22;
+                enemy.m_LifeCallbackSub        = SUB_BOSS_PHASE1_SPELL;
                 enemy.m_TimerCallbackThreshold = 2100;
-                enemy.m_TimerCallbackSub       = 22;
-                enemy.m_DeathCallbackSub       = 16;
+                enemy.m_TimerCallbackSub       = SUB_BOSS_PHASE1_SPELL;
+                enemy.m_DeathCallbackSub       = SUB_BOSS_PHASE2_INIT;
             }
-            if (t == 100) ctx.TransitionToSub(enemy, 12);
+            if (t == 100) ctx.TransitionToSub(enemy, SUB_BOSS_PHASE1_ATTACK_A);
             break;
         }
 
-        case 12: {  // Phase 1 attack â€” Ball fan stack
-            if (t == 0) StartRandomAttackMove(enemy, ctx);
+        case SUB_BOSS_PHASE1_ATTACK_A: {  // Phase 1 attack ??Ball fan stack
+            if (t == 0) ScriptUtil::StartRandomMove(enemy, ctx);
             if (t >= 12 && t <= 60 && (t - 12) % 8 == 0) {
                 const int burst = (t - 12) / 8;
                 ctx.bullets.SpawnFanStack(
@@ -329,12 +338,12 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                     (burst & 1) == 0 ? EBulletColor::Red : EBulletColor::DarkRed, 1, 10,
                     burst == 0 ? 3.0f : 4.0f, 1.0f, 0.0f, 0.09817477f);
             }
-            if (t == 180) TransitionToRandomSub(enemy, ctx, 13, 14, 15);
+            if (t == 180) TransitionToRandomSub(enemy, ctx, SUB_BOSS_PHASE1_ATTACK_B, SUB_BOSS_PHASE1_ATTACK_C, SUB_BOSS_PHASE1_ATTACK_D);
             break;
         }
 
-        case 13: {  // Phase 1 attack â€” RingBall + Pellet interleaved circles
-            if (t == 0) StartRandomAttackMove(enemy, ctx);
+        case SUB_BOSS_PHASE1_ATTACK_B: {  // Phase 1 attack ??RingBall + Pellet interleaved circles
+            if (t == 0) ScriptUtil::StartRandomMove(enemy, ctx);
             if (t == 60) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                              EBulletColor::Blue, 12, 4.0f);
@@ -363,12 +372,12 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                              EBulletColor::Blue, 12, 2.0f, -0.1308997f);
             }
-            if (t == 228) TransitionToRandomSub(enemy, ctx, 12, 14, 15);
+            if (t == 228) TransitionToRandomSub(enemy, ctx, SUB_BOSS_PHASE1_ATTACK_A, SUB_BOSS_PHASE1_ATTACK_C, SUB_BOSS_PHASE1_ATTACK_D);
             break;
         }
 
-        case 14: {  // Phase 1 attack â€” Rice fan stack + RingBall circle
-            if (t == 0) StartRandomAttackMove(enemy, ctx);
+        case SUB_BOSS_PHASE1_ATTACK_C: {  // Phase 1 attack ??Rice fan stack + RingBall circle
+            if (t == 0) ScriptUtil::StartRandomMove(enemy, ctx);
             if (t == 80) {
                 ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
                                           EBulletColor::Red, 2, 16, 5.0f, 1.0f, 0.0f, 0.06544985f);
@@ -377,13 +386,13 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                              EBulletColor::Blue, 16, 2.0f);
             }
-            if (t == 200) TransitionToRandomSub(enemy, ctx, 13, 12, 15);
+            if (t == 200) TransitionToRandomSub(enemy, ctx, SUB_BOSS_PHASE1_ATTACK_B, SUB_BOSS_PHASE1_ATTACK_A, SUB_BOSS_PHASE1_ATTACK_D);
             break;
         }
 
-        case 15: {  // Phase 1 attack â€” RingBall converging spiral
+        case SUB_BOSS_PHASE1_ATTACK_D: {  // Phase 1 attack ??RingBall converging spiral
             if (t == 0) {
-                StartRandomAttackMove(enemy, ctx);
+                ScriptUtil::StartRandomMove(enemy, ctx);
                 enemy.m_Mirrored = (rand() % 2) == 0;
             }
             if (t >= 0 && t < 32 && t % 2 == 0) {
@@ -394,11 +403,11 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                           EBulletColor::Green, 1, speed, offset, 0.0f);
             }
-            if (t == 124) TransitionToRandomSub(enemy, ctx, 13, 14, 12);
+            if (t == 124) TransitionToRandomSub(enemy, ctx, SUB_BOSS_PHASE1_ATTACK_B, SUB_BOSS_PHASE1_ATTACK_C, SUB_BOSS_PHASE1_ATTACK_A);
             break;
         }
 
-        case 22: {  // Phase 1 spellcard â€” Night Bird (8-group RingBall spirals Ã— 2 passes, then
+        case SUB_BOSS_PHASE1_SPELL: {  // Phase 1 spellcard ??Night Bird (8-group RingBall spirals ? 2 passes, then
                     // move)
             if (t == 0) StartSpellPhase(enemy, ctx, "Night Bird", 2000000, 1500);
             if (t == 120) {
@@ -436,13 +445,13 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        // Boss (Rumia) â€” Phase 2
-        // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-        case 16: {  // Phase 2 entry (HP 7500, lifeâ†’23 @800, timerâ†’23 @1800, deathâ†’17; drops 5
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        // Boss (Rumia) ??Phase 2
+        // ?â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â??â?
+        case SUB_BOSS_PHASE2_INIT: {  // Phase 2 entry (HP 7500, life??3 @800, timer??3 @1800, death??7; drops 5
                     // items)
             if (t == 0) {
-                SetDeathEffects(enemy, 671, 676);
+                ScriptUtil::SetDeathEffects(enemy, 671, 676);
                 enemy.m_CanTakeDamage          = false;
                 enemy.m_InSpellcard            = false;
                 enemy.m_ShowSpellName          = false;
@@ -453,21 +462,21 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 enemy.m_BossMaxLife            = 7500;
                 enemy.m_BossTimer              = 0;
                 enemy.m_LifeCallbackThreshold  = 800;
-                enemy.m_LifeCallbackSub        = 23;
+                enemy.m_LifeCallbackSub        = SUB_BOSS_PHASE2_SPELL;
                 enemy.m_TimerCallbackThreshold = 1800;
-                enemy.m_TimerCallbackSub       = 23;
-                enemy.m_DeathCallbackSub       = 17;
+                enemy.m_TimerCallbackSub       = SUB_BOSS_PHASE2_SPELL;
+                enemy.m_DeathCallbackSub       = SUB_BOSS_DEATH;
                 for (int k = 0; k < 5; k++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
             }
             if (t == 200) {
                 enemy.m_CanTakeDamage = true;
-                ctx.TransitionToSub(enemy, 18);
+                ctx.TransitionToSub(enemy, SUB_BOSS_PHASE2_ATTACK_A);
             }
             break;
         }
 
-        case 18: {  // Phase 2 attack â€” RingBall fan + 6 aimed lasers
-            if (t == 0) StartRandomAttackMove(enemy, ctx);
+        case SUB_BOSS_PHASE2_ATTACK_A: {  // Phase 2 attack ??RingBall fan + 6 aimed lasers
+            if (t == 0) ScriptUtil::StartRandomMove(enemy, ctx);
             if (t == 12) {
                 ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                           EBulletColor::Green, 1, 8, 3.0f, 1.0f, 0.0f, 0.09817477f);
@@ -476,12 +485,12 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.lasers.SpawnAimed(enemy.m_Pos, ctx.playerPos, 500.0f, 16.0f, 120, 60, 14, 16,
                                       120);
             }
-            if (t == 224) TransitionToRandomSub(enemy, ctx, 19, 20, 21);
+            if (t == 224) TransitionToRandomSub(enemy, ctx, SUB_BOSS_PHASE2_ATTACK_B, SUB_BOSS_PHASE2_ATTACK_C, SUB_BOSS_PHASE2_ATTACK_D);
             break;
         }
 
-        case 19: {  // Phase 2 attack â€” Rice + Pellet circles
-            if (t == 0) StartRandomAttackMove(enemy, ctx);
+        case SUB_BOSS_PHASE2_ATTACK_B: {  // Phase 2 attack ??Rice + Pellet circles
+            if (t == 0) ScriptUtil::StartRandomMove(enemy, ctx);
             if (t == 60) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
                                              EBulletColor::Green, 24, 2.0f);
@@ -494,12 +503,12 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.bullets.SpawnCircleAimed(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
                                              EBulletColor::Green, 24, 2.0f);
             }
-            if (t == 240) TransitionToRandomSub(enemy, ctx, 18, 20, 21);
+            if (t == 240) TransitionToRandomSub(enemy, ctx, SUB_BOSS_PHASE2_ATTACK_A, SUB_BOSS_PHASE2_ATTACK_C, SUB_BOSS_PHASE2_ATTACK_D);
             break;
         }
 
-        case 20: {  // Phase 2 attack â€” Rice fan stack Ã— 3
-            if (t == 0) StartRandomAttackMove(enemy, ctx);
+        case SUB_BOSS_PHASE2_ATTACK_C: {  // Phase 2 attack ??Rice fan stack ? 3
+            if (t == 0) ScriptUtil::StartRandomMove(enemy, ctx);
             if (t == 60)
                 ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
                                           EBulletColor::Yellow, 4, 2, 3.0f, 1.0f, 0.0f, 0.5235988f);
@@ -510,13 +519,13 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.bullets.SpawnFanStack(enemy.m_Pos, ctx.playerPos, EBulletType::Rice,
                                           EBulletColor::Yellow, 7, 2, 3.0f, 1.0f, 0.0f,
                                           0.5235988f);
-            if (t == 220) TransitionToRandomSub(enemy, ctx, 19, 18, 21);
+            if (t == 220) TransitionToRandomSub(enemy, ctx, SUB_BOSS_PHASE2_ATTACK_B, SUB_BOSS_PHASE2_ATTACK_A, SUB_BOSS_PHASE2_ATTACK_D);
             break;
         }
 
-        case 21: {  // Phase 2 attack â€” RingBall wider converging spiral
+        case SUB_BOSS_PHASE2_ATTACK_D: {  // Phase 2 attack ??RingBall wider converging spiral
             if (t == 0) {
-                StartRandomAttackMove(enemy, ctx);
+                ScriptUtil::StartRandomMove(enemy, ctx);
                 enemy.m_Mirrored = (rand() % 2) == 0;
             }
             if (t >= 0 && t < 32 && t % 2 == 0) {
@@ -527,11 +536,11 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.bullets.SpawnFanAimed(enemy.m_Pos, ctx.playerPos, EBulletType::RingBall,
                                           EBulletColor::Green, 2, speed, offset, 0.14279966f);
             }
-            if (t == 124) TransitionToRandomSub(enemy, ctx, 19, 20, 18);
+            if (t == 124) TransitionToRandomSub(enemy, ctx, SUB_BOSS_PHASE2_ATTACK_B, SUB_BOSS_PHASE2_ATTACK_C, SUB_BOSS_PHASE2_ATTACK_A);
             break;
         }
 
-        case 23: {  // Phase 2 spellcard â€” Demarcation (3 Rice pairs w/ curve + RingBall spiral)
+        case SUB_BOSS_PHASE2_SPELL: {  // Phase 2 spellcard ??Demarcation (3 Rice pairs w/ curve + RingBall spiral)
             // Each bullet redirects vertically after 40f at speed 1.5 (ECL ins_82 flag 0x40).
             if (t == 0) {
                 StartSpellPhase(enemy, ctx, "Demarcation", 3000000, 1500);
@@ -567,7 +576,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                     // Interleaved aimed attack: the blue RingBall shots threaded between the
                     // Rice circles. This is the section to tune when the "aimed shots between
                     // the rings" looks off.
-                    // Spiral: 2 outer Ã— (12 neg + 12 pos) Ã— every 2f = 96 frames (loopT 180-275)
+                    // Spiral: 2 outer ? (12 neg + 12 pos) ? every 2f = 96 frames (loopT 180-275)
                     int spiralT = loopT - 180;
                     if (spiralT >= 0 && spiralT < 96 && spiralT % 2 == 0) {
                         int   phase  = (spiralT % 48) / 24;  // 0 = neg dir, 1 = pos dir
@@ -590,7 +599,7 @@ void Stage1Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
             break;
         }
 
-        case 17: {  // Boss death â€” clear field, despawn after 60f
+        case SUB_BOSS_DEATH: {  // Boss death ??clear field, despawn after 60f
             if (t == 0) {
                 enemy.m_CanTakeDamage  = false;
                 enemy.m_InSpellcard    = false;

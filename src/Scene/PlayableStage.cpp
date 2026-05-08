@@ -1,6 +1,7 @@
 #include "Scene/PlayableStage.hpp"
 
 #include <memory>
+#include <utility>
 
 #include "Anm/AnmDefs.hpp"
 #include "Scene/TimelineLoader.hpp"
@@ -25,28 +26,29 @@ static float IntroAlpha(int frame) {
 }  // namespace
 
 PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
-                             GameManager gameManager, const char* timelinePath,
-                             std::unique_ptr<IStageScript> script, const std::string& stageNo,
-                             const std::string& stageName, const std::string& songName)
+                             GameManager gameManager, PlayableStageConfig config,
+                             std::unique_ptr<IStageScript> script)
     : m_Character(character),
       m_SpellCard(spellCard),
+      m_Config(std::move(config)),
       m_GameManager(gameManager),
       m_Player(character, spellCard),
       m_StageMenu(m_Renderer) {
     m_IntroAnm.LoadAnm(Anm::ASCII.folder, Anm::ASCII.txt, Anm::ASCII.offset);
 
     m_EnemyManager.SetItemManager(&m_ItemManager);
-    m_EnemyManager.SetTimeline(LoadTimelineFromJson(timelinePath));
+    m_EnemyManager.SetTimeline(LoadTimelineFromJson(m_Config.timelinePath));
     m_EnemyManager.SetScript(std::move(script));
 
-    SetupIntroAsciiLine(m_IntroStageNoLine, stageNo, {INTRO_CENTER_X, 42.0f},
+    SetupIntroAsciiLine(m_IntroStageNoLine, m_Config.stageNo, {INTRO_CENTER_X, 42.0f},
                         INTRO_STAGE_NO_SCALE, Util::AsciiTextAlign::Center,
                         INTRO_STAGE_YELLOW);
-    SetupIntroAsciiLine(m_IntroStageNameLine, stageName, {INTRO_CENTER_X, 16.0f},
+    SetupIntroAsciiLine(m_IntroStageNameLine, m_Config.stageName, {INTRO_CENTER_X, 16.0f},
                         INTRO_STAGE_NAME_SCALE, Util::AsciiTextAlign::Center,
                         INTRO_LIGHT_CYAN);
-    SetupIntroAsciiLine(m_IntroSongLine, songName, INTRO_SONG_POS, INTRO_SONG_SCALE,
+    SetupIntroAsciiLine(m_IntroSongLine, m_Config.songName, INTRO_SONG_POS, INTRO_SONG_SCALE,
                         Util::AsciiTextAlign::Right, INTRO_LIGHT_CYAN);
+    if (m_Config.hasStageClear) m_ClearOverlay.Init();
     UpdateStageIntro();
 }
 
@@ -75,6 +77,41 @@ void PlayableStage::SetBackground(std::unique_ptr<StageBackground> background) {
 
 void PlayableStage::UpdateBackground() {
     if (m_Background) m_Background->Update(m_StageFrame);
+}
+
+void PlayableStage::UpdateFinalBossClearFlow(const BossHudState& bossHud) {
+    if (m_Config.bossSkipFrame >= 0 && m_StageFrame >= m_Config.bossSkipFrame && bossHud.visible) {
+        m_FinalBossWasSeen = true;
+    } else if (m_FinalBossWasSeen && !bossHud.visible) {
+        if (m_Config.hasStageClear) {
+            if (m_FinalBossClearDelay < 0) {
+                m_FinalBossClearDelay = m_Config.bossDeathResultDelay;
+            }
+            if (m_FinalBossClearDelay == 0) {
+                m_ClearOverlay.Start(m_GameManager, m_Config.stageBonus);
+            } else {
+                m_FinalBossClearDelay--;
+            }
+        } else {
+            m_Done = true;
+        }
+    }
+
+    if (!m_FinalBossWasSeen && m_Config.totalFrames >= 0 && m_StageFrame > m_Config.totalFrames) {
+        m_Done = true;
+    }
+}
+
+bool PlayableStage::HandleStageOverlay() {
+    if (!m_ClearOverlay.HasStarted()) return false;
+    m_Renderer.Update();
+    m_Gui.Update(m_GameManager, {}, true);
+    if (m_ClearOverlay.Update()) m_Done = true;
+    return true;
+}
+
+void PlayableStage::OnAfterGameplayFrame(const BossHudState& bossHud) {
+    UpdateFinalBossClearFlow(bossHud);
 }
 
 void PlayableStage::Update() {
@@ -147,4 +184,12 @@ void PlayableStage::Update() {
     UpdateStageIntro();
     m_IntroRenderer.Update();
     OnFrameEnd();
+}
+
+void PlayableStage::OnFrameEnd() {
+    if (m_ClearOverlay.Update()) m_Done = true;
+}
+
+void PlayableStage::OnMenuFrame() {
+    if (m_ClearOverlay.Update()) m_Done = true;
 }
