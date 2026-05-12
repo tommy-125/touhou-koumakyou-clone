@@ -48,6 +48,8 @@ struct EnemyBullet {
     EBulletColor m_Color     = EBulletColor::Gray;
     float     m_Angle        = 0;
     float     m_Speed        = 0;
+    float     m_AngularVelocity = 0.0f;
+    int       m_AngularVelocityFrames = 0;
     glm::vec2 m_HitboxSize   = {5, 5};
     float     m_Acceleration = 0.0f;
     int       m_AccelerationFrames = 0;
@@ -103,11 +105,13 @@ class EnemyBulletManager {
     void SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
                           int count, float speed, float aimOffset = 0.0f, bool useDecay = false,
                           float acceleration = 0.0f, BulletCurve curve = {},
-                          bool rotateWithAngle = false);
+                          bool rotateWithAngle = false, float angularVelocity = 0.0f,
+                          int angularVelocityFrames = 0);
     void SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type, EBulletColor color,
                           int count, float speed, float aimOffset, bool useDecay,
                           float acceleration, int accelerationFrames, BulletCurve curve,
-                          bool rotateWithAngle = false);
+                          bool rotateWithAngle = false, float angularVelocity = 0.0f,
+                          int angularVelocityFrames = 0);
     // CIRCLE: full 360° ring at absolute baseAngle (no player aiming)
     void SpawnCircle(glm::vec2 pos, EBulletType type, EBulletColor color, int count, float speed,
                      float baseAngle = 0.0f, bool useDecay = false,

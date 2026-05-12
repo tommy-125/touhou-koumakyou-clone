@@ -50,7 +50,32 @@ EnemySubCtx EnemyManager::MakeCtx() {
         m_Anm, m_BulletManager, m_LaserManager, *m_Items, m_Renderer, m_PlayerPos,
         [this](int subId, float x, float y, int life, int score, bool mirrored, int itemDrop) {
             return SpawnEnemy(subId, x, y, life, score, mirrored, itemDrop);
-        }};
+        },
+        [this]() { KillAllNonBossEnemies(); }};
+}
+
+void EnemyManager::KillAllNonBossEnemies() {
+    for (auto& enemy : m_Enemies) {
+        if (!enemy.m_Alive || enemy.m_IsBoss) continue;
+
+        SpawnDeathEffect(enemy);
+        if (m_Items) {
+            for (int k = 0; k < enemy.m_ItemDropCount; k++) {
+                if (enemy.m_ItemDrop >= 0) {
+                    m_Items->SpawnItem(enemy.m_Pos, static_cast<ItemType>(enemy.m_ItemDrop));
+                } else if (enemy.m_ItemDrop == -1 && m_RandomItemSpawnIndex++ % 3 == 0) {
+                    m_Items->SpawnItem(enemy.m_Pos, RANDOM_ITEM_TABLE[m_RandomItemTableIndex]);
+                    m_RandomItemTableIndex = (m_RandomItemTableIndex + 1) % 32;
+                }
+            }
+        }
+
+        enemy.m_Alive = false;
+        if (enemy.m_Vm.obj) {
+            m_Renderer.RemoveChild(enemy.m_Vm.obj);
+            enemy.m_Vm.obj = nullptr;
+        }
+    }
 }
 
 void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
@@ -342,7 +367,7 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                 enemy.m_DeathCallbackSub = -1;
                 if (sub >= 0) {
                     enemy.m_SubId           = sub;
-                    enemy.m_FrameTimer      = -1;
+                    enemy.m_FrameTimer      = 0;
                     enemy.m_Life            = 1;
                     enemy.m_Speed           = 0.0f;
                     enemy.m_Acceleration    = 0.0f;
@@ -350,6 +375,16 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                     enemy.m_IsLerping       = false;
                     enemy.m_HitboxSize      = {0.0f, 0.0f};
                     enemy.m_ItemDropCount   = 0;
+
+                    if (m_Script) {
+                        auto ctx = MakeCtx();
+                        m_Script->RunSub(enemy, ctx);
+                    }
+                    if (enemy.m_Alive) enemy.m_FrameTimer = 1;
+                    if (!enemy.m_Alive && enemy.m_Vm.obj) {
+                        m_Renderer.RemoveChild(enemy.m_Vm.obj);
+                        enemy.m_Vm.obj = nullptr;
+                    }
                     continue;
                 }
 

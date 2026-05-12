@@ -16,6 +16,7 @@ struct EnemyLaser {
     float     m_CoreWidth = 0.0f;
     float     m_Speed = 0.0f;
     float     m_Offset = 0.0f;
+    float     m_StartOffset = 0.0f;
 
     // Timing (frames)
     int m_StartTime   = 120;  // grow phase
@@ -25,6 +26,7 @@ struct EnemyLaser {
     int m_HitboxEnd   = 120;
 
     float m_AngularVelocity = 0.0f;
+    int   m_AngularVelocityFrames = -1;
     int   m_Timer           = 0;
     bool  m_Alive           = false;
 

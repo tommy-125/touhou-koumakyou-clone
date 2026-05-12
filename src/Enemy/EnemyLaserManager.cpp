@@ -4,21 +4,57 @@
 #include <cmath>
 
 #include "Item/ItemManager.hpp"
+#include "Util/Math.hpp"
 
 // Compromise: lasers rendered as white rectangles (Util::Image has no tint support).
 
 static constexpr const char WHITE_PNG[] = GA_RESOURCE_DIR "/white.png";
 
+static void RemoveLaserObjects(EnemyLaser& l, Util::Renderer& renderer) {
+    if (l.m_Obj) {
+        renderer.RemoveChild(l.m_Obj);
+        l.m_Obj = nullptr;
+    }
+    if (l.m_CoreObj) {
+        renderer.RemoveChild(l.m_CoreObj);
+        l.m_CoreObj = nullptr;
+    }
+    l.m_Img = nullptr;
+}
+
+static bool LaserSegmentOverlapsGameBounds(glm::vec2 pos, float angle, float startOffset,
+                                           float visibleLength) {
+    if (visibleLength <= 1.0f) return true;
+
+    const glm::vec2 dir = {std::cos(angle), std::sin(angle)};
+    const glm::vec2 a   = pos + dir * startOffset;
+    const glm::vec2 b   = pos + dir * (startOffset + visibleLength);
+    const float margin  = 128.0f;
+    const float minX    = std::min(a.x, b.x);
+    const float maxX    = std::max(a.x, b.x);
+    const float minY    = std::min(a.y, b.y);
+    const float maxY    = std::max(a.y, b.y);
+
+    return maxX >= Util::GAME_BOUNDS_LEFT - margin &&
+           minX <= Util::GAME_BOUNDS_RIGHT + margin &&
+           maxY >= Util::GAME_BOUNDS_TOP - margin &&
+           minY <= Util::GAME_BOUNDS_BOTTOM + margin;
+}
+
 EnemyLaser* EnemyLaserManager::AllocLaser() {
     for (auto& l : m_Lasers) {
         if (!l.m_Alive) return &l;
     }
-    return &m_Lasers[0];  // overwrite oldest
+    EnemyLaser* l = &m_Lasers[m_NextIdx];
+    m_NextIdx = (m_NextIdx + 1) % MAX_LASERS;
+    RemoveLaserObjects(*l, m_Renderer);
+    return l;
 }
 
 static void InitLaser(EnemyLaser* l, glm::vec2 pos, float angle, float length, float maxWidth,
                       int startTime, int duration, int endTime, int hitboxStart, int hitboxEnd,
-                      float angularVelocity, float speed) {
+                      float angularVelocity, float speed, int angularVelocityFrames,
+                      float startOffset) {
     *l                   = EnemyLaser{};
     l->m_Alive           = true;
     l->m_Pos             = pos;
@@ -33,19 +69,20 @@ static void InitLaser(EnemyLaser* l, glm::vec2 pos, float angle, float length, f
     l->m_HitboxStart     = hitboxStart;
     l->m_HitboxEnd       = hitboxEnd;
     l->m_AngularVelocity = angularVelocity;
+    l->m_AngularVelocityFrames = angularVelocityFrames;
     l->m_Speed           = speed;
     l->m_Offset          = 0.0f;
+    l->m_StartOffset     = startOffset;
 }
 
 void EnemyLaserManager::SpawnAimed(glm::vec2 pos, glm::vec2 playerPos, float length, float maxWidth,
                                    int startTime, int duration, int endTime, int hitboxStart,
                                    int hitboxEnd, float speed) {
     EnemyLaser* l = AllocLaser();
-    if (l->m_Obj) m_Renderer.RemoveChild(l->m_Obj);
-    if (l->m_CoreObj) m_Renderer.RemoveChild(l->m_CoreObj);
+    RemoveLaserObjects(*l, m_Renderer);
     float angle = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x);
-    InitLaser(l, pos, angle, length, maxWidth, startTime, duration, endTime, hitboxStart, hitboxEnd,
-              0.0f, speed);
+    InitLaser(l, pos, angle, length, maxWidth, startTime, duration, endTime, hitboxStart,
+              hitboxEnd, 0.0f, speed, -1, 0.0f);
     l->m_Img = std::make_shared<Util::Image>(WHITE_PNG);
     l->m_Obj = std::make_shared<Util::GameObject>(l->m_Img, 3.0f);
     l->m_CoreObj = std::make_shared<Util::GameObject>(l->m_Img, 3.1f);
@@ -57,12 +94,12 @@ void EnemyLaserManager::SpawnAimed(glm::vec2 pos, glm::vec2 playerPos, float len
 
 void EnemyLaserManager::SpawnAtAngle(glm::vec2 pos, float angle, float length, float maxWidth,
                                      int startTime, int duration, int endTime, int hitboxStart,
-                                     int hitboxEnd, float angularVelocity, float speed) {
+                                     int hitboxEnd, float angularVelocity, float speed,
+                                     int angularVelocityFrames, float startOffset) {
     EnemyLaser* l = AllocLaser();
-    if (l->m_Obj) m_Renderer.RemoveChild(l->m_Obj);
-    if (l->m_CoreObj) m_Renderer.RemoveChild(l->m_CoreObj);
-    InitLaser(l, pos, angle, length, maxWidth, startTime, duration, endTime, hitboxStart, hitboxEnd,
-              angularVelocity, speed);
+    RemoveLaserObjects(*l, m_Renderer);
+    InitLaser(l, pos, angle, length, maxWidth, startTime, duration, endTime, hitboxStart,
+              hitboxEnd, angularVelocity, speed, angularVelocityFrames, startOffset);
     l->m_Img = std::make_shared<Util::Image>(WHITE_PNG);
     l->m_Obj = std::make_shared<Util::GameObject>(l->m_Img, 3.0f);
     l->m_CoreObj = std::make_shared<Util::GameObject>(l->m_Img, 3.1f);
@@ -95,48 +132,53 @@ void EnemyLaserManager::Update() {
             l.m_CurWidth = l.m_MaxWidth * (float)(t3 - t) / (float)l.m_EndTime;
         } else {
             l.m_Alive = false;
-            if (l.m_Obj) {
-                m_Renderer.RemoveChild(l.m_Obj);
-                l.m_Obj = nullptr;
-            }
-            if (l.m_CoreObj) {
-                m_Renderer.RemoveChild(l.m_CoreObj);
-                l.m_CoreObj = nullptr;
-            }
-            l.m_Img = nullptr;
+            RemoveLaserObjects(l, m_Renderer);
             continue;
         }
         l.m_CoreWidth = std::max(2.0f, l.m_CurWidth * 0.45f);
 
-        l.m_Angle += l.m_AngularVelocity;
+        if (l.m_AngularVelocityFrames < 0 || l.m_Timer <= l.m_AngularVelocityFrames) {
+            l.m_Angle += l.m_AngularVelocity;
+        }
         l.m_Offset += l.m_Speed;
-        const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_Offset;
-        const float visibleLength = std::min(l.m_Length, std::max(0.0f, endOffset));
-        const float startOffset = std::max(0.0f, endOffset - l.m_Length);
+        const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_StartOffset + l.m_Offset;
+        const float visibleLength =
+            std::min(l.m_Length, std::max(0.0f, endOffset)) - l.m_StartOffset;
+        const float startOffset =
+            l.m_Speed == 0.0f ? l.m_StartOffset : std::max(l.m_StartOffset, endOffset - l.m_Length);
+        const float clampedVisibleLength = std::max(0.0f, visibleLength);
+
+        if (l.m_Speed != 0.0f &&
+            !LaserSegmentOverlapsGameBounds(l.m_Pos, l.m_Angle, startOffset,
+                                            clampedVisibleLength)) {
+            l.m_Alive = false;
+            RemoveLaserObjects(l, m_Renderer);
+            continue;
+        }
 
         if (l.m_Obj) {
             // Center of laser in screen coords, then convert to PTSD
-            float cx = l.m_Pos.x + std::cos(l.m_Angle) * (startOffset + visibleLength * 0.5f);
-            float cy = l.m_Pos.y + std::sin(l.m_Angle) * (startOffset + visibleLength * 0.5f);
+            float cx = l.m_Pos.x + std::cos(l.m_Angle) * (startOffset + clampedVisibleLength * 0.5f);
+            float cy = l.m_Pos.y + std::sin(l.m_Angle) * (startOffset + clampedVisibleLength * 0.5f);
             float px = cx - 320.0f;
             float py = 240.0f - cy;
 
             l.m_Obj->SetVisible(true);
             l.m_Obj->m_Transform.translation = {px, py};
             l.m_Obj->m_Transform.rotation    = -l.m_Angle;
-            l.m_Obj->m_Transform.scale       = {std::max(1.0f, visibleLength) / 4.0f,
+            l.m_Obj->m_Transform.scale       = {std::max(1.0f, clampedVisibleLength) / 4.0f,
                                                 l.m_CurWidth / 4.0f};
         }
         if (l.m_CoreObj) {
-            float cx = l.m_Pos.x + std::cos(l.m_Angle) * (startOffset + visibleLength * 0.5f);
-            float cy = l.m_Pos.y + std::sin(l.m_Angle) * (startOffset + visibleLength * 0.5f);
+            float cx = l.m_Pos.x + std::cos(l.m_Angle) * (startOffset + clampedVisibleLength * 0.5f);
+            float cy = l.m_Pos.y + std::sin(l.m_Angle) * (startOffset + clampedVisibleLength * 0.5f);
             float px = cx - 320.0f;
             float py = 240.0f - cy;
 
             l.m_CoreObj->SetVisible(true);
             l.m_CoreObj->m_Transform.translation = {px, py};
             l.m_CoreObj->m_Transform.rotation    = -l.m_Angle;
-            l.m_CoreObj->m_Transform.scale       = {std::max(1.0f, visibleLength) / 4.0f,
+            l.m_CoreObj->m_Transform.scale       = {std::max(1.0f, clampedVisibleLength) / 4.0f,
                                                     l.m_CoreWidth / 4.0f};
         }
     }
@@ -148,13 +190,16 @@ bool EnemyLaserManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitb
         if (!l.m_Alive) continue;
         // Hitbox active window
         if (l.m_Timer < l.m_HitboxStart) continue;
-        if (l.m_Timer >= l.m_HitboxEnd) continue;
+        const int hitboxEndFrame = l.m_StartTime + l.m_Duration + l.m_EndTime - l.m_HitboxEnd;
+        if (l.m_Timer >= hitboxEndFrame) continue;
         if (l.m_CurWidth < 2.0f) continue;
 
         // OBB point test: rotate player pos into laser local space
-        const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_Offset;
-        const float visibleLength = std::min(l.m_Length, std::max(0.0f, endOffset));
-        const float startOffset = std::max(0.0f, endOffset - l.m_Length);
+        const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_StartOffset + l.m_Offset;
+        const float visibleLength =
+            std::max(0.0f, std::min(l.m_Length, std::max(0.0f, endOffset)) - l.m_StartOffset);
+        const float startOffset =
+            l.m_Speed == 0.0f ? l.m_StartOffset : std::max(l.m_StartOffset, endOffset - l.m_Length);
         const glm::vec2 origin = {
             l.m_Pos.x + std::cos(l.m_Angle) * startOffset,
             l.m_Pos.y + std::sin(l.m_Angle) * startOffset,
@@ -176,15 +221,7 @@ void EnemyLaserManager::ClearAll() {
     for (auto& l : m_Lasers) {
         if (!l.m_Alive) continue;
         l.m_Alive = false;
-        if (l.m_Obj) {
-            m_Renderer.RemoveChild(l.m_Obj);
-            l.m_Obj = nullptr;
-        }
-        if (l.m_CoreObj) {
-            m_Renderer.RemoveChild(l.m_CoreObj);
-            l.m_CoreObj = nullptr;
-        }
-        l.m_Img = nullptr;
+        RemoveLaserObjects(l, m_Renderer);
     }
 }
 
@@ -192,9 +229,11 @@ void EnemyLaserManager::TurnAllLasersIntoPointItems(ItemManager& items) {
     for (auto& l : m_Lasers) {
         if (!l.m_Alive) continue;
 
-        const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_Offset;
-        const float visibleLength = std::min(l.m_Length, std::max(0.0f, endOffset));
-        const float startOffset = std::max(0.0f, endOffset - l.m_Length);
+        const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_StartOffset + l.m_Offset;
+        const float visibleLength =
+            std::max(0.0f, std::min(l.m_Length, std::max(0.0f, endOffset)) - l.m_StartOffset);
+        const float startOffset =
+            l.m_Speed == 0.0f ? l.m_StartOffset : std::max(l.m_StartOffset, endOffset - l.m_Length);
         const glm::vec2 origin = {
             l.m_Pos.x + std::cos(l.m_Angle) * startOffset,
             l.m_Pos.y + std::sin(l.m_Angle) * startOffset,
@@ -209,14 +248,6 @@ void EnemyLaserManager::TurnAllLasersIntoPointItems(ItemManager& items) {
         }
 
         l.m_Alive = false;
-        if (l.m_Obj) {
-            m_Renderer.RemoveChild(l.m_Obj);
-            l.m_Obj = nullptr;
-        }
-        if (l.m_CoreObj) {
-            m_Renderer.RemoveChild(l.m_CoreObj);
-            l.m_CoreObj = nullptr;
-        }
-        l.m_Img = nullptr;
+        RemoveLaserObjects(l, m_Renderer);
     }
 }

@@ -6,8 +6,68 @@
 #include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
 
+namespace {
+
+bool UsesEtama4(EBulletType type) {
+    return type == EBulletType::Bubble;
+}
+
+int BubbleSpriteOffset(EBulletColor color) {
+    switch (color) {
+        case EBulletColor::DarkRed:
+        case EBulletColor::Red:
+            return 1;
+        case EBulletColor::DarkBlue:
+        case EBulletColor::Blue:
+        case EBulletColor::DarkCyan:
+        case EBulletColor::Cyan:
+            return 2;
+        case EBulletColor::DarkPurple:
+        case EBulletColor::Purple:
+            return 3;
+        default:
+            return 0;
+    }
+}
+
+int BulletScriptIdx(EBulletType type) {
+    if (UsesEtama4(type)) return Anm::ETAMA4.offset;
+    return Anm::ETAMA3.offset + static_cast<int>(type);
+}
+
+int BulletSpriteOffset(EBulletType type, EBulletColor color) {
+    if (UsesEtama4(type)) return Anm::ETAMA4.offset + BubbleSpriteOffset(color);
+    return Anm::ETAMA3.offset + static_cast<int>(color);
+}
+
+glm::vec2 BulletHitboxSize(EBulletType type) {
+    switch (type) {
+    case EBulletType::Pellet:
+    case EBulletType::Rice:
+    case EBulletType::Shard:
+        return {4.0f, 4.0f};
+    case EBulletType::Kunai:
+        return {5.0f, 5.0f};
+    case EBulletType::RingBall:
+    case EBulletType::Ball:
+        return {6.0f, 6.0f};
+    case EBulletType::BigBall:
+        return {16.0f, 16.0f};
+    case EBulletType::Fireball:
+        return {11.0f, 11.0f};
+    case EBulletType::Dagger:
+        return {9.0f, 9.0f};
+    case EBulletType::Bubble:
+        return {32.0f, 32.0f};
+    }
+    return {5.0f, 5.0f};
+}
+
+}  // namespace
+
 EnemyBulletManager::EnemyBulletManager() {
     m_Anm.LoadAnm(Anm::ETAMA3.folder, Anm::ETAMA3.txt, Anm::ETAMA3.offset);
+    m_Anm.LoadAnm(Anm::ETAMA4.folder, Anm::ETAMA4.txt, Anm::ETAMA4.offset);
 }
 
 EnemyBullet* EnemyBulletManager::AllocBullet() {
@@ -31,8 +91,8 @@ EnemyBullet* EnemyBulletManager::AllocBullet() {
 void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
                                        EBulletColor color, int count, float speed, float aimOffset,
                                        float spread, bool useDecay, bool rotateWithAngle) {
-    int scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
-    int sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
+    int scriptIdx = BulletScriptIdx(type);
+    int sprOffset = BulletSpriteOffset(type, color);
 
     float aimAngle = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x) + aimOffset;
 
@@ -53,6 +113,7 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
         b->m_Color           = color;
         b->m_Angle           = aimAngle + delta;
         b->m_Speed           = speed;
+        b->m_HitboxSize      = BulletHitboxSize(type);
         b->m_UseDecay        = useDecay;
         b->m_RotateWithAngle = rotateWithAngle;
 
@@ -77,18 +138,20 @@ void EnemyBulletManager::SpawnFanStack(glm::vec2 pos, glm::vec2 playerPos, EBull
 void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
                                           EBulletColor color, int count, float speed,
                                           float aimOffset, bool useDecay, float acceleration,
-                                          BulletCurve curve, bool rotateWithAngle) {
+                                          BulletCurve curve, bool rotateWithAngle,
+                                          float angularVelocity, int angularVelocityFrames) {
     SpawnCircleAimed(pos, playerPos, type, color, count, speed, aimOffset, useDecay, acceleration,
-                     0, curve, rotateWithAngle);
+                     0, curve, rotateWithAngle, angularVelocity, angularVelocityFrames);
 }
 
 void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
                                           EBulletColor color, int count, float speed,
                                           float aimOffset, bool useDecay, float acceleration,
                                           int accelerationFrames, BulletCurve curve,
-                                          bool rotateWithAngle) {
-    int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
-    int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
+                                          bool rotateWithAngle, float angularVelocity,
+                                          int angularVelocityFrames) {
+    int   scriptIdx = BulletScriptIdx(type);
+    int   sprOffset = BulletSpriteOffset(type, color);
     float aimAngle  = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x) + aimOffset;
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
 
@@ -101,6 +164,9 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
         b->m_Color             = color;
         b->m_Angle             = aimAngle + i * step;
         b->m_Speed             = speed;
+        b->m_AngularVelocity   = angularVelocity;
+        b->m_AngularVelocityFrames = angularVelocityFrames;
+        b->m_HitboxSize        = BulletHitboxSize(type);
         b->m_UseDecay          = useDecay;
         b->m_Acceleration      = acceleration;
         b->m_AccelerationFrames = accelerationFrames;
@@ -127,8 +193,8 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
                                      bool rotateWithAngle, glm::vec2 vectorAcceleration,
                                      int vectorAccelerationFrames, int spawnMoveFrames,
                                      float spawnMoveScale, BulletCurve curve) {
-    int   scriptIdx = Anm::ETAMA3.offset + static_cast<int>(type);
-    int   sprOffset = Anm::ETAMA3.offset + static_cast<int>(color);
+    int   scriptIdx = BulletScriptIdx(type);
+    int   sprOffset = BulletSpriteOffset(type, color);
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
 
     for (int i = 0; i < count; i++) {
@@ -140,6 +206,7 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
         b->m_Color     = color;
         b->m_Angle     = baseAngle + i * step;
         b->m_Speed              = speed;
+        b->m_HitboxSize         = BulletHitboxSize(type);
         b->m_UseDecay           = useDecay;
         b->m_Acceleration       = acceleration;
         b->m_AccelerationFrames = accelerationFrames;
@@ -201,6 +268,8 @@ void EnemyBulletManager::FreezeAllBulletsAsWhite() {
 
         b.m_Color                    = EBulletColor::White;
         b.m_Speed                    = 0.0f;
+        b.m_AngularVelocity          = 0.0f;
+        b.m_AngularVelocityFrames    = 0;
         b.m_Acceleration             = 0.0f;
         b.m_AccelerationFrames       = 0;
         b.m_UseDecay                 = false;
@@ -212,8 +281,8 @@ void EnemyBulletManager::FreezeAllBulletsAsWhite() {
         b.m_DecayTimer               = 0;
         b.m_FrozenByPerfectFreeze    = true;
 
-        m_Anm.SetScript(b.m_Vm, Anm::ETAMA3.offset + static_cast<int>(b.m_Type),
-                        Anm::ETAMA3.offset + static_cast<int>(b.m_Color));
+        m_Anm.SetScript(b.m_Vm, BulletScriptIdx(b.m_Type),
+                        BulletSpriteOffset(b.m_Type, b.m_Color));
     }
 }
 
@@ -225,6 +294,8 @@ void EnemyBulletManager::AccelerateFrozenBulletsRandom(float acceleration, int f
         const float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
         b.m_Angle              = r * 2.0f * Util::HALF_PI * 2.0f - Util::HALF_PI * 2.0f;
         b.m_Speed              = 0.0f;
+        b.m_AngularVelocity    = 0.0f;
+        b.m_AngularVelocityFrames = 0;
         b.m_Acceleration       = acceleration;
         b.m_AccelerationFrames = frames;
         b.m_UseDecay           = false;
@@ -276,6 +347,11 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
             b.m_Speed += b.m_Acceleration;
             --b.m_AccelerationFrames;
             effectiveSpeed = b.m_Speed;
+        }
+
+        if (b.m_AngularVelocity != 0.0f && b.m_AngularVelocityFrames > 0) {
+            b.m_Angle += b.m_AngularVelocity;
+            --b.m_AngularVelocityFrames;
         }
 
         // TH06 ex flag 0x40 behavior: within each interval, speed decays linearly to 0;

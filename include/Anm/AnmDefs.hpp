@@ -177,6 +177,12 @@ constexpr Entry ETAMA3 = {
     540 + 200,  // 740
 };
 
+constexpr Entry ETAMA4 = {
+    GA_RESOURCE_DIR "/th06c/th06c_CM_output/etama4",
+    GA_RESOURCE_DIR "/th06c/th06c_CM_output/etama4/etama4.txt",
+    1540,
+};
+
 // ── HUD / front sprites ───────────────────────────────────────────────────────
 constexpr Entry FRONT = {
     GA_RESOURCE_DIR "/th06c/th06c_CM_output/front",

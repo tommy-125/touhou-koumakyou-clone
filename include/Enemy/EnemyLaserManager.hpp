@@ -15,18 +15,20 @@ class EnemyLaserManager {
                     int duration, int endTime, int hitboxStart, int hitboxEnd, float speed = 0.0f);
     void SpawnAtAngle(glm::vec2 pos, float angle, float length, float maxWidth, int startTime,
                       int duration, int endTime, int hitboxStart, int hitboxEnd,
-                      float angularVelocity = 0.0f, float speed = 0.0f);
+                      float angularVelocity = 0.0f, float speed = 0.0f,
+                      int angularVelocityFrames = -1, float startOffset = 0.0f);
     void Update();
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
     void TurnAllLasersIntoPointItems(ItemManager& items);
 
-    static constexpr int MAX_LASERS = 32;
+    static constexpr int MAX_LASERS = 128;
 
    private:
     EnemyLaser* AllocLaser();
 
     std::array<EnemyLaser, MAX_LASERS> m_Lasers{};
+    int                                m_NextIdx = 0;
     Util::Renderer                     m_Renderer;
 };
 

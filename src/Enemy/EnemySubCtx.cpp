@@ -21,6 +21,10 @@ Enemy* EnemySubCtx::SpawnEnemy(int subId, float x, float y, int life, int score,
     return spawnEnemy(subId, x, y, life, score, mirrored, itemDrop);
 }
 
+void EnemySubCtx::KillAllNonBossEnemies() const {
+    if (killAllNonBossEnemies) killAllNonBossEnemies();
+}
+
 void EnemySubCtx::BulletCancelIntoPointItems() const {
     bullets.TurnAllBulletsIntoPointItems(items);
     lasers.TurnAllLasersIntoPointItems(items);
