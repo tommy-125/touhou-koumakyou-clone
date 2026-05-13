@@ -103,6 +103,8 @@ class Select : public Scene {
     bool m_DebugStartStage2 = false;
     bool m_DebugStartStage3 = false;
     bool m_DebugStartStage4 = false;
+    bool m_DebugStartStage5 = false;
+    bool m_DebugStartStage6 = false;
 };
 
 #endif

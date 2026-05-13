@@ -182,6 +182,18 @@ constexpr Entry STG5ENM2 = {
     600,
 };
 
+constexpr Entry STG6ENM = {
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg6enm",
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg6enm/stg6enm.txt",
+    340 + 200,  // 540
+};
+
+constexpr Entry STG6ENM2 = {
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg6enm2",
+    GA_RESOURCE_DIR "/th06c/th06c_ST_output/stg6enm2/stg6enm2.txt",
+    340 + 200,  // 540; local scripts/sprites start at 160.
+};
+
 // ── Enemy bullet sprites ─────────────────────────────────────────────────────
 constexpr Entry ETAMA3 = {
     GA_RESOURCE_DIR "/th06c/th06c_CM_output/etama3",

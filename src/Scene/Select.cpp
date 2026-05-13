@@ -8,6 +8,8 @@
 #include "Scene/Stage2/Stage2.hpp"
 #include "Scene/Stage3/Stage3.hpp"
 #include "Scene/Stage4/Stage4.hpp"
+#include "Scene/Stage5/Stage5.hpp"
+#include "Scene/Stage6/Stage6.hpp"
 #include "Scene/Title.hpp"
 #include "Util/Image.hpp"
 #include "Util/Input.hpp"
@@ -124,6 +126,16 @@ void Select::Update() {
         m_Done             = true;
         return;
     }
+    if (Util::Input::IsKeyDown(Util::Keycode::NUM_5)) {
+        m_DebugStartStage5 = true;
+        m_Done             = true;
+        return;
+    }
+    if (Util::Input::IsKeyDown(Util::Keycode::NUM_6)) {
+        m_DebugStartStage6 = true;
+        m_Done             = true;
+        return;
+    }
 
     switch (m_CurrentState) {
         case SelectState::Difficulty:
@@ -231,6 +243,12 @@ std::unique_ptr<Scene> Select::NextScene() {
     if (m_Done) {
         if (m_DebugStartStage4) {
             return std::make_unique<Stage4>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
+        }
+        if (m_DebugStartStage5) {
+            return std::make_unique<Stage5>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
+        }
+        if (m_DebugStartStage6) {
+            return std::make_unique<Stage6>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
         }
         if (m_DebugStartStage3) {
             return std::make_unique<Stage3>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
