@@ -32,6 +32,7 @@ EnemyManager::EnemyManager() {
 }
 
 void EnemyManager::TurnAllBulletsIntoPointItems() {
+    SetTimeStopped(false);
     if (!m_Items) {
         ClearAllBullets();
         return;
@@ -51,7 +52,17 @@ EnemySubCtx EnemyManager::MakeCtx() {
         [this](int subId, float x, float y, int life, int score, bool mirrored, int itemDrop) {
             return SpawnEnemy(subId, x, y, life, score, mirrored, itemDrop);
         },
-        [this]() { KillAllNonBossEnemies(); }};
+        [this]() { KillAllNonBossEnemies(); },
+        [this](bool stopped) { SetTimeStopped(stopped); },
+        [this]() { m_BulletManager.RedirectTimeStopBullets(m_PlayerPos, 14); }};
+}
+
+void EnemyManager::SetTimeStopped(bool stopped) {
+    m_TimeStopped = stopped;
+    m_BulletManager.SetTimeStopped(stopped);
+    m_LaserManager.SetTimeStopped(stopped);
+    if (m_Items) m_Items->SetTimeStopped(stopped);
+    if (m_GameManager) m_GameManager->timeStopped = stopped;
 }
 
 void EnemyManager::KillAllNonBossEnemies() {
@@ -78,10 +89,22 @@ void EnemyManager::KillAllNonBossEnemies() {
     }
 }
 
+void EnemyManager::DespawnAllNonBossEnemies() {
+    for (auto& enemy : m_Enemies) {
+        if (!enemy.m_Alive || enemy.m_IsBoss) continue;
+
+        enemy.m_Alive = false;
+        if (enemy.m_Vm.obj) {
+            m_Renderer.RemoveChild(enemy.m_Vm.obj);
+            enemy.m_Vm.obj = nullptr;
+        }
+    }
+}
+
 void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
     if (!enemy.m_IsBoss) return;
 
-    enemy.m_BossTimer++;
+    if (!m_TimeStopped) enemy.m_BossTimer++;
 
     if (enemy.m_LifeCallbackThreshold >= 0 && enemy.m_Life < enemy.m_LifeCallbackThreshold) {
         enemy.m_Life                   = enemy.m_LifeCallbackThreshold;
@@ -92,9 +115,7 @@ void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
         enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
         enemy.m_CanTakeDamage          = false;
         TurnAllBulletsIntoPointItems();
-        for (auto& e : m_Enemies) {
-            if (e.m_Alive && !e.m_IsBoss) e.m_Life = 0;
-        }
+        DespawnAllNonBossEnemies();
         enemy.m_SubId      = sub;
         enemy.m_FrameTimer = -1;
         return;
@@ -111,9 +132,7 @@ void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
         enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
         enemy.m_CanTakeDamage          = false;
         ClearAllBullets();
-        for (auto& e : m_Enemies) {
-            if (e.m_Alive && !e.m_IsBoss) e.m_Life = 0;
-        }
+        DespawnAllNonBossEnemies();
         enemy.m_SubId      = sub;
         enemy.m_FrameTimer = -1;
         return;
@@ -235,6 +254,8 @@ void EnemyManager::RunTimeline() {
 }
 
 void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
+    m_GameManager = &gm;
+    gm.timeStopped = m_TimeStopped;
     m_PlayerPos = playerPos;
     RunTimeline();
 
@@ -290,10 +311,10 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
     int totalScore = 0;
     for (auto& enemy : m_Enemies) {
         if (!enemy.m_Alive) continue;
+        if (!enemy.m_CanTakeDamage) continue;
 
         int dmg = player.CalcDamageToEnemy(enemy.m_Pos, enemy.m_HitboxSize);
         if (dmg <= 0) continue;
-        if (enemy.m_IsBoss && !enemy.m_CanTakeDamage) continue;
 
         // TH6: damage capped at 70/frame, hit score = (dmg/5)*10 on capped value,
         // spellcard divides damage by 7 (min 1).
@@ -317,9 +338,7 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
             enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
             enemy.m_CanTakeDamage          = false;
             TurnAllBulletsIntoPointItems();
-            for (auto& e : m_Enemies) {
-                if (e.m_Alive && !e.m_IsBoss) e.m_Life = 0;
-            }
+            DespawnAllNonBossEnemies();
             enemy.m_SubId      = sub;
             enemy.m_FrameTimer = -1;
             continue;
@@ -476,6 +495,7 @@ bool EnemyManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSiz
 }
 
 void EnemyManager::ClearAllBullets() {
+    SetTimeStopped(false);
     m_BulletManager.ClearAll();
     m_LaserManager.ClearAll();
 }

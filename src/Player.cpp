@@ -116,6 +116,11 @@ void Player::UpdateState() {
 void Player::Update(GameManager& gm) {
     m_Power = gm.power;
     m_BombRequested = false;
+    if (gm.timeStopped) {
+        m_Anm.UpdateObjects(m_Vms);
+        m_Renderer.Update();
+        return;
+    }
     UpdateState();
     HandlePlayerInput();
     m_HitboxTopLeft     = m_BodyPos - m_HitboxSize;

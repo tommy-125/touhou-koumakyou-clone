@@ -9,6 +9,7 @@ struct GameManager {
     int power          = 0;  // 0–128
     int graze          = 0;
     int pointItems     = 0;
+    bool timeStopped   = false;
 };
 
 #endif  // GAME_MANAGER_HPP

@@ -25,6 +25,14 @@ void EnemySubCtx::KillAllNonBossEnemies() const {
     if (killAllNonBossEnemies) killAllNonBossEnemies();
 }
 
+void EnemySubCtx::SetTimeStopped(bool stopped) const {
+    if (setTimeStopped) setTimeStopped(stopped);
+}
+
+void EnemySubCtx::RedirectTimeStopBullets() const {
+    if (redirectTimeStopBullets) redirectTimeStopBullets();
+}
+
 void EnemySubCtx::BulletCancelIntoPointItems() const {
     bullets.TurnAllBulletsIntoPointItems(items);
     lasers.TurnAllLasersIntoPointItems(items);

@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Scene/Stage4/Stage4Script.hpp"
+#include "Scene/Stage5/Stage5.hpp"
 #include "Scene/Title.hpp"
 
 namespace {
@@ -34,5 +35,8 @@ Stage4::Stage4(CharacterItem character, SpellCardItem spellCard, GameManager gam
 }
 
 std::unique_ptr<Scene> Stage4::NextScene() {
-    return std::make_unique<Title>();
+    if (ShouldReturnToTitle() || WasGameOver() || !StageClearStarted()) {
+        return std::make_unique<Title>();
+    }
+    return std::make_unique<Stage5>(m_Character, m_SpellCard, m_GameManager);
 }

@@ -130,16 +130,19 @@ class EnemyBulletManager {
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
     void TurnAllBulletsIntoPointItems(ItemManager& items);
+    void SetTimeStopped(bool stopped) { m_TimeStopped = stopped; }
+    void RedirectTimeStopBullets(glm::vec2 playerPos, int maxBullets);
     void FreezeAllBulletsAsWhite();
     void AccelerateFrozenBulletsRandom(float acceleration, int frames);
 
-    static constexpr int MAX_BULLETS = 640;
+    static constexpr int MAX_BULLETS = 2048;
 
    private:
     EnemyBullet* AllocBullet();
 
     std::array<EnemyBullet, MAX_BULLETS> m_Bullets{};
     int                                  m_NextIdx = 0;
+    bool                                 m_TimeStopped = false;
     Anm::Manager                         m_Anm;
     Util::Renderer                       m_Renderer;
 };

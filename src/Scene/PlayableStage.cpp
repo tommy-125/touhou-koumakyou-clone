@@ -40,6 +40,7 @@ PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
     m_EnemyManager.SetItemManager(&m_ItemManager);
     m_EnemyManager.SetTimeline(LoadTimelineFromJson(m_Config.timelinePath));
     m_EnemyManager.SetScript(std::move(script));
+    m_Renderer.AddChild(m_TimeStopMask.GetObj());
 
     SetupIntroAsciiLine(m_IntroStageNoLine, m_Config.stageNo, {INTRO_CENTER_X, 42.0f},
                         INTRO_STAGE_NO_SCALE, Util::AsciiTextAlign::Center,
@@ -51,6 +52,14 @@ PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
                         Util::AsciiTextAlign::Right, INTRO_LIGHT_CYAN);
     if (m_Config.hasStageClear) m_ClearOverlay.Init();
     UpdateStageIntro();
+}
+
+void PlayableStage::UpdateTimeStopMask() {
+    if (m_GameManager.timeStopped != m_TimeStopMaskActive) {
+        m_TimeStopMaskActive = m_GameManager.timeStopped;
+        m_TimeStopMask.Fade(8, m_TimeStopMaskActive ? 0.35f : 0.0f);
+    }
+    m_TimeStopMask.Update();
 }
 
 void PlayableStage::SetupIntroAsciiLine(Util::AsciiTextLine& line, const std::string& text,
@@ -136,6 +145,7 @@ void PlayableStage::Update() {
 
     if (m_StageMenu.IsOpen()) {
         UpdateBackground();
+        UpdateTimeStopMask();
         m_Renderer.Update();
         m_Gui.Update(m_GameManager, m_EnemyManager.GetBossHudState(), false);
         UpdateStageIntro();
@@ -148,16 +158,20 @@ void PlayableStage::Update() {
 
     ++m_StageFrame;
     UpdateBackground();
+    UpdateTimeStopMask();
     m_Renderer.Update();
 
     m_ItemManager.Update(m_Player.GetPos(), m_GameManager);
     m_EnemyManager.Update(m_Player.GetPos(), m_GameManager);
     m_Player.Update(m_GameManager);
-    if (m_Player.TryUseBomb(m_GameManager) || m_Player.IsBombActive()) {
-        m_EnemyManager.ClearAllBullets();
+    if (!m_GameManager.timeStopped) {
+        if (m_Player.TryUseBomb(m_GameManager) || m_Player.IsBombActive()) {
+            m_EnemyManager.ClearAllBullets();
+        }
     }
 
-    int scoreGained = m_EnemyManager.ApplyPlayerBulletDamage(m_Player);
+    int scoreGained =
+        m_GameManager.timeStopped ? 0 : m_EnemyManager.ApplyPlayerBulletDamage(m_Player);
     if (scoreGained > 0) {
         m_GameManager.score += scoreGained;
         if (m_GameManager.score > m_GameManager.highScore)

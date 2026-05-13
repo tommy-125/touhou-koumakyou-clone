@@ -249,6 +249,8 @@ void EnemyBulletManager::SpawnCircleStack(glm::vec2 pos, EBulletType type, EBull
 }
 
 bool EnemyBulletManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {
+    if (m_TimeStopped) return false;
+
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
         float dx = std::abs(b.m_Pos.x - playerPos.x);
@@ -329,6 +331,11 @@ void EnemyBulletManager::TurnAllBulletsIntoPointItems(ItemManager& items) {
 }
 
 void EnemyBulletManager::Update(glm::vec2 playerPos) {
+    if (m_TimeStopped) {
+        m_Renderer.Update();
+        return;
+    }
+
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
 
@@ -417,4 +424,31 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
     }
 
     m_Renderer.Update();
+}
+
+void EnemyBulletManager::RedirectTimeStopBullets(glm::vec2 playerPos, int maxBullets) {
+    int redirected = 0;
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive) continue;
+        if (b.m_Type != EBulletType::Dagger && b.m_Type != EBulletType::Fireball &&
+            b.m_Type != EBulletType::BigBall && b.m_Type != EBulletType::Bubble) {
+            continue;
+        }
+        if ((std::rand() % 4) != 0) continue;
+
+        const glm::vec2 delta = b.m_Pos - playerPos;
+        const float     dist2 = delta.x * delta.x + delta.y * delta.y;
+        if (dist2 > 128.0f * 128.0f) {
+            const float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+            b.m_Angle = Util::HALF_PI * 0.5f + r * Util::HALF_PI;
+        } else {
+            const float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+            b.m_Angle = std::atan2(delta.y, delta.x) + Util::HALF_PI +
+                        (r * 2.0f - 1.0f) * Util::HALF_PI * 2.0f;
+        }
+        b.m_RotateWithAngle = true;
+        if (b.m_Vm.obj) b.m_Vm.rotation = Util::HALF_PI - b.m_Angle;
+        redirected++;
+        if (redirected >= maxBullets) break;
+    }
 }

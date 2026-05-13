@@ -54,34 +54,39 @@ void ItemManager::SpawnItem(glm::vec2 pos, ItemType type, int state) {
 }
 
 void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
+    m_TimeStopped = gm.timeStopped;
+
     for (auto& item : m_Items) {
         if (!item.m_Alive) continue;
 
-        if (item.m_State == 2 && item.m_Timer < 60) {
-            const float t = static_cast<float>(item.m_Timer) / 60.0f;
-            item.m_Pos = item.m_StartPos * (1.0f - t) + item.m_TargetPos * t;
-        } else {
-            if (item.m_State == 1 || (gm.power >= 128 && playerPos.y <= ITEM_AUTOGET_Y)) {
-                glm::vec2 toPlayer = playerPos - item.m_Pos;
-                const float dist = std::max(1.0f, std::sqrt(toPlayer.x * toPlayer.x +
-                                                            toPlayer.y * toPlayer.y));
-                item.m_Vel = toPlayer / dist * 8.0f;
-                item.m_State = 1;
+        if (!m_TimeStopped) {
+            if (item.m_State == 2 && item.m_Timer < 60) {
+                const float t = static_cast<float>(item.m_Timer) / 60.0f;
+                item.m_Pos = item.m_StartPos * (1.0f - t) + item.m_TargetPos * t;
             } else {
-                item.m_Vel.x = 0.0f;
-                if (item.m_Vel.y < ITEM_VEL_INIT_Y) item.m_Vel.y = ITEM_VEL_INIT_Y;
-                if (item.m_Vel.y < ITEM_VEL_MAX_Y)
-                    item.m_Vel.y += ITEM_GRAVITY;
-                else
-                    item.m_Vel.y = ITEM_VEL_MAX_Y;
+                if (item.m_State == 1 || (gm.power >= 128 && playerPos.y <= ITEM_AUTOGET_Y)) {
+                    glm::vec2 toPlayer = playerPos - item.m_Pos;
+                    const float dist = std::max(1.0f, std::sqrt(toPlayer.x * toPlayer.x +
+                                                                toPlayer.y * toPlayer.y));
+                    item.m_Vel = toPlayer / dist * 8.0f;
+                    item.m_State = 1;
+                } else {
+                    item.m_Vel.x = 0.0f;
+                    if (item.m_Vel.y < ITEM_VEL_INIT_Y) item.m_Vel.y = ITEM_VEL_INIT_Y;
+                    if (item.m_Vel.y < ITEM_VEL_MAX_Y)
+                        item.m_Vel.y += ITEM_GRAVITY;
+                    else
+                        item.m_Vel.y = ITEM_VEL_MAX_Y;
+                }
+                item.m_Pos += item.m_Vel;
             }
-            item.m_Pos += item.m_Vel;
+            item.m_Timer++;
         }
 
         item.m_Vm.pos = item.m_Pos;
         m_Anm.UpdateObjects(item.m_Vm);
 
-        item.m_Timer++;
+        if (m_TimeStopped) continue;
 
         float dx = std::abs(item.m_Pos.x - playerPos.x);
         float dy = std::abs(item.m_Pos.y - playerPos.y);

@@ -37,6 +37,7 @@ class ItemManager {
     void SetGameManager(const GameManager* gameManager) { m_GameManager = gameManager; }
     void SpawnItem(glm::vec2 pos, ItemType type, int state = 0);
     void Update(glm::vec2 playerPos, GameManager& gm);
+    void SetTimeStopped(bool stopped) { m_TimeStopped = stopped; }
 
    private:
     static constexpr int MAX_ITEMS = 512;
@@ -47,6 +48,7 @@ class ItemManager {
     Anm::Manager   m_Anm;
     Util::Renderer m_Renderer;
     const GameManager* m_GameManager = nullptr;
+    bool m_TimeStopped = false;
 };
 
 #endif  // ITEM_MANAGER_HPP

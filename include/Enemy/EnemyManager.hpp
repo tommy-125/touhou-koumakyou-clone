@@ -61,6 +61,7 @@ class EnemyManager {
     void        RunTimeline();
     void        UpdateBossCallbacks(Enemy& enemy, GameManager& gm);
     void        KillAllNonBossEnemies();
+    void        DespawnAllNonBossEnemies();
     void        SpawnDeathEffect(const Enemy& enemy);
     void        SpawnEffect(int scriptIdx, const glm::vec2& pos, float zIndex = 0.8f,
                             const glm::vec2& scale = {1.0f, 1.0f});
@@ -68,6 +69,7 @@ class EnemyManager {
     int         GetDeathSecondaryScript(int deathAnm2) const;
     void        UpdateEffects();
     EnemySubCtx MakeCtx();
+    void        SetTimeStopped(bool stopped);
 
     std::array<Enemy, MAX_ENEMIES> m_Enemies{};
     std::array<EffectInstance, MAX_EFFECTS> m_Effects{};
@@ -78,6 +80,8 @@ class EnemyManager {
     EnemyBulletManager m_BulletManager;
     EnemyLaserManager  m_LaserManager;
     ItemManager*       m_Items = nullptr;
+    GameManager*       m_GameManager = nullptr;
+    bool               m_TimeStopped = false;
 
     std::unique_ptr<IStageScript> m_Script;
 

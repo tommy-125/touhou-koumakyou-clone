@@ -110,6 +110,11 @@ void EnemyLaserManager::SpawnAtAngle(glm::vec2 pos, float angle, float length, f
 }
 
 void EnemyLaserManager::Update() {
+    if (m_TimeStopped) {
+        m_Renderer.Update();
+        return;
+    }
+
     for (auto& l : m_Lasers) {
         if (!l.m_Alive) continue;
 
@@ -186,6 +191,8 @@ void EnemyLaserManager::Update() {
 }
 
 bool EnemyLaserManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {
+    if (m_TimeStopped) return false;
+
     for (auto& l : m_Lasers) {
         if (!l.m_Alive) continue;
         // Hitbox active window

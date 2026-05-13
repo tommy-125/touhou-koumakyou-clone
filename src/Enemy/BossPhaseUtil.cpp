@@ -23,7 +23,7 @@ void StartPhase(Enemy& enemy, const EnemySubCtx& ctx, const PhaseConfig& config)
         enemy.m_Life        = config.life;
         enemy.m_BossMaxLife = std::max(1, config.life);
     } else {
-        enemy.m_BossMaxLife = std::max(1, enemy.m_BossMaxLife);
+        enemy.m_BossMaxLife = std::max(1, enemy.m_Life);
     }
 
     if (config.cancelBullets) {

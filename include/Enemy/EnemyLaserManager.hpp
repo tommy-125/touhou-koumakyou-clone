@@ -21,6 +21,7 @@ class EnemyLaserManager {
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
     void TurnAllLasersIntoPointItems(ItemManager& items);
+    void SetTimeStopped(bool stopped) { m_TimeStopped = stopped; }
 
     static constexpr int MAX_LASERS = 128;
 
@@ -29,6 +30,7 @@ class EnemyLaserManager {
 
     std::array<EnemyLaser, MAX_LASERS> m_Lasers{};
     int                                m_NextIdx = 0;
+    bool                               m_TimeStopped = false;
     Util::Renderer                     m_Renderer;
 };
 
