@@ -21,6 +21,11 @@ ItemManager::ItemManager() {
 }
 
 void ItemManager::SpawnItem(glm::vec2 pos, ItemType type, int state) {
+    if ((type == ItemType::PowerSmall || type == ItemType::PowerBig) && m_GameManager &&
+        m_GameManager->power >= 128) {
+        type = ItemType::Point;
+    }
+
     for (int i = 0; i < MAX_ITEMS; i++) {
         int idx = (m_NextIdx + i) % MAX_ITEMS;
 

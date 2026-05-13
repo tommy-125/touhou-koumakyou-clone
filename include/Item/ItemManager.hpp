@@ -34,6 +34,7 @@ struct Item {
 class ItemManager {
    public:
     ItemManager();
+    void SetGameManager(const GameManager* gameManager) { m_GameManager = gameManager; }
     void SpawnItem(glm::vec2 pos, ItemType type, int state = 0);
     void Update(glm::vec2 playerPos, GameManager& gm);
 
@@ -45,6 +46,7 @@ class ItemManager {
 
     Anm::Manager   m_Anm;
     Util::Renderer m_Renderer;
+    const GameManager* m_GameManager = nullptr;
 };
 
 #endif  // ITEM_MANAGER_HPP

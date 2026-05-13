@@ -379,6 +379,7 @@ void RunPatchouliSecondNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
         StartPatchouliPhase(enemy, ctx, "Patchouli Knowledge", 16000, 1, 2400,
                             SUB_PATCHOULI_SYLPHY_HORN_ADV, 1600, false);
+        ScriptUtil::DropPowerItems(enemy, ctx, 8);
         ctx.StartLerpTo(enemy, 192.0f, 128.0f, 120);
     }
     if (t == 120) enemy.m_CanTakeDamage = true;

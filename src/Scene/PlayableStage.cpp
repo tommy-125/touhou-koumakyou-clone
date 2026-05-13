@@ -36,6 +36,7 @@ PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
       m_StageMenu(m_Renderer) {
     m_IntroAnm.LoadAnm(Anm::ASCII.folder, Anm::ASCII.txt, Anm::ASCII.offset);
 
+    m_ItemManager.SetGameManager(&m_GameManager);
     m_EnemyManager.SetItemManager(&m_ItemManager);
     m_EnemyManager.SetTimeline(LoadTimelineFromJson(m_Config.timelinePath));
     m_EnemyManager.SetScript(std::move(script));
