@@ -302,7 +302,7 @@ void RunSideMaid(Enemy& enemy, EnemySubCtx& ctx, int t, int variant) {
         enemy.m_Angle = enemy.m_Mirrored ? PI : 0.0f;
         enemy.m_Speed = 2.5f;
     }
-    const int interval = variant == 11 ? 10 : (variant == 10 ? 30 : 40);
+    const int interval = variant == 11 ? 10 : (variant == 10 ? 30 : (variant == 9 ? 40 : 60));
     if (t % interval != 0) return;
 
     const auto pos = ShootPos(enemy, {0.0f, 0.0f});
@@ -311,6 +311,8 @@ void RunSideMaid(Enemy& enemy, EnemySubCtx& ctx, int t, int variant) {
                                   1.5f, 0.0f, 0.2617994f, false, true);
     } else if (variant == 11) {
         SpawnRandomCircle(pos, ctx, EBulletType::Ball, EBulletColor::Red, 4, 1.0f, 2.3f);
+    } else if (variant == 1) {
+        SpawnRandomCircle(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 6, 0.8f, 1.8f);
     } else {
         ctx.bullets.SpawnFanAimed(pos, ctx.playerPos, EBulletType::Pellet, EBulletColor::Blue, 6,
                                   1.5f, 0.0f, 0.19634955f);
