@@ -92,6 +92,20 @@ void SpawnRandomCircle(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulle
     }
 }
 
+void SpawnRandomArc(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulletColor color,
+                    int count, int stacks, float speed1, float speed2, float minAngle,
+                    float maxAngle, bool rotate = false) {
+    for (int s = 0; s < stacks; s++) {
+        const float lerp  = stacks <= 1 ? 0.0f : static_cast<float>(s) / (stacks - 1);
+        const float speed = speed1 + (speed2 - speed1) * lerp;
+        for (int i = 0; i < count; i++) {
+            ctx.bullets.SpawnCircle(pos, type, color, 1, speed,
+                                    ScriptUtil::RandFloat(minAngle, maxAngle), false, 0.0f, 0,
+                                    rotate);
+        }
+    }
+}
+
 void SpawnAimedCircleStack(EnemySubCtx& ctx, glm::vec2 pos, EBulletType type, EBulletColor color,
                            int count, int stacks, float speed1, float speed2,
                            float aimOffset = 0.0f, bool rotate = false) {
@@ -266,32 +280,37 @@ void RunTopMaid(Enemy& enemy, EnemySubCtx& ctx, int t, EBulletColor color, bool 
         enemy.m_Speed = 2.0f;
     }
     if (t == 40) enemy.m_Acceleration = -0.06666667f;
-    if (t == 70) {
-        enemy.m_Acceleration = 0.0f;
-        const int bursts     = dense ? 5 : 8;
-        for (int i = 0; i < bursts; i++) {
-            const int   fireT = 70 + i * (dense ? 4 : 5);
-            const float speed = 1.5f + i * (dense ? 0.55f : 0.38f);
-            if (t == fireT) {
-                ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
-                                             color, dense ? 24 : 30, speed, 0.0f, false);
-            }
+    if (t == 70) enemy.m_Acceleration = 0.0f;
+
+    if (dense) {
+        if (t >= 70 && t < 90 && (t - 70) % 4 == 0) {
+            const int   step  = (t - 70) / 4;
+            const float speed = 1.5f + step * 0.55f;
+            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
+                                         color, 24, speed, 0.0f, false);
+        }
+    } else if (randomFan) {
+        if (t >= 70 && t < 90 && (t - 70) % 5 == 0) {
+            const int   step  = (t - 70) / 5;
+            const float speed = 1.5f + step * 0.2f;
+            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
+                                         color, 24, speed, 0.1308997f, false);
+        } else if (t >= 90 && t < 110 && (t - 90) % 5 == 0) {
+            const int   step  = (t - 90) / 5;
+            const float speed = 2.3f + step * 0.25f;
+            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
+                                         color, 24, speed, 0.0f, false);
+        }
+    } else {
+        if (t >= 70 && t < 110 && (t - 70) % 5 == 0) {
+            const int   step  = (t - 70) / 5;
+            const float speed = 1.5f + step * 0.38f;
+            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
+                                         color, 30, speed, 0.0f, false);
         }
     }
-    if (t > 70 && t < 115 && ((dense && (t - 70) % 4 == 0) || (!dense && (t - 70) % 5 == 0))) {
-        const int   step  = (t - 70) / (dense ? 4 : 5);
-        const float speed = 1.5f + step * (dense ? 0.55f : 0.38f);
-        if (step < (dense ? 5 : 8)) {
-            if (randomFan) {
-                ctx.bullets.SpawnFanAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
-                                          color, 24, speed, 0.1308997f, 0.0f);
-            } else {
-                ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
-                                             color, dense ? 24 : 30, speed, 0.0f, false);
-            }
-        }
-    }
-    if (t == 115) {
+
+    if (t == (dense ? 90 : 110)) {
         enemy.m_Angle = Util::HALF_PI;
         enemy.m_Speed = 1.8f;
     }
@@ -310,9 +329,11 @@ void RunSideMaid(Enemy& enemy, EnemySubCtx& ctx, int t, int variant) {
         ctx.bullets.SpawnFanAimed(pos, ctx.playerPos, EBulletType::Kunai, EBulletColor::Red, 4,
                                   1.5f, 0.0f, 0.2617994f, false, true);
     } else if (variant == 11) {
-        SpawnRandomCircle(pos, ctx, EBulletType::Ball, EBulletColor::Red, 4, 1.0f, 2.3f);
+        SpawnRandomArc(pos, ctx, EBulletType::Ball, EBulletColor::Red, 4, 1, 1.5f, 1.5f,
+                       -PI, PI);
     } else if (variant == 1) {
-        SpawnRandomCircle(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 6, 0.8f, 1.8f);
+        SpawnRandomArc(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 3, 2, 1.8f, 0.8f,
+                       enemy.m_Mirrored ? -PI : 0.0f, enemy.m_Mirrored ? 0.0f : PI);
     } else {
         ctx.bullets.SpawnFanAimed(pos, ctx.playerPos, EBulletType::Pellet, EBulletColor::Blue, 6,
                                   1.5f, 0.0f, 0.19634955f);
@@ -327,7 +348,7 @@ void RunRingMaid(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 40) enemy.m_Acceleration = -0.06666667f;
     if (t == 70) enemy.m_Acceleration = 0.0f;
     if (t >= 70 && t < 190 && (t - 70) % 3 == 0) {
-        const float angle = ScriptUtil::RandFloat(3.5342917f, 5.9269907f);
+        const float angle = ScriptUtil::RandFloat(-0.3926991f, 3.5342917f);
         const float speed = ScriptUtil::RandFloat(1.0f, 2.0f);
         const auto  aim   = ShootPos(enemy) + glm::vec2{std::cos(angle), std::sin(angle)};
         ctx.bullets.SpawnFanAimed(ShootPos(enemy), aim, EBulletType::RingBall, EBulletColor::Blue,
@@ -574,8 +595,10 @@ void Stage5Script::InitSub(Enemy& enemy, EnemySubCtx& ctx) {
             enemy.m_HitboxSize = {28.0f, 28.0f};
             if (enemy.m_SubId == 2) {
                 enemy.m_DeathCallbackSub = SUB_MAID_DROP_4;
+                enemy.m_ItemDropCount    = 0;
             } else if (enemy.m_SubId >= 3 && enemy.m_SubId <= 5) {
                 enemy.m_DeathCallbackSub = SUB_MAID_DROP_6;
+                enemy.m_ItemDropCount    = 0;
             }
             ScriptUtil::SetDeathEffects(enemy, 670, 678);
             break;
