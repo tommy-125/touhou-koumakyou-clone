@@ -171,26 +171,6 @@ void SpawnSecondNonspellHelpers(Enemy& enemy, EnemySubCtx& ctx) {
     SpawnSakuyaHelper(enemy, ctx, SUB_SAKUYA_KUNAI_HELPER_4);
 }
 
-void SpawnTimeStopKnifeLattice(Enemy& enemy, EnemySubCtx& ctx, int patternPosition) {
-    const glm::vec2 toPlayer = ctx.playerPos - enemy.m_Pos;
-    float base = std::atan2(toPlayer.y, toPlayer.x);
-    if ((patternPosition & 1) != 0) base += PI;
-
-    const glm::vec2 side = {std::cos(base + Util::HALF_PI), std::sin(base + Util::HALF_PI)};
-    const glm::vec2 dir  = {std::cos(base), std::sin(base)};
-    const float sideOffset = (patternPosition & 1) ? -256.0f : 256.0f;
-    const float forwardOffset = 32.0f + static_cast<float>(patternPosition) * 8.0f;
-    const glm::vec2 anchor = enemy.m_Pos + side * sideOffset + dir * forwardOffset;
-
-    for (int i = 0; i < 9; i++) {
-        const float local = -PI / 4.0f + static_cast<float>(i) * (PI / 18.0f);
-        const glm::vec2 pos = anchor + glm::vec2{std::cos(base + local), std::sin(base + local)} *
-                                           96.0f;
-        ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, EBulletColor::DarkPurple, 1, 2.0f,
-                                base + local, false, 0.0f, 0, true);
-    }
-}
-
 void SetBossFieldPosition(Enemy& enemy, float x, float y) {
     enemy.m_Pos       = Util::GameFieldToScreen(x, y);
     enemy.m_IsLerping = false;
@@ -217,6 +197,44 @@ void SpawnMisdirectionOpeningKnives(EnemySubCtx& ctx, glm::vec2 pos) {
 void SpawnMisdirectionDaggerVolley(EnemySubCtx& ctx, glm::vec2 pos) {
     ctx.bullets.SpawnFanStack(pos, ctx.playerPos, EBulletType::Dagger, EBulletColor::DarkPurple,
                               11, 4, 4.5f, 1.2f, 0.0f, 0.20943952f, true);
+}
+
+void SpawnSakuyaDisappearRice(EnemySubCtx& ctx, glm::vec2 pos) {
+    SpawnRandomCircle(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 128, 1.2f, 4.0f);
+}
+
+void SpawnSakuyaLunaClockRing(EnemySubCtx& ctx, glm::vec2 pos) {
+    ctx.bullets.SpawnCircle(pos, EBulletType::Rice, EBulletColor::Blue, 32, 3.0f, RandAngle());
+    ctx.bullets.SpawnCircle(pos, EBulletType::Rice, EBulletColor::Blue, 32, 2.2f,
+                            RandAngle() + 0.19634955f);
+}
+
+void SpawnFinalNonspellDaggerBurst(EnemySubCtx& ctx, glm::vec2 pos, EBulletColor color,
+                                   float turn) {
+    for (int i = 0; i < 8; i++) {
+        ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, color, 5, 1.8f,
+                                RandAngle() + turn * static_cast<float>(i) * 0.09817477f,
+                                false, 0.0f, 0, true);
+        ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, color, 5, 1.2f,
+                                RandAngle() + turn * static_cast<float>(i) * 0.09817477f,
+                                false, 0.0f, 0, true);
+    }
+}
+
+void SpawnManipulatingDollPurple(EnemySubCtx& ctx, glm::vec2 pos) {
+    const float aim = std::atan2(ctx.playerPos.y - pos.y, ctx.playerPos.x - pos.x);
+    for (int i = 0; i < 4; i++) {
+        SpawnFanAbsolute(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 4, 2, 2.0f,
+                         1.0f, aim + static_cast<float>(i) * 0.15707964f, 0.15707964f, true);
+    }
+}
+
+void SpawnManipulatingDollRed(EnemySubCtx& ctx, glm::vec2 pos) {
+    const float aim = std::atan2(ctx.playerPos.y - pos.y, ctx.playerPos.x - pos.x);
+    for (int i = 0; i < 5; i++) {
+        SpawnFanAbsolute(ctx, pos, EBulletType::Dagger, EBulletColor::DarkRed, 4, 3, 2.8f,
+                         1.0f, aim - static_cast<float>(i) * 0.07853982f, 0.07853982f, true);
+    }
 }
 
 struct HelperPattern {
@@ -481,18 +499,16 @@ void RunSakuyaNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t, int phase) {
     const auto pos    = ShootPos(enemy);
 
     if (phase == 2) {
-        if (loopT == 0) {
-            for (int i = 0; i < 8; i++) {
-                SpawnDownDaggerRing(ctx, pos, EBulletColor::DarkPurple, 5, 2, 1.8f, 1.2f,
-                                    RandAngle() + i * 0.09817477f);
-            }
+        if (loopT < 40 && loopT % 5 == 0) {
+            SpawnFinalNonspellDaggerBurst(ctx, pos, EBulletColor::DarkPurple, 1.0f);
+        }
+        if (loopT == 60) {
             ScriptUtil::StartRandomMove(enemy, ctx, 2.0f, 50);
         }
-        if (loopT == 120) {
-            for (int i = 0; i < 8; i++) {
-                SpawnDownDaggerRing(ctx, pos, EBulletColor::DarkRed, 6, 2, 2.0f, 1.2f,
-                                    RandAngle() - i * 0.09817477f);
-            }
+        if (loopT >= 120 && loopT < 160 && (loopT - 120) % 5 == 0) {
+            SpawnFinalNonspellDaggerBurst(ctx, pos, EBulletColor::DarkRed, -1.0f);
+        }
+        if (loopT == 160) {
             ScriptUtil::StartRandomMove(enemy, ctx, 2.0f, 50);
         }
         return;
@@ -531,19 +547,14 @@ void RunClockCorpse(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
     const int loopT = (t - 120) % 368;
     const auto pos  = ShootPos(enemy, {0.0f, 0.0f});
-    if (loopT == 24) {
-        SpawnRandomCircle(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 96, 2.8f, 4.0f);
+    if (loopT == 144) {
+        SpawnSakuyaDisappearRice(ctx, pos);
     }
-    if (loopT == 94) {
-        ctx.SetTimeStopped(true);
+    if (loopT == 214) {
         enemy.m_CanTakeDamage = false;
         ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 90);
     }
-    if (loopT >= 94 && loopT < 184 && (loopT - 94) % 9 == 0) {
-        SpawnTimeStopKnifeLattice(enemy, ctx, (loopT - 94) / 9);
-    }
-    if (loopT == 218) {
-        ctx.SetTimeStopped(false);
+    if (loopT == 338) {
         enemy.m_CanTakeDamage = true;
     }
 }
@@ -561,22 +572,17 @@ void RunLunaClock(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
     const int loopT = (t - 120) % 389;
     const auto pos  = ShootPos(enemy, {0.0f, 0.0f});
-    if (loopT == 24) {
-        SpawnDownDaggerRing(ctx, pos, EBulletColor::Blue, 32, 4, 3.0f, 1.2f, 0.0f);
+    if (loopT == 144) {
+        SpawnSakuyaLunaClockRing(ctx, pos);
     }
-    if (loopT == 74) {
-        ctx.SetTimeStopped(true);
+    if (loopT == 194) {
         enemy.m_CanTakeDamage = false;
         ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 60);
     }
-    if (loopT >= 74 && loopT < 134 && (loopT - 74) % 9 == 0) {
-        SpawnTimeStopKnifeLattice(enemy, ctx, (loopT - 74) / 9);
+    if (loopT >= 254 && loopT < 284 && (loopT - 254) % 5 == 0) {
+        SpawnSakuyaLunaClockRing(ctx, ShootPos(enemy, {0.0f, 0.0f}));
     }
-    if (loopT >= 134 && loopT < 164 && (loopT - 134) % 5 == 0) {
-        ctx.RedirectTimeStopBullets();
-    }
-    if (loopT == 169) {
-        ctx.SetTimeStopped(false);
+    if (loopT == 289) {
         enemy.m_CanTakeDamage = true;
     }
 }
@@ -594,23 +600,21 @@ void RunFinalSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
     const int loopT = (t - 120) % 274;
     const auto pos  = ShootPos(enemy, {0.0f, 0.0f});
-    if (loopT == 0) {
-        ctx.bullets.SpawnFanAimed(pos, ctx.playerPos, EBulletType::Dagger,
-                                  EBulletColor::DarkPurple, 4, 2.0f, 0.0f, 0.15707964f, false,
-                                  true);
-        ctx.bullets.SpawnFanAimed(pos, ctx.playerPos, EBulletType::Dagger, EBulletColor::DarkRed,
-                                  4, 2.8f, 0.0f, 0.07853982f, false, true);
+    if (loopT == 0 || loopT == 5 || loopT == 10 || loopT == 15) {
+        SpawnManipulatingDollPurple(ctx, pos);
     }
-    if (loopT == 48) {
-        ctx.SetTimeStopped(true);
+    if (loopT == 25 || loopT == 28 || loopT == 31 || loopT == 34 || loopT == 37) {
+        SpawnManipulatingDollRed(ctx, pos);
+    }
+    if (loopT == 40) {
         enemy.m_CanTakeDamage = false;
         ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 60);
     }
-    if (loopT >= 68 && loopT < 96 && (loopT - 68) % 4 == 0) {
-        ctx.RedirectTimeStopBullets();
+    if (loopT >= 60 && loopT < 88 && (loopT - 60) % 4 == 0) {
+        SpawnRandomCircle(ShootPos(enemy, {0.0f, 0.0f}), ctx, EBulletType::Dagger,
+                          EBulletColor::DarkPurple, 8, 1.2f, 2.2f, true);
     }
-    if (loopT == 126) {
-        ctx.SetTimeStopped(false);
+    if (loopT == 94) {
         enemy.m_CanTakeDamage = true;
     }
 }
