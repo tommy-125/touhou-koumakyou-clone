@@ -333,7 +333,7 @@ void RunSideMaid(Enemy& enemy, EnemySubCtx& ctx, int t, int variant) {
                        -PI, PI);
     } else if (variant == 1) {
         SpawnRandomArc(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 3, 2, 1.8f, 0.8f,
-                       enemy.m_Mirrored ? -PI : 0.0f, enemy.m_Mirrored ? 0.0f : PI);
+                       0.0f, PI);
     } else {
         ctx.bullets.SpawnFanAimed(pos, ctx.playerPos, EBulletType::Pellet, EBulletColor::Blue, 6,
                                   1.5f, 0.0f, 0.19634955f);
