@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <initializer_list>
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
@@ -121,9 +122,33 @@ void SpawnVampireBurst(EnemySubCtx& ctx, glm::vec2 pos, float baseAngle, bool de
                    3.5f, baseAngle - 0.65f, baseAngle + 0.65f);
 }
 
+void SpawnRemiliaOpeningPacket(EnemySubCtx& ctx, glm::vec2 pos, int step) {
+    const float blueBase   = 0.049087387f + step * 0.62831855f;
+    const float bubbleBase = -Util::HALF_PI - step * 0.3926991f;
+    const float purpleBase = step * 0.15707964f + RandFloat(-0.25f, 0.25f);
+
+    SpawnFanAbs(ctx, pos, EBulletType::Ball, EBulletColor::DarkBlue, 3, 1, 1.8f, 1.8f,
+                blueBase, 0.09817477f);
+    SpawnFanAbs(ctx, pos, EBulletType::Bubble, EBulletColor::Gray, 4, 1, 3.5f, 3.5f,
+                bubbleBase, 1.0471976f);
+    SpawnFanAbs(ctx, pos, EBulletType::BigBall, EBulletColor::DarkPurple, 2, 1, 2.5f, 2.5f,
+                purpleBase, 0.7853982f);
+    SpawnFanAbs(ctx, pos, EBulletType::BigBall, EBulletColor::DarkPurple, 2, 1, 2.5f, 2.5f,
+                purpleBase + PI, 0.7853982f);
+}
+
+void SpawnScarletShootVolley(EnemySubCtx& ctx, glm::vec2 pos, std::initializer_list<float> offsets,
+                             bool dense) {
+    const float aim = AimAngle(pos, ctx.playerPos);
+    for (float off : offsets) {
+        SpawnVampireBurst(ctx, pos, aim + off, dense);
+    }
+}
+
 void StartRemiliaPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int life,
                        int lifeCount, int timerFrames, int nextSub, int lifeThreshold,
-                       bool spell) {
+                       bool spell, int deathSub = -1) {
+    const int actualDeathSub = deathSub >= 0 ? deathSub : nextSub;
     BossPhaseUtil::StartPhase(enemy, ctx,
                               {
                                   title,
@@ -131,7 +156,7 @@ void StartRemiliaPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, 
                                   lifeCount,
                                   timerFrames,
                                   nextSub,
-                                  nextSub,
+                                  actualDeathSub,
                                   lifeThreshold,
                                   nextSub,
                                   spell,
@@ -198,18 +223,24 @@ void RunSakuyaMain(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t < 30) return;
     const int loopT = (t - 30) % 151;
     const auto pos  = ShootPos(enemy);
-    if (loopT == 0) {
-        for (int i = 0; i < 10; i++) {
-            SpawnFanAbs(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 8, 1, 3.2f,
-                        3.2f, i * 0.2617994f, 0.28559932f, true);
-        }
+    if (loopT < 48 && loopT % 4 == 0) {
+        SpawnFanAbs(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 8, 1, 3.2f,
+                    3.2f, (loopT / 4) * 0.2617994f, 0.2617994f, true);
+    }
+    if (loopT == 48) {
         ScriptUtil::StartRandomMove(enemy, ctx, 1.5f, 90);
     }
-    if (loopT == 80) {
-        for (int i = 0; i < 10; i++) {
-            SpawnFanAbs(ctx, pos, EBulletType::Kunai, EBulletColor::Red, 4, 2, 2.0f, 1.0f,
-                        PI - i * 0.2617994f, 0.044879895f, true);
-        }
+    if (loopT >= 64 && loopT < 96 && loopT % 2 == 0) {
+        SpawnFanAbs(ctx, pos, EBulletType::Kunai, EBulletColor::Red, 5, 1, 2.5f, 2.5f,
+                    RandAngle(), 0.044879895f, true);
+    }
+    if (loopT >= 98 && loopT < 146 && loopT % 4 == 0) {
+        SpawnFanAbs(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 8, 1, 3.2f,
+                    3.2f, PI - ((loopT - 98) / 4) * 0.2617994f, 0.2617994f, true);
+    }
+    if (loopT >= 132 && loopT < 148 && loopT % 2 == 0) {
+        SpawnFanAbs(ctx, pos, EBulletType::Kunai, EBulletColor::Red, 5, 1, 2.5f, 2.5f,
+                    RandAngle(), 0.044879895f, true);
     }
 }
 
@@ -236,40 +267,40 @@ void RunEternalMeek(Enemy& enemy, EnemySubCtx& ctx, int t) {
     }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
-    const int loopT = (t - 120) % 65;
+    const int loopT = (t - 120) % 8;
     const auto pos  = ShootPos(enemy, {0.0f, 0.0f});
-    if (loopT == 0 || loopT == 18 || loopT == 36) {
-        SpawnRandomArc(ctx, pos, EBulletType::Rice, EBulletColor::Red, 28, 2.0f, 4.2f, -PI, PI);
-        ctx.bullets.SpawnCircle(pos, EBulletType::Ball, EBulletColor::Blue, 12, 4.0f,
-                                RandAngle());
+    if (loopT == 0) {
+        SpawnRandomArc(ctx, pos, EBulletType::Ball, EBulletColor::Blue, 4, 3.0f, 6.0f, 0.0f,
+                       PI);
+        SpawnRandomArc(ctx, pos, EBulletType::Ball, EBulletColor::Blue, 12, 3.0f, 5.0f, -PI,
+                       0.0f);
     }
 }
 
 void RunRemiliaNonSpell1(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
         StartRemiliaPhase(enemy, ctx, "Remilia Scarlet", 13000, 4, 2700, SUB_REMILIA_STAR,
-                          1200, false);
+                          1200, false, SUB_REMILIA_NONSPELL_2);
     }
     if (t < 100) return;
-    const int loopT = (t - 100) % 210;
-    if (loopT == 0 || loopT == 100) {
+    const int loopT = (t - 100) % 720;
+    if (loopT < 256 && loopT % 8 == 0) {
         const auto pos = ShootPos(enemy);
-        for (int i = 0; i < 32; i++) {
-            SpawnFanAbs(ctx, pos, EBulletType::Ball, EBulletColor::DarkBlue, 3, 1, 1.8f, 1.8f,
-                        RandAngle(), 0.09817477f);
-            if (i % 4 == 0) {
-                SpawnFanAbs(ctx, pos, EBulletType::Bubble, EBulletColor::Gray, 4, 1, 3.5f,
-                            3.5f, -Util::HALF_PI - i * 0.3926991f, 1.0471976f);
-            }
-        }
+        SpawnRemiliaOpeningPacket(ctx, pos, loopT / 8);
+    }
+    if (loopT == 256) {
         ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 90);
+    }
+    if (loopT >= 360 && loopT < 616 && loopT % 8 == 0) {
+        const auto pos = ShootPos(enemy);
+        SpawnRemiliaOpeningPacket(ctx, pos, (loopT - 360) / 8);
     }
 }
 
 void RunRemiliaNonSpell2(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
         StartRemiliaPhase(enemy, ctx, "Remilia Scarlet", 15500, 3, 2700, SUB_REMILIA_SCARLET,
-                          1600, false);
+                          1600, false, SUB_REMILIA_NONSPELL_3);
         ScriptUtil::DropPowerItems(enemy, ctx, 12);
     }
     if (t < 60) return;
@@ -289,43 +320,57 @@ void RunRemiliaNonSpell2(Enemy& enemy, EnemySubCtx& ctx, int t) {
 void RunRemiliaNonSpell3(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
         StartRemiliaPhase(enemy, ctx, "Remilia Scarlet", 11000, 2, 2700, SUB_REMILIA_VLAD,
-                          1600, false);
+                          1600, false, SUB_REMILIA_NONSPELL_4);
         ScriptUtil::DropPowerItems(enemy, ctx, 12);
     }
     if (t < 60) return;
     const int loopT = (t - 60) % 298;
     const auto pos  = ShootPos(enemy);
-    if (loopT == 0) {
-        for (int i = 0; i < 30; i++) {
-            ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, EBulletColor::DarkRed, 4, 3.0f,
-                                    RandAngle() + i * 0.09817477f, false, 0.0f, 0, true);
-        }
+    if (loopT < 120 && loopT % 2 == 0) {
+        const float base = RandFloat(-PI, PI) + loopT * 0.049087387f;
+        ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, EBulletColor::DarkRed, 4, 3.0f,
+                                base, false, 0.0f, 0, true);
+    }
+    if (loopT == 120) {
         ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 90);
     }
-    if (loopT == 128) {
-        for (int i = 0; i < 30; i++) {
-            ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, EBulletColor::DarkPurple, 4, 3.0f,
-                                    RandAngle() - i * 0.09817477f, false, 0.0f, 0, true);
-        }
+    if (loopT >= 128 && loopT < 248 && loopT % 2 == 0) {
+        const float base = RandFloat(-PI, PI) - (loopT - 128) * 0.049087387f;
+        ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, EBulletColor::DarkPurple, 4, 3.0f,
+                                base, false, 0.0f, 0, true);
     }
 }
 
 void RunRemiliaNonSpell4(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
         StartRemiliaPhase(enemy, ctx, "Remilia Scarlet", 13000, 1, 3600, SUB_REMILIA_SHOOT,
-                          1300, false);
+                          1300, false, SUB_REMILIA_RED_MAGIC);
         ScriptUtil::DropPowerItems(enemy, ctx, 12);
         SetRemiliaPoses(enemy);
     }
     if (t < 60) return;
     const int loopT = (t - 60) % 360;
     const auto pos  = ShootPos(enemy);
-    if (loopT == 0 || loopT == 120 || loopT == 240) {
-        SpawnAimedStack(ctx, pos, EBulletType::Rice, EBulletColor::Red, 18, 1, 2.2f, 2.2f,
-                        0.18f);
-        SpawnAimedStack(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 13, 2, 3.0f,
-                        1.5f, 0.12f, 0.2f, true);
-        ScriptUtil::StartRandomMove(enemy, ctx, (loopT == 120 ? 7.0f : 4.0f), 30);
+    const int cycle = ((t - 60) / 360) % 3;
+    if (loopT < 240) {
+        if (cycle == 0 && loopT % 8 == 0) {
+            SpawnRandomArc(ctx, pos, EBulletType::Rice, EBulletColor::Red, 15, 2.0f, 2.5f, -PI,
+                           PI);
+        } else if (cycle == 1 && loopT % 16 == 0) {
+            SpawnAimedStack(ctx, pos, EBulletType::Bubble, EBulletColor::Gray, 9, 1, 5.0f,
+                            5.0f, 0.34906584f, 0.0f);
+        } else if (cycle == 2 && loopT % 10 == 0) {
+            ctx.bullets.SpawnCircleAimed(pos, ctx.playerPos, EBulletType::Fireball,
+                                         EBulletColor::DarkRed, 12, 5.0f, 0.0f, false, 0.0f,
+                                         {}, true);
+            ctx.bullets.SpawnCircleAimed(pos, ctx.playerPos, EBulletType::Fireball,
+                                         EBulletColor::DarkRed, 12, 6.0f, 0.0f, false, 0.0f,
+                                         {}, true);
+        }
+    }
+    if (loopT == 0 || loopT == 30 || loopT == 60 || loopT == 90 || loopT == 120 ||
+        loopT == 150 || loopT == 180 || loopT == 210) {
+        ScriptUtil::StartRandomMove(enemy, ctx, (loopT / 30) % 2 == 0 ? 4.0f : 7.0f, 30);
     }
     if (loopT == 270) {
         ctx.bullets.SpawnCircle(pos, EBulletType::Rice, EBulletColor::Red, 48, 2.4f,
@@ -382,15 +427,21 @@ void RunVlad(Enemy& enemy, EnemySubCtx& ctx, int t) {
     }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
-    const int loopT = (t - 120) % 190;
+    const int cycle = (t - 120) / 170;
+    const int loopT = (t - 120) % 170;
     const auto pos  = ShootPos(enemy, {0.0f, 0.0f});
-    if (loopT == 0) {
-        ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, EBulletColor::DarkPurple, 18, 3.0f,
-                                RandAngle(), false, 0.0f, 0, true);
-        SpawnRandomArc(ctx, pos, EBulletType::RingBall, EBulletColor::Red, 24, 1.0f, 3.0f, -PI,
-                       PI);
+    if (loopT < 112 && loopT % 14 == 0) {
+        const int   count = std::min(18, 13 + cycle);
+        const float base  = RandFloat(-PI, PI) + loopT * (cycle % 2 == 0 ? 0.019634955f
+                                                                         : -0.019634955f);
+        ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, EBulletColor::DarkPurple, count, 3.0f,
+                                base, false, 0.0f, 0, true);
+        if (loopT == 0) {
+            SpawnRandomArc(ctx, pos, EBulletType::RingBall, EBulletColor::Red, 18, 1.0f, 3.0f,
+                           -PI, PI);
+        }
     }
-    if (loopT == 60) ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 60);
+    if (loopT == 112) ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 60);
 }
 
 void RunScarletShoot(Enemy& enemy, EnemySubCtx& ctx, int t) {
@@ -404,11 +455,18 @@ void RunScarletShoot(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t < 120) return;
     const int loopT = (t - 120) % 424;
     const auto pos  = ShootPos(enemy, {0.0f, 0.0f});
-    if (loopT == 0 || loopT == 60 || loopT == 270 || loopT == 390) {
-        const float aim = AimAngle(pos, ctx.playerPos);
-        for (float off : {0.0f, 0.7853982f, -0.7853982f, 1.5707964f, -1.5707964f}) {
-            SpawnVampireBurst(ctx, pos, aim + off, false);
-        }
+    if (loopT == 0 || loopT == 60 || loopT == 270) {
+        SpawnScarletShootVolley(ctx, pos, {0.0f, 0.7853982f, -0.7853982f, 1.5707964f,
+                                           -1.5707964f},
+                                false);
+    }
+    if (loopT == 150) {
+        SpawnScarletShootVolley(ctx, pos, {0.0f, 0.07853982f, -0.07853982f}, false);
+    }
+    if (loopT == 300) {
+        SpawnScarletShootVolley(ctx, pos, {0.0f, 1.0471976f, -1.0471976f, 2.0943952f,
+                                           -2.0943952f},
+                                false);
     }
     if (loopT == 60 || loopT == 180) ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 60);
 }
