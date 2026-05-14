@@ -191,6 +191,34 @@ void SpawnTimeStopKnifeLattice(Enemy& enemy, EnemySubCtx& ctx, int patternPositi
     }
 }
 
+void SetBossFieldPosition(Enemy& enemy, float x, float y) {
+    enemy.m_Pos       = Util::GameFieldToScreen(x, y);
+    enemy.m_IsLerping = false;
+    enemy.m_Speed     = 0.0f;
+}
+
+void SpawnMidbossDaggerSweep(EnemySubCtx& ctx, glm::vec2 pos, float baseAngle) {
+    SpawnFanAbsolute(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 8, 1, 3.2f,
+                     3.2f, baseAngle, 0.28559932f, true);
+}
+
+void SpawnMidbossKunaiSweep(EnemySubCtx& ctx, glm::vec2 pos, float baseAngle) {
+    SpawnFanAbsolute(ctx, pos, EBulletType::Kunai, EBulletColor::Red, 4, 2, 2.0f, 1.0f,
+                     baseAngle, 0.044879895f, true);
+}
+
+void SpawnMisdirectionOpeningKnives(EnemySubCtx& ctx, glm::vec2 pos) {
+    ctx.bullets.SpawnCircleAimed(pos, ctx.playerPos, EBulletType::Kunai, EBulletColor::Red, 24,
+                                 3.0f, 0.0f, false, 0.0f, {}, true);
+    ctx.bullets.SpawnCircleAimed(pos, ctx.playerPos, EBulletType::Kunai, EBulletColor::Red, 24,
+                                 1.2f, 0.0f, false, 0.0f, {}, true);
+}
+
+void SpawnMisdirectionDaggerVolley(EnemySubCtx& ctx, glm::vec2 pos) {
+    ctx.bullets.SpawnFanStack(pos, ctx.playerPos, EBulletType::Dagger, EBulletColor::DarkPurple,
+                              11, 4, 4.5f, 1.2f, 0.0f, 0.20943952f, true);
+}
+
 struct HelperPattern {
     float        moveAngle = 0.0f;
     EBulletType type      = EBulletType::Rice;
@@ -368,22 +396,28 @@ void RunMisdirection(Enemy& enemy, EnemySubCtx& ctx, int t) {
         enemy.m_CanTakeDamage = false;
         ctx.SetTimeStopped(false);
         ctx.StartLerpTo(enemy, 192.0f, 112.0f, 120);
+        enemy.m_LockedShotAngle = (std::rand() & 1) ? 1.0f : 0.0f;
     }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
 
     const int loopT = (t - 120) % 248;
-    const auto pos  = ShootPos(enemy);
+    const int cycle = (t - 120) / 248;
+    const bool leftFirst = (((cycle + static_cast<int>(enemy.m_LockedShotAngle)) & 1) == 0);
+
     if (loopT == 0) {
-        SpawnAimedCircleStack(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 24, 2,
-                              2.4f, 1.2f, 0.0f, true);
-        ScriptUtil::StartRandomMove(enemy, ctx, 1.8f, 90);
+        ctx.StartLerpTo(enemy, leftFirst ? 96.0f : 288.0f, 144.0f, 40);
     }
-    if (loopT == 90) {
-        SpawnAimedCircleStack(ctx, pos, EBulletType::Dagger, EBulletColor::DarkRed, 24, 2, 2.2f,
-                              1.0f, 0.15707964f, true);
+    if (loopT < 30 && loopT % 6 == 0) {
+        SpawnMisdirectionOpeningKnives(ctx, ShootPos(enemy, {0.0f, 0.0f}));
     }
-    if (loopT == 160) ctx.StartLerpTo(enemy, 192.0f, 144.0f, 60);
+    if (loopT == 60) {
+        SetBossFieldPosition(enemy, leftFirst ? 288.0f : 96.0f, 96.0f);
+    }
+    if (loopT == 80 || loopT == 98 || loopT == 116) {
+        SpawnMisdirectionDaggerVolley(ctx, ShootPos(enemy, {0.0f, 0.0f}));
+    }
+    if (loopT == 218) SetBossFieldPosition(enemy, 192.0f, 144.0f);
 }
 
 void RunMidbossMain(Enemy& enemy, EnemySubCtx& ctx, int t) {
@@ -403,16 +437,22 @@ void RunMidbossMain(Enemy& enemy, EnemySubCtx& ctx, int t) {
     }
     if (t < 30) return;
 
-    const int loopT = (t - 30) % 211;
-    const auto pos  = ShootPos(enemy);
-    if (loopT == 0) {
-        SpawnAimedCircleStack(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 18, 2,
-                              2.5f, 1.2f, 0.0f, true);
+    const int loopT = (t - 30) % 281;
+    const auto pos  = ShootPos(enemy, {0.0f, -12.0f});
+    if (loopT < 80 && loopT % 8 == 0) {
+        SpawnMidbossDaggerSweep(ctx, pos, (loopT / 8) * 0.31415927f);
+    }
+    if (loopT == 80) {
         ScriptUtil::StartRandomMove(enemy, ctx, 1.5f, 90);
     }
-    if (loopT == 90) {
-        SpawnAimedCircleStack(ctx, pos, EBulletType::Dagger, EBulletColor::DarkRed, 18, 2, 2.4f,
-                              1.2f, 0.15707964f, true);
+    if (loopT >= 80 && loopT < 110 && (loopT - 80) % 3 == 0) {
+        SpawnMidbossKunaiSweep(ctx, pos, PI - ((loopT - 80) / 3) * 0.31415927f);
+    }
+    if (loopT >= 170 && loopT < 250 && (loopT - 170) % 8 == 0) {
+        SpawnMidbossDaggerSweep(ctx, pos, PI - ((loopT - 170) / 8) * 0.31415927f);
+    }
+    if (loopT >= 250 && loopT < 280 && (loopT - 250) % 3 == 0) {
+        SpawnMidbossKunaiSweep(ctx, pos, ((loopT - 250) / 3) * 0.31415927f);
     }
 }
 
@@ -745,15 +785,21 @@ void Stage5Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                 ctx.items.SpawnItem(enemy.m_Pos, ItemType::Life);
                 ScriptUtil::DropPowerItems(enemy, ctx, 10);
                 ctx.BulletCancelIntoPointItems();
-                enemy.m_Alive = false;
+                ctx.TransitionToSub(enemy, SUB_SAKUYA_MIDBOSS_EXIT);
             }
             break;
         case SUB_SAKUYA_MIDBOSS_EXIT:
             if (t == 0) {
                 ctx.SetTimeStopped(false);
                 ctx.BulletCancelIntoPointItems();
-                enemy.m_Alive = false;
+                enemy.m_IsBoss        = false;
+                enemy.m_CanTakeDamage = false;
+                enemy.m_InSpellcard   = false;
+                enemy.m_ShowSpellName = false;
+                enemy.m_HitboxSize    = {0.0f, 0.0f};
             }
+            if (t == 130) ctx.StartLerpTo(enemy, 192.0f, -64.0f, 60);
+            if (t >= 190) enemy.m_Alive = false;
             break;
 
         case SUB_SAKUYA_ENTRY:
