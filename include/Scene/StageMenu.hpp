@@ -13,10 +13,11 @@ class StageMenu {
         ReturnToTitle,
     };
 
-    explicit StageMenu(Util::Renderer& renderer);
+    StageMenu();
 
     void   Toggle();
     Action Update();
+    void   Render();
     bool   IsOpen() const { return m_State != State::Closed; }
 
    private:
@@ -37,7 +38,7 @@ class StageMenu {
     void UpdateInput();
     void ApplySelectionVisuals();
 
-    Util::Renderer& m_Renderer;
+    Util::Renderer  m_Renderer;
     Anm::Manager    m_Anm;
     Util::BlackMask m_Mask = Util::BlackMask(40.0f, 0.0f);
     Anm::Vm         m_Vms[VM_COUNT];

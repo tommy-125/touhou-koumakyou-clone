@@ -177,6 +177,10 @@ void Player::Update(GameManager& gm) {
     gm.power = m_Power;
 }
 
+void Player::Render() {
+    m_Renderer.Update();
+}
+
 void Player::SetMoveScript(PlayerMovementScript script) {
     m_BodyVm->flipX = false;
     m_Anm.SetScript(*m_BodyVm, m_Data->m_AnmEntry->offset + static_cast<int>(script),
@@ -257,8 +261,11 @@ void Player::HandlePlayerInput() {
     HandleMovement();
     m_IsFocus = Util::Input::IsKeyPressed(Util::Keycode::LSHIFT) ? true : false;
 
-    if (Util::Input::IsKeyDown(Util::Keycode::EQUALS) ||
-        Util::Input::IsKeyDown(Util::Keycode::KP_PLUS)) {
+    const bool shiftHeld = Util::Input::IsKeyPressed(Util::Keycode::LSHIFT) ||
+                           Util::Input::IsKeyPressed(Util::Keycode::RSHIFT);
+    const bool lifeDebugShortcutHeld = shiftHeld && Util::Input::IsKeyPressed(Util::Keycode::L);
+    if (!lifeDebugShortcutHeld && (Util::Input::IsKeyDown(Util::Keycode::EQUALS) ||
+                                   Util::Input::IsKeyDown(Util::Keycode::KP_PLUS))) {
         m_Power = std::min(128, m_Power + DEBUG_POWER_STEP);
     }
     if (Util::Input::IsKeyDown(Util::Keycode::MINUS) ||

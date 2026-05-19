@@ -17,6 +17,7 @@ PlayableStageConfig MakeStage4Config() {
         "Voile, the Magic Library",
         "BGM: Voile, the Magic Library",
         STAGE4_FINAL_BOSS_FRAME,
+        -1,
         STAGE4_TOTAL_FRAMES,
         4000,
         true,

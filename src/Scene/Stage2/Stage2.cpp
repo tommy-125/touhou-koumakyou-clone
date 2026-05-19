@@ -17,6 +17,7 @@ PlayableStageConfig MakeStage2Config() {
         "The Lake in the Moonlight",
         "BGM: Lunate Elf",
         STAGE2_FINAL_BOSS_FRAME,
+        -1,
         STAGE2_TOTAL_FRAMES,
         2000,
         true,

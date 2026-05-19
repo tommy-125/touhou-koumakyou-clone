@@ -7,6 +7,7 @@
 #include "Scene/Title.hpp"
 
 namespace {
+static constexpr int STAGE5_MIDBOSS_FRAME   = 3372;
 static constexpr int STAGE5_FINAL_BOSS_FRAME = 7704;
 static constexpr int STAGE5_TOTAL_FRAMES     = 12500;
 
@@ -17,6 +18,7 @@ PlayableStageConfig MakeStage5Config() {
         "The Maid and the Pocket Watch of Blood",
         "BGM: The Maid and the Pocket Watch of Blood",
         STAGE5_FINAL_BOSS_FRAME,
+        STAGE5_MIDBOSS_FRAME,
         STAGE5_TOTAL_FRAMES,
         5000,
         true,

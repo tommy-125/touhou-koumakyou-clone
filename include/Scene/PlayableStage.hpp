@@ -17,7 +17,6 @@
 #include "Scene/StageMenu.hpp"
 #include "Util/Color.hpp"
 #include "Util/AsciiTextLine.hpp"
-#include "Util/BlackMask.hpp"
 #include "Util/GameObject.hpp"
 #include "Util/Renderer.hpp"
 
@@ -27,6 +26,7 @@ struct PlayableStageConfig {
     std::string stageName;
     std::string songName;
     int bossSkipFrame = -1;
+    int midbossSkipFrame = -1;
     int totalFrames = -1;
     int stageBonus = 0;
     bool hasStageClear = false;
@@ -69,10 +69,9 @@ class PlayableStage : public Scene {
     void SetupIntroAsciiLine(Util::AsciiTextLine& line, const std::string& text, glm::vec2 pos,
                              float scale, Util::AsciiTextAlign align,
                              const Util::Color& color);
-    void UpdateTimeStopMask();
+    void HandleDebugShortcuts();
 
     StageMenu                   m_StageMenu;
-    Util::BlackMask             m_TimeStopMask = Util::BlackMask(30.0f, 0.0f);
     Util::Renderer              m_IntroRenderer;
     Anm::Manager                m_IntroAnm;
     Util::AsciiTextLine         m_IntroStageNoLine;
@@ -83,7 +82,6 @@ class PlayableStage : public Scene {
     bool                              m_ReturnToTitle = false;
     bool                              m_GameOver      = false;
     bool                              m_FinalBossWasSeen = false;
-    bool                              m_TimeStopMaskActive = false;
     int                               m_FinalBossClearDelay = -1;
 };
 

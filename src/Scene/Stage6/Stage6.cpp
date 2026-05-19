@@ -16,6 +16,7 @@ PlayableStageConfig MakeStage6Config() {
         "The Young Descendant of Tepes",
         "BGM: The Young Descendant of Tepes",
         STAGE6_FINAL_BOSS_FRAME,
+        -1,
         STAGE6_TOTAL_FRAMES,
         6000,
         true,

@@ -37,6 +37,7 @@ class ItemManager {
     void SetGameManager(const GameManager* gameManager) { m_GameManager = gameManager; }
     void SpawnItem(glm::vec2 pos, ItemType type, int state = 0);
     void Update(glm::vec2 playerPos, GameManager& gm);
+    void Render();
     void SetTimeStopped(bool stopped) { m_TimeStopped = stopped; }
 
    private:

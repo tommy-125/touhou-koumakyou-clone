@@ -146,6 +146,7 @@ class Player {
    public:
     Player(CharacterItem character, SpellCardItem spellCard);
     void             Update(GameManager& gm);
+    void             Render();
     const glm::vec2& GetPos() const { return m_BodyPos; }
     int              CalcDamageToEnemy(glm::vec2 enemyPos, glm::vec2 enemyHitboxSize);
     void             Die();

@@ -14,7 +14,7 @@ static constexpr int GAME_MENU_INPUT_DELAY_FRAMES   = 4;
 static constexpr int GAME_MENU_CLOSE_DELAY_FRAMES   = 20;
 }
 
-StageMenu::StageMenu(Util::Renderer& renderer) : m_Renderer(renderer) {
+StageMenu::StageMenu() {
     m_Anm.LoadAnm(Anm::ASCII.folder, Anm::ASCII.txt, Anm::ASCII.offset);
     m_Renderer.AddChild(m_Mask.GetObj());
 
@@ -47,7 +47,7 @@ void StageMenu::OpenPauseMenu() {
     m_MenuIndex    = 0;
     m_ConfirmIndex = 1;
     m_StateFrames  = 0;
-    m_Mask.Fade(6, 0.45f);
+    m_Mask.Fade(6, 0.25f);
     ShowScripts(0, 3);
     HideScripts(3, 3);
 }
@@ -178,4 +178,8 @@ StageMenu::Action StageMenu::Update() {
     const Action action = m_PendingAction;
     m_PendingAction     = Action::None;
     return action;
+}
+
+void StageMenu::Render() {
+    m_Renderer.Update();
 }

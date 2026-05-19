@@ -38,6 +38,7 @@ class EnemyManager {
     void         SetScript(std::unique_ptr<IStageScript> script);
     void         SetItemManager(ItemManager* items) { m_Items = items; }
     void         Update(const glm::vec2& playerPos, GameManager& gm);
+    void         Render();
     int          ApplyPlayerBulletDamage(Player& player);
     bool         CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void         ClearAllBullets();

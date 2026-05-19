@@ -30,6 +30,31 @@ int BubbleSpriteOffset(EBulletColor color) {
     }
 }
 
+int DaggerSpriteOffset(EBulletColor color) {
+    switch (color) {
+        case EBulletColor::DarkRed:
+        case EBulletColor::Red:
+            return 1;
+        case EBulletColor::DarkPurple:
+        case EBulletColor::Purple:
+            return 3;
+        case EBulletColor::DarkBlue:
+        case EBulletColor::Blue:
+            return 4;
+        case EBulletColor::DarkGreen:
+        case EBulletColor::Green:
+        case EBulletColor::Lime:
+            return 5;
+        case EBulletColor::DarkYellow:
+        case EBulletColor::Yellow:
+            return 6;
+        case EBulletColor::Orange:
+            return 7;
+        default:
+            return 0;
+    }
+}
+
 int BulletScriptIdx(EBulletType type) {
     if (UsesEtama4(type)) return Anm::ETAMA4.offset;
     return Anm::ETAMA3.offset + static_cast<int>(type);
@@ -37,6 +62,7 @@ int BulletScriptIdx(EBulletType type) {
 
 int BulletSpriteOffset(EBulletType type, EBulletColor color) {
     if (UsesEtama4(type)) return Anm::ETAMA4.offset + BubbleSpriteOffset(color);
+    if (type == EBulletType::Dagger) return Anm::ETAMA3.offset + DaggerSpriteOffset(color);
     return Anm::ETAMA3.offset + static_cast<int>(color);
 }
 
@@ -61,6 +87,10 @@ glm::vec2 BulletHitboxSize(EBulletType type) {
         return {32.0f, 32.0f};
     }
     return {5.0f, 5.0f};
+}
+
+bool AutoRotatesWithAngle(EBulletType type) {
+    return type == EBulletType::Rice;
 }
 
 }  // namespace
@@ -115,7 +145,7 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
         b->m_Speed           = speed;
         b->m_HitboxSize      = BulletHitboxSize(type);
         b->m_UseDecay        = useDecay;
-        b->m_RotateWithAngle = rotateWithAngle;
+        b->m_RotateWithAngle = rotateWithAngle || AutoRotatesWithAngle(type);
 
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
@@ -179,7 +209,7 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
         b->m_DirChangeAimAtPlayer = curve.aimAtPlayer;
         b->m_DirChangeStartupFrames = curve.startupFrames;
         b->m_DirChangeStartupSpeedScale = curve.startupSpeedScale;
-        b->m_RotateWithAngle   = rotateWithAngle;
+        b->m_RotateWithAngle   = rotateWithAngle || AutoRotatesWithAngle(type);
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
             m_Renderer.AddChild(b->m_Vm.obj);
@@ -192,7 +222,8 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
                                      float acceleration, int accelerationFrames,
                                      bool rotateWithAngle, glm::vec2 vectorAcceleration,
                                      int vectorAccelerationFrames, int spawnMoveFrames,
-                                     float spawnMoveScale, BulletCurve curve) {
+                                     float spawnMoveScale, BulletCurve curve,
+                                     bool bounceTopAndSides, int bounceMax, float bounceSpeed) {
     int   scriptIdx = BulletScriptIdx(type);
     int   sprOffset = BulletSpriteOffset(type, color);
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
@@ -223,7 +254,10 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
         b->m_DirChangeAimAtPlayer = curve.aimAtPlayer;
         b->m_DirChangeStartupFrames = curve.startupFrames;
         b->m_DirChangeStartupSpeedScale = curve.startupSpeedScale;
-        b->m_RotateWithAngle    = rotateWithAngle;
+        b->m_BounceTopAndSides = bounceTopAndSides;
+        b->m_BounceMax         = bounceMax;
+        b->m_BounceSpeed       = bounceSpeed >= 0.0f ? bounceSpeed : speed;
+        b->m_RotateWithAngle    = rotateWithAngle || AutoRotatesWithAngle(type);
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
         if (b->m_Vm.obj) {
             m_Renderer.AddChild(b->m_Vm.obj);
@@ -332,7 +366,15 @@ void EnemyBulletManager::TurnAllBulletsIntoPointItems(ItemManager& items) {
 
 void EnemyBulletManager::Update(glm::vec2 playerPos) {
     if (m_TimeStopped) {
-        m_Renderer.Update();
+        for (auto& b : m_Bullets) {
+            if (!b.m_Alive) continue;
+            b.m_Vm.pos = b.m_Pos;
+            if (b.m_RotateWithAngle) {
+                b.m_Vm.rotation = Util::HALF_PI - b.m_Angle;
+            }
+            m_Anm.UpdateObjects(b.m_Vm);
+        }
+        Render();
         return;
     }
 
@@ -408,13 +450,32 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
         b.m_Pos.x += dx;
         b.m_Pos.y += dy;
 
+        bool bounced = false;
+        if (b.m_BounceTopAndSides && b.m_BounceCount < b.m_BounceMax &&
+            !Util::IsInGameBounds(b.m_Pos.x, b.m_Pos.y, 0, 0)) {
+            if (b.m_Pos.x < Util::GAME_BOUNDS_LEFT || b.m_Pos.x >= Util::GAME_BOUNDS_RIGHT) {
+                b.m_Angle = -b.m_Angle - Util::HALF_PI * 2.0f;
+                bounced   = true;
+            }
+            if (b.m_Pos.y < Util::GAME_BOUNDS_TOP) {
+                b.m_Angle = -b.m_Angle;
+                bounced   = true;
+            }
+            if (bounced) {
+                b.m_Speed = b.m_BounceSpeed;
+                ++b.m_BounceCount;
+                if (b.m_BounceCount >= b.m_BounceMax) b.m_BounceTopAndSides = false;
+            }
+        }
+
         b.m_Vm.pos = b.m_Pos;
         if (b.m_RotateWithAngle) {
-            b.m_Vm.rotation = Util::HALF_PI - std::atan2(dy, dx);
+            b.m_Vm.rotation = bounced ? Util::HALF_PI - b.m_Angle
+                                      : Util::HALF_PI - std::atan2(dy, dx);
         }
         m_Anm.UpdateObjects(b.m_Vm);
 
-        if (!Util::IsInGameBounds(b.m_Pos.x, b.m_Pos.y, 0, 0)) {
+        if (!bounced && !Util::IsInGameBounds(b.m_Pos.x, b.m_Pos.y, 0, 0)) {
             b.m_Alive = false;
             if (b.m_Vm.obj) {
                 m_Renderer.RemoveChild(b.m_Vm.obj);
@@ -426,10 +487,15 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
     m_Renderer.Update();
 }
 
+void EnemyBulletManager::Render() {
+    m_Renderer.Update();
+}
+
 void EnemyBulletManager::RedirectTimeStopBullets(glm::vec2 playerPos, int maxBullets) {
     int redirected = 0;
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
+        if (b.m_TimeStopRedirected) continue;
         if (b.m_Type != EBulletType::Dagger && b.m_Type != EBulletType::Fireball &&
             b.m_Type != EBulletType::BigBall && b.m_Type != EBulletType::Bubble) {
             continue;
@@ -440,12 +506,15 @@ void EnemyBulletManager::RedirectTimeStopBullets(glm::vec2 playerPos, int maxBul
         const float     dist2 = delta.x * delta.x + delta.y * delta.y;
         if (dist2 > 128.0f * 128.0f) {
             const float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
-            b.m_Angle = Util::HALF_PI * 0.5f + r * Util::HALF_PI;
+            b.m_Angle = Util::HALF_PI * 0.5f + r * Util::HALF_PI * 1.5f;
         } else {
             const float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
             b.m_Angle = std::atan2(delta.y, delta.x) + Util::HALF_PI +
                         (r * 2.0f - 1.0f) * Util::HALF_PI * 2.0f;
         }
+        b.m_TimeStopRedirected = true;
+        b.m_Color              = EBulletColor::Green;
+        m_Anm.SetScript(b.m_Vm, BulletScriptIdx(b.m_Type), BulletSpriteOffset(b.m_Type, b.m_Color));
         b.m_RotateWithAngle = true;
         if (b.m_Vm.obj) b.m_Vm.rotation = Util::HALF_PI - b.m_Angle;
         redirected++;

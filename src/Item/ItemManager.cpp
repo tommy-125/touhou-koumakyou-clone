@@ -142,3 +142,7 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
 
     m_Renderer.Update();
 }
+
+void ItemManager::Render() {
+    m_Renderer.Update();
+}

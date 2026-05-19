@@ -104,7 +104,7 @@ void EnemyManager::DespawnAllNonBossEnemies() {
 void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
     if (!enemy.m_IsBoss) return;
 
-    if (!m_TimeStopped) enemy.m_BossTimer++;
+    enemy.m_BossTimer++;
 
     if (enemy.m_LifeCallbackThreshold >= 0 && enemy.m_Life < enemy.m_LifeCallbackThreshold) {
         enemy.m_Life                   = enemy.m_LifeCallbackThreshold;
@@ -232,12 +232,20 @@ void EnemyManager::RunTimeline() {
     for (auto& e : m_Enemies) {
         if (e.m_Alive && e.m_BlocksTimeline) return;
     }
+    bool bossPresent = false;
+    for (auto& e : m_Enemies) {
+        if (e.m_Alive && e.m_IsBoss) {
+            bossPresent = true;
+            break;
+        }
+    }
     while (m_TimelineIdx < m_Timeline.size() &&
            m_Timeline[m_TimelineIdx].frame <= m_TimelineFrame) {
         const auto& e = m_Timeline[m_TimelineIdx];
-        if (e.frame == m_TimelineFrame) {
+        if (e.frame == m_TimelineFrame && !bossPresent) {
             float spawnX = e.randomX ? static_cast<float>(rand() % 353 + 16) : e.x;
-            SpawnEnemy(e.subId, spawnX, e.y, e.life, e.score, e.mirrored, e.itemDrop);
+            Enemy* spawned = SpawnEnemy(e.subId, spawnX, e.y, e.life, e.score, e.mirrored, e.itemDrop);
+            if (spawned && spawned->m_IsBoss) bossPresent = true;
         }
         m_TimelineIdx++;
     }
@@ -305,6 +313,12 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
     UpdateEffects();
     m_Renderer.Update();
     m_Frame++;
+}
+
+void EnemyManager::Render() {
+    m_BulletManager.Render();
+    m_LaserManager.Render();
+    m_Renderer.Update();
 }
 
 int EnemyManager::ApplyPlayerBulletDamage(Player& player) {

@@ -50,12 +50,28 @@ constexpr int SUB_SAKUYA_LUNA_CLOCK       = 46;
 constexpr int SUB_SAKUYA_FINAL_SPELL      = 50;
 constexpr int SUB_SAKUYA_DEATH            = 51;
 
+constexpr float SAKUYA_FINAL_RANK_SPEED = 0.25f;
+
 float RandAngle() {
     return ScriptUtil::RandFloat(-PI, PI);
 }
 
 glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = SAKUYA_SHOOT_OFFSET) {
     return ScriptUtil::ShootPos(enemy, offset);
+}
+
+float EclStackSpeed(int stack, int stacks, float speed1, float speed2) {
+    if (stacks <= 1) return speed1;
+    return speed1 - (speed1 - speed2) * static_cast<float>(stack) /
+                        static_cast<float>(stacks);
+}
+
+float RankedSpeed1(float speed) {
+    return speed + SAKUYA_FINAL_RANK_SPEED;
+}
+
+float RankedSpeed2(float speed) {
+    return speed + SAKUYA_FINAL_RANK_SPEED * 0.5f;
 }
 
 void SetSakuyaBossPoses(Enemy& enemy) {
@@ -96,9 +112,9 @@ void SpawnRandomArc(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulletCo
                     int count, int stacks, float speed1, float speed2, float minAngle,
                     float maxAngle, bool rotate = false) {
     for (int s = 0; s < stacks; s++) {
-        const float lerp  = stacks <= 1 ? 0.0f : static_cast<float>(s) / (stacks - 1);
-        const float speed = speed1 + (speed2 - speed1) * lerp;
         for (int i = 0; i < count; i++) {
+            const float speed =
+                ScriptUtil::RandFloat(std::min(speed1, speed2), std::max(speed1, speed2));
             ctx.bullets.SpawnCircle(pos, type, color, 1, speed,
                                     ScriptUtil::RandFloat(minAngle, maxAngle), false, 0.0f, 0,
                                     rotate);
@@ -110,8 +126,7 @@ void SpawnAimedCircleStack(EnemySubCtx& ctx, glm::vec2 pos, EBulletType type, EB
                            int count, int stacks, float speed1, float speed2,
                            float aimOffset = 0.0f, bool rotate = false) {
     for (int s = 0; s < stacks; s++) {
-        const float lerp  = stacks <= 1 ? 0.0f : static_cast<float>(s) / (stacks - 1);
-        const float speed = speed1 + (speed2 - speed1) * lerp;
+        const float speed = EclStackSpeed(s, stacks, speed1, speed2);
         ctx.bullets.SpawnCircleAimed(pos, ctx.playerPos, type, color, count, speed, aimOffset,
                                      false, 0.0f, {}, rotate);
     }
@@ -121,10 +136,22 @@ void SpawnDownDaggerRing(EnemySubCtx& ctx, glm::vec2 pos, EBulletColor color, in
                          int stacks, float speed1, float speed2, float angleOffset) {
     const glm::vec2 downTarget = pos + glm::vec2{0.0f, 1.0f};
     for (int s = 0; s < stacks; s++) {
-        const float lerp  = stacks <= 1 ? 0.0f : static_cast<float>(s) / (stacks - 1);
-        const float speed = speed1 + (speed2 - speed1) * lerp;
+        const float speed = EclStackSpeed(s, stacks, speed1, speed2);
         ctx.bullets.SpawnCircleAimed(pos, downTarget, EBulletType::Dagger, color, count, speed,
                                      angleOffset, false, 0.0f, {}, true);
+    }
+}
+
+void SpawnCircleStackEcl(EnemySubCtx& ctx, glm::vec2 pos, EBulletType type, EBulletColor color,
+                         int count, int stacks, float speed1, float speed2, float baseAngle,
+                         bool rotateWithAngle, bool bounceTopAndSides = false,
+                         int bounceMax = 0, float stackAngleOffset = 0.0f) {
+    for (int s = 0; s < stacks; ++s) {
+        const float speed = EclStackSpeed(s, stacks, speed1, speed2);
+        ctx.bullets.SpawnCircle(pos, type, color, count, speed,
+                                baseAngle + static_cast<float>(s) * stackAngleOffset,
+                                false, 0.0f, 0, rotateWithAngle, {0.0f, 0.0f}, 0, 0, 1.0f, {},
+                                bounceTopAndSides, bounceMax, speed);
     }
 }
 
@@ -141,13 +168,14 @@ float FanDelta(int count, int index, float spread) {
 
 void SpawnFanAbsolute(EnemySubCtx& ctx, glm::vec2 pos, EBulletType type, EBulletColor color,
                       int ways, int stacks, float speed1, float speed2, float baseAngle,
-                      float spread, bool rotateWithAngle = false) {
+                      float spread, bool rotateWithAngle = false,
+                      bool bounceTopAndSides = false, int bounceMax = 0) {
     for (int s = 0; s < stacks; s++) {
-        const float lerp  = stacks <= 1 ? 0.0f : static_cast<float>(s) / (stacks - 1);
-        const float speed = speed1 + (speed2 - speed1) * lerp;
+        const float speed = EclStackSpeed(s, stacks, speed1, speed2);
         for (int i = 0; i < ways; i++) {
             ctx.bullets.SpawnCircle(pos, type, color, 1, speed, baseAngle + FanDelta(ways, i, spread),
-                                    false, 0.0f, 0, rotateWithAngle);
+                                    false, 0.0f, 0, rotateWithAngle, {0.0f, 0.0f}, 0, 0,
+                                    1.0f, {}, bounceTopAndSides, bounceMax, speed);
         }
     }
 }
@@ -188,10 +216,8 @@ void SpawnMidbossKunaiSweep(EnemySubCtx& ctx, glm::vec2 pos, float baseAngle) {
 }
 
 void SpawnMisdirectionOpeningKnives(EnemySubCtx& ctx, glm::vec2 pos) {
-    ctx.bullets.SpawnCircleAimed(pos, ctx.playerPos, EBulletType::Kunai, EBulletColor::Red, 24,
-                                 3.0f, 0.0f, false, 0.0f, {}, true);
-    ctx.bullets.SpawnCircleAimed(pos, ctx.playerPos, EBulletType::Kunai, EBulletColor::Red, 24,
-                                 1.2f, 0.0f, false, 0.0f, {}, true);
+    SpawnAimedCircleStack(ctx, pos, EBulletType::Kunai, EBulletColor::Red, 24, 3, 3.0f,
+                          1.2f, 0.0f, true);
 }
 
 void SpawnMisdirectionDaggerVolley(EnemySubCtx& ctx, glm::vec2 pos) {
@@ -200,40 +226,75 @@ void SpawnMisdirectionDaggerVolley(EnemySubCtx& ctx, glm::vec2 pos) {
 }
 
 void SpawnSakuyaDisappearRice(EnemySubCtx& ctx, glm::vec2 pos) {
-    SpawnRandomCircle(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 128, 1.2f, 4.0f);
+    SpawnRandomCircle(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 128,
+                      RankedSpeed2(1.2f), RankedSpeed1(4.0f));
 }
 
 void SpawnSakuyaLunaClockRing(EnemySubCtx& ctx, glm::vec2 pos) {
-    ctx.bullets.SpawnCircle(pos, EBulletType::Rice, EBulletColor::Blue, 32, 3.0f, RandAngle());
-    ctx.bullets.SpawnCircle(pos, EBulletType::Rice, EBulletColor::Blue, 32, 2.2f,
-                            RandAngle() + 0.19634955f);
+    SpawnCircleStackEcl(ctx, pos, EBulletType::Rice, EBulletColor::Blue, 32, 4,
+                        RankedSpeed1(3.0f), RankedSpeed2(1.2f), 0.0f, true);
 }
 
 void SpawnFinalNonspellDaggerBurst(EnemySubCtx& ctx, glm::vec2 pos, EBulletColor color,
-                                   float turn) {
-    for (int i = 0; i < 8; i++) {
-        ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, color, 5, 1.8f,
-                                RandAngle() + turn * static_cast<float>(i) * 0.09817477f,
-                                false, 0.0f, 0, true);
-        ctx.bullets.SpawnCircle(pos, EBulletType::Dagger, color, 5, 1.2f,
-                                RandAngle() + turn * static_cast<float>(i) * 0.09817477f,
-                                false, 0.0f, 0, true);
-    }
+                                   int step, float turn, float baseAngle) {
+    const int   count = color == EBulletColor::DarkRed ? 6 : 5;
+    const float base  = baseAngle + turn * static_cast<float>(step) * 0.09817477f;
+    SpawnCircleStackEcl(ctx, pos, EBulletType::Dagger, color, count, 2,
+                        RankedSpeed1(1.8f), RankedSpeed2(1.2f), base, true, true, 1,
+                        0.015707964f);
+}
+
+void SpawnFirstNonspellRedSweep(EnemySubCtx& ctx, glm::vec2 pos, int shot) {
+    const float spread = 0.049087387f + static_cast<float>(shot) * 0.31415927f;
+    SpawnFanAbsolute(ctx, pos, EBulletType::Dagger, EBulletColor::Red, 2, 8,
+                     RankedSpeed1(4.0f), RankedSpeed2(1.2f), Util::HALF_PI, spread, true);
+}
+
+void SpawnSakuyaNonspellPurpleCircle(EnemySubCtx& ctx, glm::vec2 pos, int phase) {
+    const float speed = phase == 0 ? 2.2f : 2.0f;
+    SpawnAimedCircleStack(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 16, 1,
+                          RankedSpeed1(speed), RankedSpeed2(1.0f), 0.15707964f, true);
 }
 
 void SpawnManipulatingDollPurple(EnemySubCtx& ctx, glm::vec2 pos) {
     const float aim = std::atan2(ctx.playerPos.y - pos.y, ctx.playerPos.x - pos.x);
-    for (int i = 0; i < 4; i++) {
-        SpawnFanAbsolute(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 4, 2, 2.0f,
-                         1.0f, aim + static_cast<float>(i) * 0.15707964f, 0.15707964f, true);
-    }
+    SpawnFanAbsolute(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 4, 2,
+                     RankedSpeed1(2.0f), RankedSpeed2(1.0f), aim, 0.15707964f, true,
+                     true, 1);
 }
 
 void SpawnManipulatingDollRed(EnemySubCtx& ctx, glm::vec2 pos) {
     const float aim = std::atan2(ctx.playerPos.y - pos.y, ctx.playerPos.x - pos.x);
-    for (int i = 0; i < 5; i++) {
-        SpawnFanAbsolute(ctx, pos, EBulletType::Dagger, EBulletColor::DarkRed, 4, 3, 2.8f,
-                         1.0f, aim - static_cast<float>(i) * 0.07853982f, 0.07853982f, true);
+    SpawnFanAbsolute(ctx, pos, EBulletType::Dagger, EBulletColor::DarkRed, 4, 3,
+                     RankedSpeed1(2.8f), RankedSpeed2(1.0f), aim, 0.07853982f, true);
+}
+
+void SpawnTimeStopKnifeField(Enemy& enemy, EnemySubCtx& ctx, int patternPosition) {
+    glm::vec2 toPlayer = ctx.playerPos - enemy.m_Pos;
+    const float dist = std::max(1.0f, std::sqrt(toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y));
+    glm::vec2 line = toPlayer / dist;
+    line *= (patternPosition & 1) ? -256.0f : 256.0f;
+
+    glm::vec2 offset = toPlayer * (0.5f - static_cast<float>(patternPosition) * 0.5f / 9.0f) + line;
+    line = -line;
+
+    constexpr float ROT_START = 0.7853982f;
+    constexpr float ROT_STEP  = -0.17453292f;
+    const float     c0        = std::cos(ROT_START);
+    const float     s0        = std::sin(ROT_START);
+    glm::vec2       ray       = {line.x * c0 + line.y * s0, -line.x * s0 + line.y * c0};
+
+    for (int i = 0; i < 9; ++i) {
+        const float c = std::cos(ROT_STEP);
+        const float s = std::sin(ROT_STEP);
+        ray           = {ray.x * c + ray.y * s, -ray.x * s + ray.y * c};
+        const glm::vec2 bulletPos = enemy.m_Pos + offset + ray;
+        float angle = std::atan2(ctx.playerPos.y - bulletPos.y, ctx.playerPos.x - bulletPos.x);
+        if (patternPosition & 1) {
+            angle += -ROT_START + static_cast<float>(i) * 0.17453292f;
+        }
+        ctx.bullets.SpawnCircle(bulletPos, EBulletType::Dagger, EBulletColor::DarkPurple, 1,
+                                2.0f, angle, false, 0.0f, 0, true);
     }
 }
 
@@ -278,16 +339,16 @@ HelperPattern GetSakuyaHelperPattern(int subId) {
             return {2.7488935f, EBulletType::Rice, EBulletColor::Blue, 5, 1, 1.6f, 1.2f,
                     0.02617994f, 0.31415927f, 6, 40};
         case SUB_SAKUYA_KUNAI_HELPER_1:
-            return {0.7853982f, EBulletType::Kunai, EBulletColor::Red, 6, 1, 1.6f, 1.4f,
+            return {0.7853982f, EBulletType::Kunai, EBulletColor::Red, 6, 1, 1.6f, 1.2f,
                     0.015707964f, 0.62831855f, 14, 17};
         case SUB_SAKUYA_KUNAI_HELPER_2:
-            return {0.0f, EBulletType::Kunai, EBulletColor::Blue, 6, 1, 1.6f, 1.4f,
+            return {0.0f, EBulletType::Kunai, EBulletColor::Blue, 6, 1, 1.6f, 1.2f,
                     0.015707964f, -0.19634955f, 14, 17};
         case SUB_SAKUYA_KUNAI_HELPER_3:
-            return {2.3561945f, EBulletType::Kunai, EBulletColor::Blue, 6, 1, 1.6f, 1.4f,
+            return {2.3561945f, EBulletType::Kunai, EBulletColor::Blue, 6, 1, 1.6f, 1.2f,
                     0.015707964f, -0.62831855f, 14, 17};
         case SUB_SAKUYA_KUNAI_HELPER_4:
-            return {PI, EBulletType::Kunai, EBulletColor::Red, 6, 1, 1.6f, 1.4f,
+            return {PI, EBulletType::Kunai, EBulletColor::Red, 6, 1, 1.6f, 1.2f,
                     0.015707964f, 0.19634955f, 14, 17};
         default:
             return {};
@@ -312,7 +373,7 @@ void RunSakuyaHelper(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t >= fireStart && t < fireEnd && (t - fireStart) % pattern.interval == 0) {
         const int shot = (t - fireStart) / pattern.interval;
         SpawnFanAbsolute(ctx, enemy.m_Pos, pattern.type, pattern.color, pattern.ways,
-                         pattern.stacks, pattern.speed1, pattern.speed2,
+                         pattern.stacks, RankedSpeed1(pattern.speed1), RankedSpeed2(pattern.speed2),
                          enemy.m_LockedShotAngle + pattern.angleInc * static_cast<float>(shot),
                          pattern.spread, pattern.type == EBulletType::Kunai);
     }
@@ -336,11 +397,16 @@ void RunTopMaid(Enemy& enemy, EnemySubCtx& ctx, int t, EBulletColor color, bool 
                                          color, 24, speed, 0.0f, false);
         }
     } else if (randomFan) {
-        if (t >= 70 && t < 90 && (t - 70) % 5 == 0) {
+        if (t >= 70 && t < 90 && (t - 70) % 10 == 0) {
             const int   step  = (t - 70) / 5;
             const float speed = 1.5f + step * 0.2f;
             ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
                                          color, 24, speed, 0.1308997f, false);
+        } else if (t >= 75 && t < 90 && (t - 75) % 10 == 0) {
+            const int   step  = (t - 70) / 5;
+            const float speed = 1.5f + step * 0.2f;
+            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
+                                         color, 24, speed, 0.0f, false);
         } else if (t >= 90 && t < 110 && (t - 90) % 5 == 0) {
             const int   step  = (t - 90) / 5;
             const float speed = 2.3f + step * 0.25f;
@@ -375,7 +441,7 @@ void RunSideMaid(Enemy& enemy, EnemySubCtx& ctx, int t, int variant) {
         ctx.bullets.SpawnFanAimed(pos, ctx.playerPos, EBulletType::Kunai, EBulletColor::Red, 4,
                                   1.5f, 0.0f, 0.2617994f, false, true);
     } else if (variant == 11) {
-        SpawnRandomArc(pos, ctx, EBulletType::Ball, EBulletColor::Red, 4, 1, 1.5f, 1.5f,
+        SpawnRandomArc(pos, ctx, EBulletType::Ball, EBulletColor::Red, 4, 1, 1.5f, 0.8f,
                        -PI, PI);
     } else if (variant == 1) {
         SpawnRandomArc(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 3, 2, 1.8f, 0.8f,
@@ -458,19 +524,22 @@ void RunMidbossMain(Enemy& enemy, EnemySubCtx& ctx, int t) {
     const int loopT = (t - 30) % 281;
     const auto pos  = ShootPos(enemy, {0.0f, -12.0f});
     if (loopT < 80 && loopT % 8 == 0) {
-        SpawnMidbossDaggerSweep(ctx, pos, (loopT / 8) * 0.31415927f);
+        SpawnMidbossDaggerSweep(ctx, pos, (static_cast<float>(loopT) / 8.0f) * 0.31415927f);
     }
     if (loopT == 80) {
         ScriptUtil::StartRandomMove(enemy, ctx, 1.5f, 90);
     }
     if (loopT >= 80 && loopT < 110 && (loopT - 80) % 3 == 0) {
-        SpawnMidbossKunaiSweep(ctx, pos, PI - ((loopT - 80) / 3) * 0.31415927f);
+        SpawnMidbossKunaiSweep(ctx, pos,
+                               PI - (static_cast<float>(loopT - 80) / 3.0f) * 0.31415927f);
     }
     if (loopT >= 170 && loopT < 250 && (loopT - 170) % 8 == 0) {
-        SpawnMidbossDaggerSweep(ctx, pos, PI - ((loopT - 170) / 8) * 0.31415927f);
+        SpawnMidbossDaggerSweep(ctx, pos,
+                                PI - (static_cast<float>(loopT - 170) / 8.0f) * 0.31415927f);
     }
     if (loopT >= 250 && loopT < 280 && (loopT - 250) % 3 == 0) {
-        SpawnMidbossKunaiSweep(ctx, pos, ((loopT - 250) / 3) * 0.31415927f);
+        SpawnMidbossKunaiSweep(ctx, pos,
+                               (static_cast<float>(loopT - 250) / 3.0f) * 0.31415927f);
     }
 }
 
@@ -499,14 +568,18 @@ void RunSakuyaNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t, int phase) {
     const auto pos    = ShootPos(enemy);
 
     if (phase == 2) {
+        if (loopT == 0) enemy.m_LockedShotAngle = RandAngle();
         if (loopT < 40 && loopT % 5 == 0) {
-            SpawnFinalNonspellDaggerBurst(ctx, pos, EBulletColor::DarkPurple, 1.0f);
+            SpawnFinalNonspellDaggerBurst(ctx, pos, EBulletColor::DarkPurple, loopT / 5,
+                                          1.0f, enemy.m_LockedShotAngle);
         }
         if (loopT == 60) {
             ScriptUtil::StartRandomMove(enemy, ctx, 2.0f, 50);
         }
+        if (loopT == 120) enemy.m_SecondaryShotAngle = RandAngle();
         if (loopT >= 120 && loopT < 160 && (loopT - 120) % 5 == 0) {
-            SpawnFinalNonspellDaggerBurst(ctx, pos, EBulletColor::DarkRed, -1.0f);
+            SpawnFinalNonspellDaggerBurst(ctx, pos, EBulletColor::DarkRed, (loopT - 120) / 5,
+                                          -1.0f, enemy.m_SecondaryShotAngle);
         }
         if (loopT == 160) {
             ScriptUtil::StartRandomMove(enemy, ctx, 2.0f, 50);
@@ -520,17 +593,24 @@ void RunSakuyaNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t, int phase) {
         } else {
             SpawnFirstNonspellHelpers(enemy, ctx);
         }
-        SpawnAimedCircleStack(ctx, pos, EBulletType::Dagger, EBulletColor::DarkPurple, 16, 2,
-                              2.5f, 1.2f, 0.15707964f, true);
+    }
+    if (loopT >= 60 && loopT < 180 && (loopT - 60) % 50 == 0) {
+        SpawnSakuyaNonspellPurpleCircle(ctx, pos, phase);
+    }
+    if (loopT == 60) {
         ScriptUtil::StartRandomMove(enemy, ctx, phase == 1 ? 1.5f : 1.7f, 60);
     }
-    if (loopT == 60 || loopT == 120) {
+    if (loopT == 120 || loopT == 180) {
         ScriptUtil::StartRandomMove(enemy, ctx, phase == 1 ? 1.5f : 1.7f, 60);
     }
-    if (loopT == (phase == 1 ? 180 : 220)) {
-        SpawnDownDaggerRing(ctx, pos, phase == 1 ? EBulletColor::DarkPurple : EBulletColor::Red,
-                            phase == 1 ? 24 : 12, phase == 1 ? 1 : 8, phase == 1 ? 2.0f : 3.0f,
-                            phase == 1 ? 1.2f : 1.2f, 0.049087387f);
+    if (phase == 0) {
+        const int sweepT = loopT - 50;
+        if (t >= 400 && sweepT >= 0 && sweepT < 96 && sweepT % 8 == 0) {
+            SpawnFirstNonspellRedSweep(ctx, pos, sweepT / 8);
+        }
+    } else if (t >= 320 && loopT == 20) {
+        SpawnDownDaggerRing(ctx, pos, EBulletColor::DarkPurple, 24, 1, 2.0f, 1.2f,
+                            0.049087387f);
     }
 }
 
@@ -552,9 +632,14 @@ void RunClockCorpse(Enemy& enemy, EnemySubCtx& ctx, int t) {
     }
     if (loopT == 214) {
         enemy.m_CanTakeDamage = false;
+        ctx.SetTimeStopped(true);
         ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 90);
     }
+    if (loopT >= 214 && loopT < 304 && (loopT - 214) % 9 == 0) {
+        SpawnTimeStopKnifeField(enemy, ctx, (loopT - 214) / 9);
+    }
     if (loopT == 338) {
+        ctx.SetTimeStopped(false);
         enemy.m_CanTakeDamage = true;
     }
 }
@@ -577,12 +662,17 @@ void RunLunaClock(Enemy& enemy, EnemySubCtx& ctx, int t) {
     }
     if (loopT == 194) {
         enemy.m_CanTakeDamage = false;
+        ctx.SetTimeStopped(true);
         ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 60);
     }
+    if (loopT >= 194 && loopT < 254 && (loopT - 194) % 9 == 0) {
+        SpawnTimeStopKnifeField(enemy, ctx, (loopT - 194) / 9);
+    }
     if (loopT >= 254 && loopT < 284 && (loopT - 254) % 5 == 0) {
-        SpawnSakuyaLunaClockRing(ctx, ShootPos(enemy, {0.0f, 0.0f}));
+        ctx.RedirectTimeStopBullets();
     }
     if (loopT == 289) {
+        ctx.SetTimeStopped(false);
         enemy.m_CanTakeDamage = true;
     }
 }
@@ -600,21 +690,22 @@ void RunFinalSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
     const int loopT = (t - 120) % 274;
     const auto pos  = ShootPos(enemy, {0.0f, 0.0f});
-    if (loopT == 0 || loopT == 5 || loopT == 10 || loopT == 15) {
+    if (loopT >= 0 && loopT < 4) {
         SpawnManipulatingDollPurple(ctx, pos);
     }
-    if (loopT == 25 || loopT == 28 || loopT == 31 || loopT == 34 || loopT == 37) {
+    if (loopT >= 25 && loopT < 30) {
         SpawnManipulatingDollRed(ctx, pos);
     }
-    if (loopT == 40) {
+    if (loopT == 48) {
         enemy.m_CanTakeDamage = false;
+        ctx.SetTimeStopped(true);
         ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 60);
     }
-    if (loopT >= 60 && loopT < 88 && (loopT - 60) % 4 == 0) {
-        SpawnRandomCircle(ShootPos(enemy, {0.0f, 0.0f}), ctx, EBulletType::Dagger,
-                          EBulletColor::DarkPurple, 8, 1.2f, 2.2f, true);
+    if (loopT >= 68 && loopT < 96 && (loopT - 68) % 4 == 0) {
+        ctx.RedirectTimeStopBullets();
     }
-    if (loopT == 94) {
+    if (loopT == 126) {
+        ctx.SetTimeStopped(false);
         enemy.m_CanTakeDamage = true;
     }
 }

@@ -62,6 +62,7 @@ struct EnemyBullet {
     bool      m_UseDecay     = false;
     int       m_DecayTimer   = 0;
     bool      m_FrozenByPerfectFreeze = false;
+    bool      m_TimeStopRedirected = false;
     // TH06 auto-rotate style for angle-aware bullets.
     bool m_RotateWithAngle = false;
     // Direction change (ECL flag 0x40 / ins_82): every m_DirChangeInterval frames,
@@ -75,6 +76,10 @@ struct EnemyBullet {
     bool  m_DirChangeAimAtPlayer = false;
     int   m_DirChangeStartupFrames = 0;
     float m_DirChangeStartupSpeedScale = 1.0f;
+    bool  m_BounceTopAndSides = false;
+    int   m_BounceCount       = 0;
+    int   m_BounceMax         = 0;
+    float m_BounceSpeed       = 0.0f;
 };
 
 // Direction change (ECL flag 0x40 / ins_82): every `at` frames, rotate/re-speed.
@@ -121,12 +126,16 @@ class EnemyBulletManager {
                      int vectorAccelerationFrames = 0,
                      int spawnMoveFrames = 0,
                      float spawnMoveScale = 1.0f,
-                     BulletCurve curve = {});
+                     BulletCurve curve = {},
+                     bool bounceTopAndSides = false,
+                     int bounceMax = 0,
+                     float bounceSpeed = -1.0f);
     void SpawnCircleStack(glm::vec2 pos, EBulletType type, EBulletColor color, int count,
                           int stacks, float speed1, float speed2, float baseAngle = 0.0f,
                           bool useDecay = false, bool rotateWithAngle = false);
 
     void Update(glm::vec2 playerPos);
+    void Render();
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
     void TurnAllBulletsIntoPointItems(ItemManager& items);

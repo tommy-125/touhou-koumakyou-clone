@@ -17,6 +17,7 @@ PlayableStageConfig MakeStage1Config() {
         "A Dream More Scarlet than Red",
         "BGM: A Soul as Red as a Ground Cherry",
         STAGE1_BOSS_SKIP_FRAME,
+        -1,
         STAGE1_TOTAL_FRAMES,
         1000,
         true,

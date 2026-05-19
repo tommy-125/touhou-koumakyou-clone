@@ -12,6 +12,7 @@ static constexpr float INTRO_CENTER_X    = -96.0f;
 static constexpr float INTRO_STAGE_NO_SCALE   = 1.0f;
 static constexpr float INTRO_STAGE_NAME_SCALE = 0.9f;
 static constexpr float INTRO_SONG_SCALE       = 0.62f;
+static constexpr int   MAX_DEBUG_LIVES        = 8;
 static const glm::vec2 INTRO_SONG_POS         = {64.0f, -204.0f};
 static const Util::Color INTRO_STAGE_YELLOW = Util::Color::FromRGB(255, 255, 64);
 static const Util::Color INTRO_LIGHT_CYAN   = Util::Color::FromRGB(224, 255, 255);
@@ -32,15 +33,13 @@ PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
       m_SpellCard(spellCard),
       m_Config(std::move(config)),
       m_GameManager(gameManager),
-      m_Player(character, spellCard),
-      m_StageMenu(m_Renderer) {
+      m_Player(character, spellCard) {
     m_IntroAnm.LoadAnm(Anm::ASCII.folder, Anm::ASCII.txt, Anm::ASCII.offset);
 
     m_ItemManager.SetGameManager(&m_GameManager);
     m_EnemyManager.SetItemManager(&m_ItemManager);
     m_EnemyManager.SetTimeline(LoadTimelineFromJson(m_Config.timelinePath));
     m_EnemyManager.SetScript(std::move(script));
-    m_Renderer.AddChild(m_TimeStopMask.GetObj());
 
     SetupIntroAsciiLine(m_IntroStageNoLine, m_Config.stageNo, {INTRO_CENTER_X, 42.0f},
                         INTRO_STAGE_NO_SCALE, Util::AsciiTextAlign::Center,
@@ -52,14 +51,6 @@ PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
                         Util::AsciiTextAlign::Right, INTRO_LIGHT_CYAN);
     if (m_Config.hasStageClear) m_ClearOverlay.Init();
     UpdateStageIntro();
-}
-
-void PlayableStage::UpdateTimeStopMask() {
-    if (m_GameManager.timeStopped != m_TimeStopMaskActive) {
-        m_TimeStopMaskActive = m_GameManager.timeStopped;
-        m_TimeStopMask.Fade(8, m_TimeStopMaskActive ? 0.35f : 0.0f);
-    }
-    m_TimeStopMask.Update();
 }
 
 void PlayableStage::SetupIntroAsciiLine(Util::AsciiTextLine& line, const std::string& text,
@@ -124,6 +115,30 @@ void PlayableStage::OnAfterGameplayFrame(const BossHudState& bossHud) {
     UpdateFinalBossClearFlow(bossHud);
 }
 
+void PlayableStage::HandleDebugShortcuts() {
+    if (m_StageMenu.IsOpen()) return;
+
+    const bool shiftHeld = Util::Input::IsKeyPressed(Util::Keycode::LSHIFT) ||
+                           Util::Input::IsKeyPressed(Util::Keycode::RSHIFT);
+    const bool plusPressed = Util::Input::IsKeyDown(Util::Keycode::EQUALS) ||
+                             Util::Input::IsKeyDown(Util::Keycode::KP_PLUS);
+    if (shiftHeld && Util::Input::IsKeyPressed(Util::Keycode::L) && plusPressed &&
+        m_GameManager.livesRemaining < MAX_DEBUG_LIVES) {
+        ++m_GameManager.livesRemaining;
+    }
+
+    const int bossSkipFrame = BossSkipFrame();
+    if (bossSkipFrame >= 0 && Util::Input::IsKeyDown(Util::Keycode::P)) {
+        m_StageFrame = bossSkipFrame;
+        m_EnemyManager.SkipToFrame(bossSkipFrame);
+    }
+
+    if (m_Config.midbossSkipFrame >= 0 && Util::Input::IsKeyDown(Util::Keycode::O)) {
+        m_StageFrame = m_Config.midbossSkipFrame;
+        m_EnemyManager.SkipToFrame(m_Config.midbossSkipFrame);
+    }
+}
+
 void PlayableStage::Update() {
     if (Util::Input::IsKeyDown(Util::Keycode::ESCAPE)) {
         m_StageMenu.Toggle();
@@ -136,18 +151,16 @@ void PlayableStage::Update() {
         return;
     }
 
-    const int bossSkipFrame = BossSkipFrame();
-    if (!m_StageMenu.IsOpen() && bossSkipFrame >= 0 &&
-        Util::Input::IsKeyDown(Util::Keycode::P)) {
-        m_StageFrame = bossSkipFrame;
-        m_EnemyManager.SkipToFrame(bossSkipFrame);
-    }
+    HandleDebugShortcuts();
 
     if (m_StageMenu.IsOpen()) {
         UpdateBackground();
-        UpdateTimeStopMask();
         m_Renderer.Update();
+        m_ItemManager.Render();
+        m_EnemyManager.Render();
+        m_Player.Render();
         m_Gui.Update(m_GameManager, m_EnemyManager.GetBossHudState(), false);
+        m_StageMenu.Render();
         UpdateStageIntro();
         m_IntroRenderer.Update();
         OnMenuFrame();
@@ -158,7 +171,6 @@ void PlayableStage::Update() {
 
     ++m_StageFrame;
     UpdateBackground();
-    UpdateTimeStopMask();
     m_Renderer.Update();
 
     m_ItemManager.Update(m_Player.GetPos(), m_GameManager);

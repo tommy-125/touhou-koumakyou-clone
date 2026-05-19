@@ -17,6 +17,7 @@ PlayableStageConfig MakeStage3Config() {
         "The Scarlet Border",
         "BGM: Shanghai Teahouse ~ Chinese Tea",
         STAGE3_FINAL_BOSS_FRAME,
+        -1,
         STAGE3_TOTAL_FRAMES,
         3000,
         true,

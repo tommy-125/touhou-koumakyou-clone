@@ -111,7 +111,7 @@ void EnemyLaserManager::SpawnAtAngle(glm::vec2 pos, float angle, float length, f
 
 void EnemyLaserManager::Update() {
     if (m_TimeStopped) {
-        m_Renderer.Update();
+        Render();
         return;
     }
 
@@ -187,6 +187,10 @@ void EnemyLaserManager::Update() {
                                                     l.m_CoreWidth / 4.0f};
         }
     }
+    m_Renderer.Update();
+}
+
+void EnemyLaserManager::Render() {
     m_Renderer.Update();
 }
 
