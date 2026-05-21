@@ -14,4 +14,8 @@ glm::vec2 GameFieldToScreen(float x, float y) {
 glm::vec2 GameFieldToScreen(glm::vec2 pos) {
     return {pos.x + FIELD_OFFSET_X, pos.y + FIELD_OFFSET_Y};
 }
+
+glm::vec2 ScreenToGameField(glm::vec2 pos) {
+    return {pos.x - FIELD_OFFSET_X, pos.y - FIELD_OFFSET_Y};
+}
 }  // namespace Util

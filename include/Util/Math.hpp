@@ -17,6 +17,7 @@ constexpr float GAME_BOUNDS_BOTTOM = 464.0f;
 
 glm::vec2 GameFieldToScreen(float x, float y);
 glm::vec2 GameFieldToScreen(glm::vec2 pos);
+glm::vec2 ScreenToGameField(glm::vec2 pos);
 
 bool IsInGameBounds(float x, float y, float width, float height,
                     float boundsLeft = GAME_BOUNDS_LEFT, float boundsTop = GAME_BOUNDS_TOP,

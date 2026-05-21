@@ -10,6 +10,7 @@
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
+#include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
@@ -18,6 +19,8 @@ namespace {
 constexpr float     PI                   = 3.14159265f;
 constexpr glm::vec2 MEILING_SHOOT_OFFSET = {0.0f, -12.0f};
 namespace ScriptUtil = EnemyScriptUtil;
+using EnemyPatternUtil::AimAngleToPlayer;
+using EnemyPatternUtil::SpawnRandomVarianceCircle;
 
 constexpr int SUB_MEILING_MIDBOSS_MAIN       = 9;
 constexpr int SUB_MEILING_MIDBOSS_SPELL_A    = 13;
@@ -34,11 +37,6 @@ constexpr int SUB_MEILING_COLORFUL_RAIN_A    = 31;
 constexpr int SUB_MEILING_COLORFUL_RAIN_B    = 32;
 constexpr int SUB_MEILING_EXTREME_TYPHOON    = 33;
 constexpr int SUB_MEILING_DEATH              = 34;
-float AngleToPlayer(const Enemy& enemy, const EnemySubCtx& ctx) {
-    const glm::vec2 d = ctx.playerPos - enemy.m_Pos;
-    return std::atan2(d.y, d.x);
-}
-
 glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = MEILING_SHOOT_OFFSET) {
     return ScriptUtil::ShootPos(enemy, offset);
 }
@@ -90,16 +88,6 @@ void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, in
     ctx.StartLerpTo(enemy, 192.0f, 64.0f, 120);
 }
 
-void SpawnRandomCircle(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulletColor color,
-                       int count, float speed, float variance = 0.0f,
-                       bool rotateWithAngle = false) {
-    for (int i = 0; i < count; i++) {
-        ctx.bullets.SpawnCircle(pos, type, color, 1,
-                                std::max(0.1f, speed + ScriptUtil::RandFloat(-variance, variance)),
-                                ScriptUtil::RandFloat(-PI, PI), false, 0.0f, 0, rotateWithAngle);
-    }
-}
-
 void SpawnRandomSpeedRange(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type,
                            EBulletColor color, int count, float minSpeed, float maxSpeed,
                            bool rotateWithAngle = false) {
@@ -146,7 +134,7 @@ void RunMediumKunai(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 70) {
         enemy.m_Acceleration = 0.0f;
         enemy.m_Speed        = 0.0f;
-        enemy.m_LockedShotAngle = AngleToPlayer(enemy, ctx);
+        enemy.m_LockedShotAngle = AimAngleToPlayer(enemy, ctx);
     }
     if (t >= 70 && t < 130 && (t - 70) % 2 == 0) {
         const int   step  = (t - 70) / 2;
@@ -215,8 +203,8 @@ void RunWhiteRandomBalls(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 70) {
         enemy.m_Acceleration = 0.0f;
         enemy.m_Speed        = 0.0f;
-        SpawnRandomCircle(enemy.m_Pos, ctx, EBulletType::Ball, EBulletColor::White, 14, 2.0f,
-                          0.3f);
+        SpawnRandomVarianceCircle(ctx, enemy.m_Pos, EBulletType::Ball, EBulletColor::White, 14,
+                                  2.0f, 0.3f);
         enemy.m_Angle = ScriptUtil::RandFloat(0.7853982f, 2.3561945f);
         enemy.m_Speed = 1.5f;
     }
@@ -377,7 +365,7 @@ void RunMeilingSupportFairy(Enemy& enemy, EnemySubCtx& ctx, int t) {
     for (int cycle = 0; cycle < 4; cycle++) {
         const int start = 70 + cycle * 220;
         if (t == start) {
-            enemy.m_LockedShotAngle = AngleToPlayer(enemy, ctx);
+            enemy.m_LockedShotAngle = AimAngleToPlayer(enemy, ctx);
             enemy.m_Acceleration    = 0.0f;
             enemy.m_Speed           = 0.0f;
         }

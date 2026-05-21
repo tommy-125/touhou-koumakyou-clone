@@ -10,6 +10,7 @@
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
+#include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
@@ -18,6 +19,8 @@ namespace {
 constexpr float PI     = 3.14159265f;
 constexpr glm::vec2 CIRNO_SHOOT_OFFSET = {0.0f, -12.0f};
 namespace ScriptUtil = EnemyScriptUtil;
+using EnemyPatternUtil::AimAngle;
+using EnemyPatternUtil::SpawnRandomVarianceCircle;
 
 constexpr int SUB_DAIYOUSEI_MAIN          = 20;
 constexpr int SUB_DAIYOUSEI_DEATH         = 18;
@@ -33,11 +36,6 @@ constexpr int SUB_CIRNO_PREFREEZE_ATTACK_B = 27;
 constexpr int SUB_CIRNO_PERFECT_FREEZE    = 31;
 constexpr int SUB_CIRNO_DIAMOND_BLIZZARD  = 32;
 constexpr int SUB_CIRNO_DEATH             = 28;
-float AimAngle(glm::vec2 from, glm::vec2 to) {
-    const glm::vec2 d = to - from;
-    return std::atan2(d.y, d.x);
-}
-
 void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int timerFrames,
                      int deathCallbackSub, int lifeCallbackSub = -1,
                      int lifeCallbackThreshold = -1) {
@@ -58,16 +56,6 @@ void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, in
                                   true,
                               });
     ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
-}
-
-void SpawnRandomBullets(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulletColor color,
-                        int count, float speed, float speedVariance = 0.0f,
-                        bool rotateWithAngle = false) {
-    for (int i = 0; i < count; i++) {
-        const float bulletSpeed = speed + ScriptUtil::RandFloat(-speedVariance, speedVariance);
-        ctx.bullets.SpawnCircle(pos, type, color, 1, std::max(0.1f, bulletSpeed),
-                                ScriptUtil::RandFloat(-PI, PI), false, 0.0f, 0, rotateWithAngle);
-    }
 }
 
 void SpawnOneWayStackWithCurve(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type,
@@ -97,8 +85,8 @@ void SpawnAtRandomArea(Enemy& enemy, EnemySubCtx& ctx, float width, int count) {
         ScriptUtil::RandFloat(-width * 0.5f, width * 0.5f),
         ScriptUtil::RandFloat(-width * 0.375f, width * 0.375f),
     };
-    SpawnRandomBullets(pos, ctx, EBulletType::Shard, EBulletColor::Blue, count, 1.2f, 0.8f,
-                       true);
+    SpawnRandomVarianceCircle(ctx, pos, EBulletType::Shard, EBulletColor::Blue, count, 1.2f,
+                              0.8f, true);
 }
 
 void RunDaiyouseiMove(Enemy& enemy, EnemySubCtx& ctx, int local) {
@@ -551,9 +539,9 @@ void Stage2Script::RunSub(Enemy& enemy, EnemySubCtx& ctx) {
                     const int cycle = (t - 120) / 595;
                     const int count = std::clamp(7 + cycle, 7, 18);
                     const int colorIdx = ((loopT - 5) / 5) % 5;
-                    SpawnRandomBullets(ScriptUtil::ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx,
-                                       EBulletType::RingBall, PerfectFreezeColor(colorIdx), count,
-                                       4.0f);
+                    SpawnRandomVarianceCircle(ctx, ScriptUtil::ShootPos(enemy, CIRNO_SHOOT_OFFSET),
+                                              EBulletType::RingBall,
+                                              PerfectFreezeColor(colorIdx), count, 4.0f);
                 }
                 if (loopT == 175) {
                     ctx.bullets.FreezeAllBulletsAsWhite();

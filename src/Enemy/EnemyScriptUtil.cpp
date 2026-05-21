@@ -28,6 +28,15 @@ void SetBossPoses(Enemy& enemy, int defaults, int farLeft, int farRight, int lef
     enemy.m_AnmMoveState = 0xff;
 }
 
+void DisableBossPoses(Enemy& enemy) {
+    enemy.m_AnmDefault   = -1;
+    enemy.m_AnmFarLeft   = -1;
+    enemy.m_AnmFarRight  = -1;
+    enemy.m_AnmLeft      = -1;
+    enemy.m_AnmRight     = -1;
+    enemy.m_AnmMoveState = 0xff;
+}
+
 void DropPowerItems(Enemy& enemy, EnemySubCtx& ctx, int count) {
     for (int i = 0; i < count; i++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
 }

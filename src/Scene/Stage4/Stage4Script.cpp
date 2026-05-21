@@ -10,6 +10,7 @@
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
+#include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
@@ -18,6 +19,8 @@ namespace {
 constexpr float     PI                     = 3.14159265f;
 constexpr glm::vec2 PATCHOULI_SHOOT_OFFSET = {0.0f, -12.0f};
 namespace ScriptUtil = EnemyScriptUtil;
+using EnemyPatternUtil::RandAngle;
+using EnemyPatternUtil::SpawnAimedCircleLinearStack;
 
 constexpr int SUB_LIBRARY_FAIRY_BURST       = 1;
 constexpr int SUB_KOAKUMA_MIDBOSS           = 21;
@@ -33,10 +36,6 @@ constexpr int SUB_PATCHOULI_SYLPHY_HORN_ADV = 48;
 constexpr int SUB_PATCHOULI_WATER_ELF       = 56;
 constexpr int SUB_PATCHOULI_DEATH           = 60;
 
-float RandAngle() {
-    return ScriptUtil::RandFloat(-PI, PI);
-}
-
 glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = PATCHOULI_SHOOT_OFFSET) {
     return ScriptUtil::ShootPos(enemy, offset);
 }
@@ -49,8 +48,8 @@ void SetPatchouliBossPoses(Enemy& enemy) {
 
 void SpawnAtEnemyFieldPos(const Enemy& enemy, EnemySubCtx& ctx, int subId, int life, int score,
                           int itemDrop) {
-    ctx.SpawnEnemy(subId, enemy.m_Pos.x - Util::FIELD_OFFSET_X,
-                   enemy.m_Pos.y - Util::FIELD_OFFSET_Y, life, score, false, itemDrop);
+    const glm::vec2 field = Util::ScreenToGameField(enemy.m_Pos);
+    ctx.SpawnEnemy(subId, field.x, field.y, life, score, false, itemDrop);
 }
 
 void StartPatchouliPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int life,
@@ -101,20 +100,6 @@ void SpawnAimedRiceFan(Enemy& enemy, EnemySubCtx& ctx, int t, int count, float s
                               count, stacks, speed,
                               innerSpeed >= 0.0f ? innerSpeed : std::max(0.4f, speed - 0.8f),
                               0.0f, spread, true);
-}
-
-void SpawnAimedCircleStack(EnemySubCtx& ctx, glm::vec2 pos, EBulletType type, EBulletColor color,
-                           int count, int stacks, float speed1, float speed2,
-                           float aimOffset = 0.0f, bool rotateWithAngle = false,
-                           float acceleration = 0.0f, int accelerationFrames = 0,
-                           float angularVelocity = 0.0f, int angularVelocityFrames = 0) {
-    for (int s = 0; s < stacks; s++) {
-        const float lerp  = stacks <= 1 ? 0.0f : static_cast<float>(s) / (stacks - 1);
-        const float speed = speed1 + (speed2 - speed1) * lerp;
-        ctx.bullets.SpawnCircleAimed(pos, ctx.playerPos, type, color, count, speed, aimOffset,
-                                     false, acceleration, accelerationFrames, {},
-                                     rotateWithAngle, angularVelocity, angularVelocityFrames);
-    }
 }
 
 void RunStage4SmallFairy(Enemy& enemy, EnemySubCtx& ctx, int t) {
@@ -286,8 +271,8 @@ void SpawnPatchouliLaserPointBullets(EnemySubCtx& ctx, int cycle, int laserT) {
         const glm::vec2 pos =
             origin + glm::vec2{std::cos(angle), std::sin(angle)} * startOffset;
         if (sub33) {
-            SpawnAimedCircleStack(ctx, pos, EBulletType::Ball, EBulletColor::Red, 1, 2, 2.0f,
-                                  1.2f);
+            SpawnAimedCircleLinearStack(ctx, pos, EBulletType::Ball, EBulletColor::Red, 1, 2,
+                                        2.0f, 1.2f);
         } else {
             ctx.bullets.SpawnCircleAimed(pos, ctx.playerPos, EBulletType::Ball,
                                          EBulletColor::Red, 10, 2.0f, 0.0f, false);
@@ -369,8 +354,9 @@ void RunPatchouliFirstNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
     SpawnPatchouliLaserPointBullets(ctx, cycle, loopT);
     if (loopT == 180) ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 90);
     if (loopT >= 180 && loopT < 360 && (loopT - 180) % 40 == 0) {
-        SpawnAimedCircleStack(ctx, ShootPos(enemy), EBulletType::Ball, EBulletColor::Red,
-                              std::min(26, 16 + cycle), 4, 3.5f, 1.2f);
+        SpawnAimedCircleLinearStack(ctx, ShootPos(enemy), EBulletType::Ball,
+                                    EBulletColor::Red, std::min(26, 16 + cycle), 4, 3.5f,
+                                    1.2f);
     }
     if (loopT == 270) ctx.StartLerpTo(enemy, 192.0f, 128.0f, 90);
 }
@@ -401,8 +387,9 @@ void RunPatchouliSecondNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
     SpawnPatchouliLaserPointBullets(ctx, cycle, loopT);
     if (loopT == 180) ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 90);
     if (loopT >= 180 && loopT < 360 && (loopT - 180) % 15 == 0) {
-        SpawnAimedCircleStack(ctx, ShootPos(enemy), EBulletType::Ball, EBulletColor::Blue,
-                              std::min(22, 10 + cycle), 3, 4.0f, 1.5f);
+        SpawnAimedCircleLinearStack(ctx, ShootPos(enemy), EBulletType::Ball,
+                                    EBulletColor::Blue, std::min(22, 10 + cycle), 3, 4.0f,
+                                    1.5f);
     }
     if (loopT == 270) ctx.StartLerpTo(enemy, 192.0f, 128.0f, 90);
     if (loopT == 360) {
@@ -503,8 +490,8 @@ void RunFinalNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
     if (loopT == 0) {
         if (cycle % 8 == 0) enemy.m_SecondaryShotAngle = 0.0f;
-        SpawnAimedCircleStack(ctx, pos, EBulletType::Ball, EBulletColor::Cyan, 24, 2, 2.8f,
-                              1.2f, PI);
+        SpawnAimedCircleLinearStack(ctx, pos, EBulletType::Ball, EBulletColor::Cyan, 24, 2,
+                                    2.8f, 1.2f, PI);
         ctx.bullets.SpawnFanAimed(pos, ctx.playerPos, EBulletType::BigBall,
                                   EBulletColor::DarkPurple, 10, 1.8f,
                                   enemy.m_SecondaryShotAngle, 0.34906584f, false, false);
@@ -512,8 +499,8 @@ void RunFinalNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
             ScriptUtil::RandFloat(-0.11219974f, 0.11219974f);
     }
     if (loopT == 20) {
-        SpawnAimedCircleStack(ctx, pos, EBulletType::Ball, EBulletColor::Green, 20, 2, 2.8f,
-                              1.2f, PI);
+        SpawnAimedCircleLinearStack(ctx, pos, EBulletType::Ball, EBulletColor::Green, 20, 2,
+                                    2.8f, 1.2f, PI);
         ScriptUtil::StartRandomMove(enemy, ctx, 1.5f, 90);
     }
 }
@@ -536,14 +523,14 @@ void RunMercuryPoison(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
     if (loopT < 320 && loopT % 40 == 0) {
         enemy.m_LockedShotAngle = RandAngle();
-        SpawnAimedCircleStack(ctx, pos, EBulletType::Ball, EBulletColor::Orange, count, 2,
-                              1.5f, 0.8f, enemy.m_LockedShotAngle, false, 0.003f, 90,
-                              0.012271847f, 90);
+        SpawnAimedCircleLinearStack(ctx, pos, EBulletType::Ball, EBulletColor::Orange, count,
+                                    2, 1.5f, 0.8f, enemy.m_LockedShotAngle, false, 0.003f,
+                                    90, 0.012271847f, 90);
     }
     if (loopT < 320 && loopT % 40 == 20) {
-        SpawnAimedCircleStack(ctx, pos, EBulletType::Ball, EBulletColor::Cyan, count, 2, 1.5f,
-                              0.8f, enemy.m_LockedShotAngle, false, 0.003f, 90,
-                              -0.012271847f, 90);
+        SpawnAimedCircleLinearStack(ctx, pos, EBulletType::Ball, EBulletColor::Cyan, count, 2,
+                                    1.5f, 0.8f, enemy.m_LockedShotAngle, false, 0.003f, 90,
+                                    -0.012271847f, 90);
     }
     if (loopT == 320) {
         ScriptUtil::StartRandomMove(enemy, ctx, 1.5f, 90);
