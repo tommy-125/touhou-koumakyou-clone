@@ -37,6 +37,9 @@ struct Enemy {
     float m_LockedShotAngle    = 0.0f;
     float m_SecondaryShotAngle = 0.0f;
     float m_ExitMoveAngle      = 0.0f;
+    int   m_ScriptState        = 0;
+    int   m_ScriptTimer        = 0;
+    int   m_ScriptCounter      = 0;
 
     // Boss
     bool m_IsBoss           = false;

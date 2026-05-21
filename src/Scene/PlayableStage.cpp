@@ -81,7 +81,8 @@ void PlayableStage::UpdateBackground() {
 }
 
 void PlayableStage::UpdateFinalBossClearFlow(const BossHudState& bossHud) {
-    if (m_Config.bossSkipFrame >= 0 && m_StageFrame >= m_Config.bossSkipFrame && bossHud.visible) {
+    if (m_Config.bossSkipFrame >= 0 &&
+        m_EnemyManager.GetTimelineFrame() >= m_Config.bossSkipFrame && bossHud.visible) {
         m_FinalBossWasSeen = true;
     } else if (m_FinalBossWasSeen && !bossHud.visible) {
         if (m_Config.hasStageClear) {
@@ -173,11 +174,14 @@ void PlayableStage::Update() {
     UpdateBackground();
     m_Renderer.Update();
 
+    m_GameManager.bombActive = m_Player.IsBombActive();
     m_ItemManager.Update(m_Player.GetPos(), m_GameManager);
     m_EnemyManager.Update(m_Player.GetPos(), m_GameManager);
     m_Player.Update(m_GameManager);
     if (!m_GameManager.timeStopped) {
-        if (m_Player.TryUseBomb(m_GameManager) || m_Player.IsBombActive()) {
+        const bool usedBomb = m_Player.TryUseBomb(m_GameManager);
+        m_GameManager.bombActive = usedBomb || m_Player.IsBombActive();
+        if (m_GameManager.bombActive) {
             m_EnemyManager.ClearAllBullets();
         }
     }

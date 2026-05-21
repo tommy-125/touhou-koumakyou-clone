@@ -223,7 +223,8 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
                                      bool rotateWithAngle, glm::vec2 vectorAcceleration,
                                      int vectorAccelerationFrames, int spawnMoveFrames,
                                      float spawnMoveScale, BulletCurve curve,
-                                     bool bounceTopAndSides, int bounceMax, float bounceSpeed) {
+                                     bool bounceTopAndSides, int bounceMax, float bounceSpeed,
+                                     float angularVelocity, int angularVelocityFrames) {
     int   scriptIdx = BulletScriptIdx(type);
     int   sprOffset = BulletSpriteOffset(type, color);
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
@@ -245,6 +246,8 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
         b->m_VectorAccelerationFrames = vectorAccelerationFrames;
         b->m_SpawnMoveFrames    = spawnMoveFrames;
         b->m_SpawnMoveScale     = spawnMoveScale;
+        b->m_AngularVelocity    = angularVelocity;
+        b->m_AngularVelocityFrames = angularVelocityFrames;
         b->m_DirChangeInterval = curve.at;
         b->m_DirChangeNumTimes = 0;
         b->m_DirChangeMaxTimes = curve.times;
@@ -337,6 +340,66 @@ void EnemyBulletManager::AccelerateFrozenBulletsRandom(float acceleration, int f
         b.m_UseDecay           = false;
         b.m_DecayTimer         = 0;
         b.m_FrozenByPerfectFreeze = false;
+    }
+}
+
+int EnemyBulletManager::Stage6CreateSeedsFromLargeBullets() {
+    int created = 0;
+    for (auto& source : m_Bullets) {
+        if (!source.m_Alive) continue;
+        if (source.m_Type != EBulletType::Bubble && source.m_Type != EBulletType::BigBall &&
+            source.m_Type != EBulletType::Dagger) {
+            continue;
+        }
+
+        EnemyBullet* b = AllocBullet();
+        *b             = EnemyBullet{};
+        b->m_Alive     = true;
+        b->m_Pos       = source.m_Pos;
+        b->m_Type      = EBulletType::Ball;
+        b->m_Color     = EBulletColor::DarkRed;
+        b->m_Angle     = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) *
+                         2.0f * Util::HALF_PI * 2.0f - Util::HALF_PI * 2.0f;
+        b->m_Speed           = 0.0f;
+        b->m_HitboxSize      = BulletHitboxSize(b->m_Type);
+        b->m_RotateWithAngle = true;
+        m_Anm.SetScript(b->m_Vm, BulletScriptIdx(b->m_Type),
+                        BulletSpriteOffset(b->m_Type, b->m_Color));
+        if (b->m_Vm.obj) {
+            m_Renderer.AddChild(b->m_Vm.obj);
+        }
+        ++created;
+    }
+    return created;
+}
+
+void EnemyBulletManager::Stage6ReleaseStoppedSeeds(glm::vec2 origin, bool distancePattern) {
+    const float sharedAngle = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) *
+                                  2.0f * Util::HALF_PI * 2.0f -
+                              Util::HALF_PI * 2.0f;
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive) continue;
+        if (b.m_Type == EBulletType::Bubble || b.m_Type == EBulletType::BigBall) continue;
+        if (std::abs(b.m_Speed) > 0.0001f) continue;
+
+        float accelAngle = sharedAngle;
+        if (distancePattern) {
+            const glm::vec2 delta    = origin - b.m_Pos;
+            const float     distance = std::sqrt(delta.x * delta.x + delta.y * delta.y);
+            accelAngle = distance * Util::HALF_PI * 2.0f / 256.0f + sharedAngle;
+        } else {
+            accelAngle = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) *
+                             2.0f * Util::HALF_PI * 2.0f -
+                         Util::HALF_PI * 2.0f;
+        }
+
+        b.m_Speed                    = 0.01f;
+        b.m_Color                    = EBulletColor::Red;
+        m_Anm.SetScript(b.m_Vm, BulletScriptIdx(b.m_Type), BulletSpriteOffset(b.m_Type, b.m_Color));
+        b.m_VectorVelocity           = {0.0f, 0.0f};
+        b.m_VectorAcceleration       = {std::cos(accelAngle) * 0.01f,
+                                        std::sin(accelAngle) * 0.01f};
+        b.m_VectorAccelerationFrames = 120;
     }
 }
 

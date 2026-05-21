@@ -22,6 +22,7 @@ struct EnemySubCtx {
     ItemManager&        items;
     Util::Renderer&     renderer;
     glm::vec2           playerPos;
+    bool                bombActive = false;
     std::function<Enemy*(int, float, float, int, int, bool, int)> spawnEnemy;
     std::function<void()> killAllNonBossEnemies;
     std::function<void(bool)> setTimeStopped;

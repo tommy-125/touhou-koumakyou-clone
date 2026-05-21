@@ -44,6 +44,7 @@ class EnemyManager {
     void         ClearAllBullets();
     void         TurnAllBulletsIntoPointItems();
     BossHudState GetBossHudState() const;
+    int          GetTimelineFrame() const { return m_TimelineFrame; }
     void         SkipToFrame(int frame);
 
    private:

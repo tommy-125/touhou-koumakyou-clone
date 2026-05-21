@@ -129,7 +129,9 @@ class EnemyBulletManager {
                      BulletCurve curve = {},
                      bool bounceTopAndSides = false,
                      int bounceMax = 0,
-                     float bounceSpeed = -1.0f);
+                     float bounceSpeed = -1.0f,
+                     float angularVelocity = 0.0f,
+                     int angularVelocityFrames = 0);
     void SpawnCircleStack(glm::vec2 pos, EBulletType type, EBulletColor color, int count,
                           int stacks, float speed1, float speed2, float baseAngle = 0.0f,
                           bool useDecay = false, bool rotateWithAngle = false);
@@ -143,6 +145,8 @@ class EnemyBulletManager {
     void RedirectTimeStopBullets(glm::vec2 playerPos, int maxBullets);
     void FreezeAllBulletsAsWhite();
     void AccelerateFrozenBulletsRandom(float acceleration, int frames);
+    int  Stage6CreateSeedsFromLargeBullets();
+    void Stage6ReleaseStoppedSeeds(glm::vec2 origin, bool distancePattern);
 
     static constexpr int MAX_BULLETS = 2048;
 

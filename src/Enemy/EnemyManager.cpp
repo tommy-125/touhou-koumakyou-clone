@@ -49,6 +49,7 @@ void EnemyManager::SetScript(std::unique_ptr<IStageScript> script) {
 EnemySubCtx EnemyManager::MakeCtx() {
     return EnemySubCtx{
         m_Anm, m_BulletManager, m_LaserManager, *m_Items, m_Renderer, m_PlayerPos,
+        m_GameManager ? m_GameManager->bombActive : false,
         [this](int subId, float x, float y, int life, int score, bool mirrored, int itemDrop) {
             return SpawnEnemy(subId, x, y, life, score, mirrored, itemDrop);
         },

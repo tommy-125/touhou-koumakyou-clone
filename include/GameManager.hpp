@@ -10,6 +10,7 @@ struct GameManager {
     int graze          = 0;
     int pointItems     = 0;
     bool timeStopped   = false;
+    bool bombActive    = false;
 };
 
 #endif  // GAME_MANAGER_HPP
