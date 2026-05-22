@@ -5,11 +5,11 @@
 #include "Enemy/BossPhaseUtil.hpp"
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
-#include "Stage5Patterns.hpp"
+#include "Scene/Stage5/Stage5Patterns.hpp"
 
 namespace Stage5Detail {
 constexpr glm::vec2 SAKUYA_SHOOT_OFFSET = {0.0f, -12.0f};
-namespace ScriptUtil = EnemyScriptUtil;
+namespace ScriptUtil                    = EnemyScriptUtil;
 
 inline glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = SAKUYA_SHOOT_OFFSET) {
     return ScriptUtil::ShootPos(enemy, offset);
@@ -46,5 +46,18 @@ inline void StartSakuyaPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* t
                                   false,
                                   true,
                               });
+}
+
+inline bool BeginSakuyaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t, const char* title,
+                               int lifeCount, int nextSub, glm::vec2 target, int timerFrames = 1800,
+                               int warmup = 120) {
+    if (t == 0) {
+        StartSakuyaPhase(enemy, ctx, title, -1, lifeCount, timerFrames, nextSub, -1, true);
+        enemy.m_CanTakeDamage = false;
+        ctx.SetTimeStopped(false);
+        ctx.StartLerpTo(enemy, target.x, target.y, warmup);
+    }
+    if (t == warmup) enemy.m_CanTakeDamage = true;
+    return t >= warmup;
 }
 }  // namespace Stage5Detail

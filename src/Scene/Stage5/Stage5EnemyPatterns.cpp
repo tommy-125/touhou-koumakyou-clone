@@ -1,10 +1,9 @@
-#include "Stage5PatternCommon.hpp"
-
 #include <algorithm>
 #include <cmath>
 
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemySubCtx.hpp"
+#include "Scene/Stage5/Stage5PatternCommon.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage5Detail {
@@ -35,32 +34,32 @@ void RunTopMaid(Enemy& enemy, EnemySubCtx& ctx, int t, EBulletColor color, bool 
         if (t >= 70 && t < 90 && (t - 70) % 4 == 0) {
             const int   step  = (t - 70) / 4;
             const float speed = 1.5f + step * 0.55f;
-            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
-                                         color, 24, speed, 0.0f, false);
+            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball, color,
+                                         24, speed, 0.0f, false);
         }
     } else if (randomFan) {
         if (t >= 70 && t < 90 && (t - 70) % 10 == 0) {
             const int   step  = (t - 70) / 5;
             const float speed = 1.5f + step * 0.2f;
-            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
-                                         color, 24, speed, 0.1308997f, false);
+            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball, color,
+                                         24, speed, 0.1308997f, false);
         } else if (t >= 75 && t < 90 && (t - 75) % 10 == 0) {
             const int   step  = (t - 70) / 5;
             const float speed = 1.5f + step * 0.2f;
-            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
-                                         color, 24, speed, 0.0f, false);
+            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball, color,
+                                         24, speed, 0.0f, false);
         } else if (t >= 90 && t < 110 && (t - 90) % 5 == 0) {
             const int   step  = (t - 90) / 5;
             const float speed = 2.3f + step * 0.25f;
-            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
-                                         color, 24, speed, 0.0f, false);
+            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball, color,
+                                         24, speed, 0.0f, false);
         }
     } else {
         if (t >= 70 && t < 110 && (t - 70) % 5 == 0) {
             const int   step  = (t - 70) / 5;
             const float speed = 1.5f + step * 0.38f;
-            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball,
-                                         color, 30, speed, 0.0f, false);
+            ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Ball, color,
+                                         30, speed, 0.0f, false);
         }
     }
 
@@ -83,11 +82,10 @@ void RunSideMaid(Enemy& enemy, EnemySubCtx& ctx, int t, int variant) {
         ctx.bullets.SpawnFanAimed(pos, ctx.playerPos, EBulletType::Kunai, EBulletColor::Red, 4,
                                   1.5f, 0.0f, 0.2617994f, false, true);
     } else if (variant == 11) {
-        SpawnRandomArc(pos, ctx, EBulletType::Ball, EBulletColor::Red, 4, 1, 1.5f, 0.8f,
-                       -PI, PI);
+        SpawnRandomArc(pos, ctx, EBulletType::Ball, EBulletColor::Red, 4, 1, 1.5f, 0.8f, -PI, PI);
     } else if (variant == 1) {
-        SpawnRandomArc(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 3, 2, 1.8f, 0.8f,
-                       0.0f, PI, true);
+        SpawnRandomArc(pos, ctx, EBulletType::Rice, EBulletColor::Blue, 3, 2, 1.8f, 0.8f, 0.0f, PI,
+                       true);
     } else {
         ctx.bullets.SpawnFanAimed(pos, ctx.playerPos, EBulletType::Pellet, EBulletColor::Blue, 6,
                                   1.5f, 0.0f, 0.19634955f);

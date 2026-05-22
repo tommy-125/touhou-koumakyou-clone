@@ -1,13 +1,12 @@
 #ifndef SCENE_STAGE1_STAGE1_SCRIPT_HPP
 #define SCENE_STAGE1_STAGE1_SCRIPT_HPP
 
-#include "Scene/IStageScript.hpp"
+#include "Scene/PatternStageScript.hpp"
 
-class Stage1Script : public IStageScript {
+class Stage1Script : public PatternStageScript {
    public:
+    Stage1Script();
     void Preload(Anm::Manager& anm) override;
-    void InitSub(Enemy& e, EnemySubCtx& ctx) override;
-    void RunSub(Enemy& e, EnemySubCtx& ctx) override;
 };
 
 #endif  // SCENE_STAGE1_STAGE1_SCRIPT_HPP

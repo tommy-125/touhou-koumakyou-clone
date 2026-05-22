@@ -4,7 +4,7 @@
 
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
-#include "Stage6Patterns.hpp"
+#include "Scene/Stage6/Stage6Patterns.hpp"
 
 namespace Stage6Detail {
 namespace ScriptUtil = EnemyScriptUtil;
