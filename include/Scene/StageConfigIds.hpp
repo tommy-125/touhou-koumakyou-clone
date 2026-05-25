@@ -89,6 +89,11 @@ inline constexpr char Stage6RedMagic[]             = "stage6.red_magic";
 }  // namespace BossPhase
 
 namespace Movement {
+inline constexpr char Stage1SmallFairyA[]         = "stage1.small_fairy_a";
+inline constexpr char Stage1SmallFairyB[]         = "stage1.small_fairy_b";
+inline constexpr char Stage1MediumFairy[]         = "stage1.medium_fairy";
+inline constexpr char Stage2AimedFairy[]          = "stage2.aimed_fairy";
+inline constexpr char Stage2MediumFairy[]         = "stage2.medium_fairy";
 inline constexpr char Stage3OpeningFairy[]        = "stage3.opening_fairy";
 inline constexpr char Stage3SideFairy[]           = "stage3.side_fairy";
 inline constexpr char Stage3Script15StopFairy[]   = "stage3.script15_stop_fairy";

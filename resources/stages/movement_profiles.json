@@ -1,4 +1,37 @@
 {
+  "stage1.small_fairy_a": {
+    "events": [
+      { "time": 40, "angularVelocity": -0.024543693, "mirroredAngularVelocity": 0.024543693 },
+      { "time": 120, "angularVelocity": 0.019634955, "mirroredAngularVelocity": -0.019634955 },
+      { "time": 220, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage1.small_fairy_b": {
+    "events": [
+      { "time": 100, "angularVelocity": 0.019634955, "mirroredAngularVelocity": -0.019634955 },
+      { "time": 200, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage1.medium_fairy": {
+    "events": [
+      { "time": 60, "speed": 0.0 },
+      { "time": 130, "acceleration": 0.05, "angularVelocity": 0.05235988, "mirroredAngularVelocity": -0.05235988 },
+      { "time": 190, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage2.aimed_fairy": {
+    "events": [
+      { "time": 180, "angularVelocity": -0.024543693 },
+      { "time": 280, "angularVelocity": 0.0 }
+    ]
+  },
+  "stage2.medium_fairy": {
+    "events": [
+      { "time": 60, "speed": 0.0 },
+      { "time": 130, "acceleration": 0.05, "angularVelocity": 0.05235988 },
+      { "time": 190, "angularVelocity": 0.0 }
+    ]
+  },
   "stage3.opening_fairy": {
     "events": [
       { "time": 0, "angle": 0.5235988, "mirroredAngle": 2.6179938 },

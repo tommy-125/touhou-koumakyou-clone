@@ -72,8 +72,7 @@ void RunStage2DeathBurst(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunStage2AimedFairy(Enemy& enemy, int t) {
-    if (t == 180) enemy.m_AngularVelocity = -0.024543693f;
-    if (t == 280) enemy.m_AngularVelocity = 0.0f;
+    StageUtil::ApplyMovementProfile(enemy, StageUtil::ConfigId::Movement::Stage2AimedFairy, t);
     if (t >= 10000) enemy.m_Alive = false;
 }
 
@@ -83,20 +82,15 @@ void RunStage2TimedDespawn(Enemy& enemy, int t) {
 
 void RunStage2MediumFairy(Enemy& enemy, EnemySubCtx& ctx, int t) {
     const int offset = Anm::STG2ENM.offset;
+    StageUtil::ApplyMovementProfile(enemy, StageUtil::ConfigId::Movement::Stage2MediumFairy, t);
     if (t == 60) {
         ctx.anm.SetScript(enemy.m_Vm, offset + 5, offset);
-        enemy.m_Speed = 0.0f;
     }
     if (t == 70 && enemy.m_SubId == 12) {
         ctx.bullets.SpawnFanStack(enemy.m_Pos + glm::vec2{12.0f, -12.0f}, ctx.playerPos,
                                   EBulletType::RingBall, EBulletColor::DarkRed, 7, 2, 1.4f, 0.8f,
                                   0.0f, 0.62831855f);
     }
-    if (t == 130) {
-        enemy.m_Acceleration    = 0.05f;
-        enemy.m_AngularVelocity = 0.05235988f;
-    }
-    if (t == 190) enemy.m_AngularVelocity = 0.0f;
     if (t >= 10000) enemy.m_Alive = false;
 }
 
