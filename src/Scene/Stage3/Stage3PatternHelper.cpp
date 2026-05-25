@@ -1,4 +1,4 @@
-#include "Scene/Stage3/Stage3PatternCommon.hpp"
+#include "Scene/Stage3/Stage3PatternHelper.hpp"
 
 #include <cmath>
 

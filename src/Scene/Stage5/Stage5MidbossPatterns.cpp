@@ -5,7 +5,7 @@
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemySubCtx.hpp"
-#include "Scene/Stage5/Stage5PatternCommon.hpp"
+#include "Scene/Stage5/Stage5PatternHelper.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage5Detail {

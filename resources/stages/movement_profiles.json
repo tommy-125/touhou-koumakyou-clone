@@ -1,4 +1,98 @@
 {
+  "stage3.opening_fairy": {
+    "events": [
+      { "time": 0, "angle": 0.5235988, "mirroredAngle": 2.6179938 },
+      { "time": 30, "angularVelocity": -0.06544985, "mirroredAngularVelocity": 0.06544985 },
+      { "time": 115, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage3.side_fairy": {
+    "events": [
+      { "time": 0, "angle": -1.0471976, "mirroredAngle": -2.0943952 },
+      { "time": 30, "angularVelocity": 0.034906585, "mirroredAngularVelocity": -0.034906585 },
+      { "time": 90, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage3.script15_stop_fairy": {
+    "events": [
+      { "time": 40, "acceleration": -0.05 },
+      { "time": 70, "acceleration": 0.0, "speed": 0.0 }
+    ]
+  },
+  "stage3.white_random_fairy": {
+    "events": [
+      { "time": 40, "acceleration": -0.083333336 },
+      { "time": 70, "acceleration": 0.0, "speed": 0.0 }
+    ]
+  },
+  "stage3.blue_scatter_fairy": {
+    "events": [
+      { "time": 40, "angularVelocity": -0.024543693, "mirroredAngularVelocity": 0.024543693 },
+      { "time": 120, "angularVelocity": 0.019634955, "mirroredAngularVelocity": -0.019634955 },
+      { "time": 220, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 },
+      { "time": 280, "angle": 0.7853982, "mirroredAngle": 2.3561945, "speed": 2.5 }
+    ]
+  },
+  "stage4.small_straight_slow": {
+    "events": [
+      { "time": 0, "angle": 0.0, "mirroredAngle": 3.1415927, "speed": 4.2 },
+      { "time": 30, "angularVelocity": -0.06544985, "mirroredAngularVelocity": 0.06544985 },
+      { "time": 70, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage4.small_straight_fast": {
+    "events": [
+      { "time": 0, "angle": 0.0, "mirroredAngle": 3.1415927, "speed": 4.5 },
+      { "time": 30, "angularVelocity": -0.06544985, "mirroredAngularVelocity": 0.06544985 },
+      { "time": 70, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage4.small_straight_no_turn": {
+    "events": [
+      { "time": 0, "angle": 0.0, "mirroredAngle": 3.1415927, "speed": 4.5 }
+    ]
+  },
+  "stage4.small_diagonal_slow": {
+    "events": [
+      { "time": 0, "angle": -1.0471976, "mirroredAngle": -2.0943952, "speed": 4.2 },
+      { "time": 30, "angularVelocity": 0.06544985, "mirroredAngularVelocity": -0.06544985 },
+      { "time": 70, "angularVelocity": -0.1308997, "mirroredAngularVelocity": 0.1308997 },
+      { "time": 150, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage4.small_diagonal_fast": {
+    "events": [
+      { "time": 0, "angle": -1.0471976, "mirroredAngle": -2.0943952, "speed": 4.5 },
+      { "time": 30, "angularVelocity": 0.06544985, "mirroredAngularVelocity": -0.06544985 },
+      { "time": 70, "angularVelocity": -0.1308997, "mirroredAngularVelocity": 0.1308997 },
+      { "time": 150, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage4.small_diagonal_short": {
+    "events": [
+      { "time": 0, "angle": -1.0471976, "mirroredAngle": -2.0943952, "speed": 4.5 },
+      { "time": 30, "angularVelocity": 0.06544985, "mirroredAngularVelocity": -0.06544985 },
+      { "time": 110, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage4.small_down": {
+    "events": [
+      { "time": 0, "angle": 1.5707964, "speed": 4.5 }
+    ]
+  },
+  "stage4.book_fairy": {
+    "events": [
+      { "time": 40, "acceleration": -0.06666667 },
+      { "time": 70, "acceleration": 0.0 }
+    ]
+  },
+  "stage4.ring_caster": {
+    "events": [
+      { "time": 40, "acceleration": -0.06666667 },
+      { "time": 70, "acceleration": 0.0 },
+      { "time": 582, "angle": -1.5707964, "speed": 2.0 }
+    ]
+  },
   "stage5.top_maid": {
     "events": [
       { "time": 0, "angle": 1.5707964, "speed": 2.0 },

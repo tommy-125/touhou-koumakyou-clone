@@ -1,4 +1,4 @@
-#include "Scene/Stage6/Stage6PatternCommon.hpp"
+#include "Scene/Stage6/Stage6PatternHelper.hpp"
 
 #include "Enemy/Enemy.hpp"
 

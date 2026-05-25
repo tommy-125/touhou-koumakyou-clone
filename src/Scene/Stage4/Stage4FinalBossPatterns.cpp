@@ -8,7 +8,7 @@
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
 #include "Scene/StageScriptUtil.hpp"
-#include "Scene/Stage4/Stage4PatternCommon.hpp"
+#include "Scene/Stage4/Stage4PatternHelper.hpp"
 #include "Scene/Stage4/Stage4Patterns.hpp"
 #include "Util/Math.hpp"
 

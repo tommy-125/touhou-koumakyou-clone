@@ -89,6 +89,20 @@ inline constexpr char Stage6RedMagic[]             = "stage6.red_magic";
 }  // namespace BossPhase
 
 namespace Movement {
+inline constexpr char Stage3OpeningFairy[]        = "stage3.opening_fairy";
+inline constexpr char Stage3SideFairy[]           = "stage3.side_fairy";
+inline constexpr char Stage3Script15StopFairy[]   = "stage3.script15_stop_fairy";
+inline constexpr char Stage3WhiteRandomFairy[]    = "stage3.white_random_fairy";
+inline constexpr char Stage3BlueScatterFairy[]    = "stage3.blue_scatter_fairy";
+inline constexpr char Stage4SmallStraightSlow[]   = "stage4.small_straight_slow";
+inline constexpr char Stage4SmallStraightFast[]   = "stage4.small_straight_fast";
+inline constexpr char Stage4SmallStraightNoTurn[] = "stage4.small_straight_no_turn";
+inline constexpr char Stage4SmallDiagonalSlow[]   = "stage4.small_diagonal_slow";
+inline constexpr char Stage4SmallDiagonalFast[]   = "stage4.small_diagonal_fast";
+inline constexpr char Stage4SmallDiagonalShort[]  = "stage4.small_diagonal_short";
+inline constexpr char Stage4SmallDown[]           = "stage4.small_down";
+inline constexpr char Stage4BookFairy[]           = "stage4.book_fairy";
+inline constexpr char Stage4RingCaster[]          = "stage4.ring_caster";
 inline constexpr char Stage5TopMaid[]        = "stage5.top_maid";
 inline constexpr char Stage5TopMaidDense[]   = "stage5.top_maid_dense";
 inline constexpr char Stage5SideMaid[]       = "stage5.side_maid";

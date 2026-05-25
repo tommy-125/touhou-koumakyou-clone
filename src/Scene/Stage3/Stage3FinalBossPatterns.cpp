@@ -6,7 +6,7 @@
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
-#include "Scene/Stage3/Stage3PatternCommon.hpp"
+#include "Scene/Stage3/Stage3PatternHelper.hpp"
 #include "Scene/Stage3/Stage3Patterns.hpp"
 #include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"

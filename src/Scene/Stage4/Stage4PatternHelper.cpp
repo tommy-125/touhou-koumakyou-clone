@@ -1,4 +1,4 @@
-#include "Scene/Stage4/Stage4PatternCommon.hpp"
+#include "Scene/Stage4/Stage4PatternHelper.hpp"
 
 #include "Anm/AnmDefs.hpp"
 #include "Enemy/Enemy.hpp"

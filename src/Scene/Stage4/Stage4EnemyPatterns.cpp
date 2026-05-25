@@ -8,7 +8,7 @@
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
 #include "Scene/StageScriptUtil.hpp"
-#include "Scene/Stage4/Stage4PatternCommon.hpp"
+#include "Scene/Stage4/Stage4PatternHelper.hpp"
 #include "Scene/Stage4/Stage4Patterns.hpp"
 #include "Util/Math.hpp"
 
@@ -71,48 +71,31 @@ void SpawnAimedRiceFan(Enemy& enemy, EnemySubCtx& ctx, int t, int count, float s
 }
 
 void RunStage4SmallFairy(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        switch (enemy.m_SubId) {
-            case 2:
-            case 4:
-            case 6:
-            case 9:
-                enemy.m_Angle = enemy.m_Mirrored ? PI : 0.0f;
-                break;
-            case 3:
-            case 5:
-            case 7:
-                enemy.m_Angle = enemy.m_Mirrored ? -2.0943952f : -1.0471976f;
-                break;
-            case 8:
-                enemy.m_Angle = Util::HALF_PI;
-                break;
-            default:
-                break;
-        }
-        enemy.m_Speed =
-            (enemy.m_SubId == 2 || enemy.m_SubId == 3 || enemy.m_SubId == 4) ? 4.2f : 4.5f;
+    const char* profile = StageUtil::ConfigId::Movement::Stage4SmallDown;
+    switch (enemy.m_SubId) {
+        case 2:
+        case 4:
+            profile = StageUtil::ConfigId::Movement::Stage4SmallStraightSlow;
+            break;
+        case 6:
+            profile = StageUtil::ConfigId::Movement::Stage4SmallStraightFast;
+            break;
+        case 9:
+            profile = StageUtil::ConfigId::Movement::Stage4SmallStraightNoTurn;
+            break;
+        case 3:
+            profile = StageUtil::ConfigId::Movement::Stage4SmallDiagonalSlow;
+            break;
+        case 5:
+            profile = StageUtil::ConfigId::Movement::Stage4SmallDiagonalFast;
+            break;
+        case 7:
+            profile = StageUtil::ConfigId::Movement::Stage4SmallDiagonalShort;
+            break;
+        default:
+            break;
     }
-
-    if (t == 30) {
-        if (enemy.m_SubId == 2 || enemy.m_SubId == 4 || enemy.m_SubId == 6) {
-            enemy.m_AngularVelocity = enemy.m_Mirrored ? 0.06544985f : -0.06544985f;
-        } else if (enemy.m_SubId == 3 || enemy.m_SubId == 5 || enemy.m_SubId == 7) {
-            enemy.m_AngularVelocity = enemy.m_Mirrored ? -0.06544985f : 0.06544985f;
-        }
-    }
-    if (t == 70 && (enemy.m_SubId == 2 || enemy.m_SubId == 4 || enemy.m_SubId == 6)) {
-        enemy.m_AngularVelocity = 0.0f;
-    }
-    if (t == 70 && (enemy.m_SubId == 3 || enemy.m_SubId == 5)) {
-        enemy.m_AngularVelocity = enemy.m_Mirrored ? 0.1308997f : -0.1308997f;
-    }
-    if (t == 110 && enemy.m_SubId == 7) {
-        enemy.m_AngularVelocity = 0.0f;
-    }
-    if (t == 150 && (enemy.m_SubId == 3 || enemy.m_SubId == 5)) {
-        enemy.m_AngularVelocity = 0.0f;
-    }
+    StageUtil::ApplyMovementProfile(enemy, profile, t);
 
     switch (enemy.m_SubId) {
         case 2:
@@ -141,11 +124,10 @@ void RunStage4SmallFairy(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunBookFairy(Enemy& enemy, EnemySubCtx& ctx, int t, int burstSub) {
-    if (t == 40) enemy.m_Acceleration = -0.06666667f;
+    StageUtil::ApplyMovementProfile(enemy, StageUtil::ConfigId::Movement::Stage4BookFairy, t);
     if (t == 70) {
         SpawnAtEnemyFieldPos(enemy, ctx, burstSub, 1000, 10,
                              static_cast<int>(ItemType::PowerSmall));
-        enemy.m_Acceleration = 0.0f;
         enemy.m_Angle        = ScriptUtil::RandFloat(0.7853982f, 2.3561945f);
         enemy.m_Speed        = 1.8f;
     }
@@ -174,18 +156,13 @@ void RunBurstFamiliar(Enemy& enemy, EnemySubCtx& ctx, int t, bool laser, bool de
 }
 
 void RunRingCaster(Enemy& enemy, EnemySubCtx& ctx, int t, bool sideEntry) {
-    if (t == 40) enemy.m_Acceleration = -0.06666667f;
-    if (t == 70) enemy.m_Acceleration = 0.0f;
+    StageUtil::ApplyMovementProfile(enemy, StageUtil::ConfigId::Movement::Stage4RingCaster, t);
     if (t >= 70 && t < 70 + 64 * 8 && (t - 70) % 8 == 0) {
         const int   volley = (t - 70) / 8;
         const float sign   = enemy.m_Mirrored ? -1.0f : 1.0f;
         ctx.bullets.SpawnCircleStack(enemy.m_Pos, EBulletType::Rice, EBulletColor::Blue, 3, 2,
                                      sideEntry ? 2.1f : 2.6f, sideEntry ? 1.4f : 1.8f,
                                      RandAngle() + sign * volley * 0.24166097f, false, true);
-    }
-    if (t == 70 + 64 * 8) {
-        enemy.m_Angle = -Util::HALF_PI;
-        enemy.m_Speed = 2.0f;
     }
 }
 

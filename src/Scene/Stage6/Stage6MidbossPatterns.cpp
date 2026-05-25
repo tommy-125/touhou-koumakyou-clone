@@ -1,7 +1,7 @@
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemySubCtx.hpp"
-#include "Scene/Stage6/Stage6PatternCommon.hpp"
+#include "Scene/Stage6/Stage6PatternHelper.hpp"
 #include "Scene/StageScriptUtil.hpp"
 
 namespace Stage6Detail {
