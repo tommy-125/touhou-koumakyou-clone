@@ -1,0 +1,116 @@
+{
+  "stage1": {
+    "timelinePath": "stages/stage1_timeline.json",
+    "stageNo": "STAGE 1",
+    "stageName": "A Dream More Scarlet than Red",
+    "songName": "BGM: A Soul as Red as a Ground Cherry",
+    "bossSkipFrame": 5279,
+    "midbossSkipFrame": -1,
+    "totalFrames": 11600,
+    "stageBonus": 1000,
+    "hasStageClear": true,
+    "bossDeathResultDelay": 60,
+    "background": {
+      "imagePath": "stage_backgrounds/stage1.png",
+      "zIndex": -10.0,
+      "centerX": -96.0,
+      "canvasHeight": 2250.0,
+      "fieldHeight": 448.0
+    }
+  },
+  "stage2": {
+    "timelinePath": "stages/stage2_timeline.json",
+    "stageNo": "STAGE 2",
+    "stageName": "The Lake in the Moonlight",
+    "songName": "BGM: Lunate Elf",
+    "bossSkipFrame": 5984,
+    "midbossSkipFrame": -1,
+    "totalFrames": 7600,
+    "stageBonus": 2000,
+    "hasStageClear": true,
+    "bossDeathResultDelay": 60,
+    "background": {
+      "imagePath": "stage_backgrounds/stage2.png",
+      "zIndex": -10.0,
+      "centerX": -96.0,
+      "canvasHeight": 4096.0,
+      "fieldHeight": 448.0
+    }
+  },
+  "stage3": {
+    "timelinePath": "stages/stage3_timeline.json",
+    "stageNo": "STAGE 3",
+    "stageName": "The Scarlet Border",
+    "songName": "BGM: Shanghai Teahouse ~ Chinese Tea",
+    "bossSkipFrame": 5854,
+    "midbossSkipFrame": -1,
+    "totalFrames": 9000,
+    "stageBonus": 3000,
+    "hasStageClear": true,
+    "bossDeathResultDelay": 60,
+    "background": {
+      "imagePath": "stage_backgrounds/stage3.png",
+      "zIndex": -10.0,
+      "centerX": -96.0,
+      "canvasHeight": 4096.0,
+      "fieldHeight": 448.0
+    }
+  },
+  "stage4": {
+    "timelinePath": "stages/stage4_timeline.json",
+    "stageNo": "STAGE 4",
+    "stageName": "Voile, the Magic Library",
+    "songName": "BGM: Voile, the Magic Library",
+    "bossSkipFrame": 10695,
+    "midbossSkipFrame": -1,
+    "totalFrames": 12200,
+    "stageBonus": 4000,
+    "hasStageClear": true,
+    "bossDeathResultDelay": 60,
+    "background": {
+      "imagePath": "stage_backgrounds/stage4.png",
+      "zIndex": -10.0,
+      "centerX": -96.0,
+      "canvasHeight": 4096.0,
+      "fieldHeight": 448.0
+    }
+  },
+  "stage5": {
+    "timelinePath": "stages/stage5_timeline.json",
+    "stageNo": "STAGE 5",
+    "stageName": "The Maid and the Pocket Watch of Blood",
+    "songName": "BGM: The Maid and the Pocket Watch of Blood",
+    "bossSkipFrame": 7704,
+    "midbossSkipFrame": 3372,
+    "totalFrames": 12500,
+    "stageBonus": 5000,
+    "hasStageClear": true,
+    "bossDeathResultDelay": 60,
+    "background": {
+      "imagePath": "stage_backgrounds/stage5.png",
+      "zIndex": -10.0,
+      "centerX": -96.0,
+      "canvasHeight": 4096.0,
+      "fieldHeight": 448.0
+    }
+  },
+  "stage6": {
+    "timelinePath": "stages/stage6_timeline.json",
+    "stageNo": "STAGE 6",
+    "stageName": "The Young Descendant of Tepes",
+    "songName": "BGM: The Young Descendant of Tepes",
+    "bossSkipFrame": 3169,
+    "midbossSkipFrame": -1,
+    "totalFrames": 16000,
+    "stageBonus": 6000,
+    "hasStageClear": true,
+    "bossDeathResultDelay": 90,
+    "background": {
+      "imagePath": "stage_backgrounds/stage6.png",
+      "zIndex": -10.0,
+      "centerX": -96.0,
+      "canvasHeight": 4096.0,
+      "fieldHeight": 448.0
+    }
+  }
+}

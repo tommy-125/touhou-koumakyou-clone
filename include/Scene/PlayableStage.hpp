@@ -21,7 +21,7 @@
 #include "Util/Renderer.hpp"
 
 struct PlayableStageConfig {
-    const char* timelinePath = "";
+    std::string timelinePath;
     std::string stageNo;
     std::string stageName;
     std::string songName;

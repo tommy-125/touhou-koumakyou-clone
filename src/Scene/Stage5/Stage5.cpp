@@ -2,38 +2,23 @@
 
 #include <memory>
 
+#include "Scene/StageConfigLoader.hpp"
 #include "Scene/Stage5/Stage5Script.hpp"
 #include "Scene/Stage6/Stage6.hpp"
 #include "Scene/Title.hpp"
 
 namespace {
-static constexpr int STAGE5_MIDBOSS_FRAME   = 3372;
-static constexpr int STAGE5_FINAL_BOSS_FRAME = 7704;
-static constexpr int STAGE5_TOTAL_FRAMES     = 12500;
 
-PlayableStageConfig MakeStage5Config() {
-    return {
-        GA_RESOURCE_DIR "/stages/stage5_timeline.json",
-        "STAGE 5",
-        "The Maid and the Pocket Watch of Blood",
-        "BGM: The Maid and the Pocket Watch of Blood",
-        STAGE5_FINAL_BOSS_FRAME,
-        STAGE5_MIDBOSS_FRAME,
-        STAGE5_TOTAL_FRAMES,
-        5000,
-        true,
-        60,
-    };
+const StageConfig& Stage5Config() {
+    return LoadStageConfig("stage5");
 }
 
 }  // namespace
 
 Stage5::Stage5(CharacterItem character, SpellCardItem spellCard, GameManager gameManager)
-    : PlayableStage(character, spellCard, gameManager, MakeStage5Config(),
+    : PlayableStage(character, spellCard, gameManager, Stage5Config().playable,
                     std::make_unique<Stage5Script>()) {
-    SetBackground(std::make_unique<LongScrollStageBackground>(
-        m_Renderer, GA_RESOURCE_DIR "/stage_backgrounds/stage5.png", -10.0f, -96.0f,
-        BG_CANVAS_H, FIELD_H, STAGE_TOTAL_FRAMES));
+    SetBackground(CreateStageBackground(m_Renderer, Stage5Config()));
 }
 
 std::unique_ptr<Scene> Stage5::NextScene() {

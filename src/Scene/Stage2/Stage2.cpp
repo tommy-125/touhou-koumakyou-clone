@@ -2,37 +2,23 @@
 
 #include <memory>
 
+#include "Scene/StageConfigLoader.hpp"
 #include "Scene/Stage2/Stage2Script.hpp"
 #include "Scene/Stage3/Stage3.hpp"
 #include "Scene/Title.hpp"
 
 namespace {
-static constexpr int   STAGE2_FINAL_BOSS_FRAME = 5984;
-static constexpr int   STAGE2_TOTAL_FRAMES     = 7600;
 
-PlayableStageConfig MakeStage2Config() {
-    return {
-        GA_RESOURCE_DIR "/stages/stage2_timeline.json",
-        "STAGE 2",
-        "The Lake in the Moonlight",
-        "BGM: Lunate Elf",
-        STAGE2_FINAL_BOSS_FRAME,
-        -1,
-        STAGE2_TOTAL_FRAMES,
-        2000,
-        true,
-        60,
-    };
+const StageConfig& Stage2Config() {
+    return LoadStageConfig("stage2");
 }
 
 }  // namespace
 
 Stage2::Stage2(CharacterItem character, SpellCardItem spellCard, GameManager gameManager)
-    : PlayableStage(character, spellCard, gameManager, MakeStage2Config(),
+    : PlayableStage(character, spellCard, gameManager, Stage2Config().playable,
                     std::make_unique<Stage2Script>()) {
-    SetBackground(std::make_unique<LongScrollStageBackground>(
-        m_Renderer, GA_RESOURCE_DIR "/stage_backgrounds/stage2.png", -10.0f, -96.0f,
-        BG_CANVAS_H, FIELD_H, STAGE_TOTAL_FRAMES));
+    SetBackground(CreateStageBackground(m_Renderer, Stage2Config()));
 }
 
 std::unique_ptr<Scene> Stage2::NextScene() {
