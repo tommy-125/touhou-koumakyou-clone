@@ -2,42 +2,30 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
-#include "Enemy/BossPhaseUtil.hpp"
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
-#include "Item/ItemManager.hpp"
 #include "Scene/Stage1/Stage1Patterns.hpp"
+#include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage1Detail {
 namespace {
 namespace ScriptUtil = EnemyScriptUtil;
+namespace StageUtil  = StageScriptUtil;
 
 void TransitionToRandomSub(Enemy& enemy, const EnemySubCtx& ctx, int subA, int subB, int subC) {
     const int roll = rand() % 3;
     ctx.TransitionToSub(enemy, roll == 0 ? subA : (roll == 1 ? subB : subC));
 }
 
-void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int spellBonus,
-                     int timerFrames) {
-    BossPhaseUtil::StartPhase(enemy, ctx,
-                              {
-                                  title,
-                                  -1,
-                                  enemy.m_BossLifeCount,
-                                  timerFrames,
-                                  enemy.m_DeathCallbackSub,
-                                  enemy.m_DeathCallbackSub,
-                                  -1,
-                                  -1,
-                                  true,
-                                  true,
-                                  spellBonus,
-                                  false,
-                                  true,
-                              });
+void StartRumiaPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+    StageUtil::StartBossPhase(enemy, ctx, phaseId);
+}
+
+void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+    StartRumiaPhase(enemy, ctx, phaseId);
     ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
 }
 
@@ -46,17 +34,9 @@ void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, in
 void InitRumiaBossSub(Enemy& enemy, EnemySubCtx& ctx) {
     switch (enemy.m_SubId) {
         case SUB_BOSS_ENTRY: {  // Boss entry
-            int off2 = Anm::STG1ENM2.offset;
-            ctx.anm.SetScript(enemy.m_Vm, off2 + 128, off2);
-            enemy.m_HitboxSize       = {48, 56};
-            enemy.m_ItemDrop         = -1;
-            enemy.m_ItemDropCount    = 0;
-            enemy.m_Pos              = Util::GameFieldToScreen(320.0f, -32.0f);
-            enemy.m_IsBoss           = true;
-            enemy.m_CanTakeDamage    = false;
+            StageUtil::InitBossEntry(enemy, ctx,
+                                     StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage1RumiaBoss));
             enemy.m_DeathCallbackSub = SUB_BOSS_PHASE2_INIT;
-            enemy.m_BossTitle        = "Rumia";
-            ScriptUtil::SetDeathEffects(enemy, 671, 676);
             ScriptUtil::SetBossPoses(enemy, 128, 131, 132, 129, 130);
             break;
         }
@@ -83,19 +63,8 @@ void RunRumiaBossSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
         case SUB_BOSS_PHASE1_INIT: {  // Phase 1 non-spell init
             if (t == 0) {
                 ScriptUtil::SetDeathEffects(enemy, 671, 676);
-                enemy.m_CanTakeDamage          = true;
-                enemy.m_ShowSpellName          = false;
-                enemy.m_BossTitle              = "Rumia";
-                enemy.m_BossLifeCount          = 1;
-                enemy.m_SpellcardBonus         = 0;
-                enemy.m_Life                   = 7000;
-                enemy.m_BossMaxLife            = 7000;
-                enemy.m_BossTimer              = 0;
-                enemy.m_LifeCallbackThreshold  = 900;
-                enemy.m_LifeCallbackSub        = SUB_BOSS_PHASE1_SPELL;
-                enemy.m_TimerCallbackThreshold = 2100;
-                enemy.m_TimerCallbackSub       = SUB_BOSS_PHASE1_SPELL;
-                enemy.m_DeathCallbackSub       = SUB_BOSS_PHASE2_INIT;
+                StartRumiaPhase(enemy, ctx,
+                                StageUtil::ConfigId::BossPhase::Stage1RumiaFirstNonspell);
             }
             if (t == 100) ctx.TransitionToSub(enemy, SUB_BOSS_PHASE1_ATTACK_A);
             break;
@@ -190,7 +159,7 @@ void RunRumiaBossSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
         case SUB_BOSS_PHASE1_SPELL: {  // Phase 1 spellcard: Night Bird
                                        // 2 passes, then
                                        // move)
-            if (t == 0) StartSpellPhase(enemy, ctx, "Night Bird", 2000000, 1500);
+            if (t == 0) StartSpellPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage1NightBird);
             if (t == 120) {
                 enemy.m_CanTakeDamage = true;
             }
@@ -229,21 +198,9 @@ void RunRumiaBossSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
                                       // items)
             if (t == 0) {
                 ScriptUtil::SetDeathEffects(enemy, 671, 676);
-                enemy.m_CanTakeDamage          = false;
-                enemy.m_InSpellcard            = false;
-                enemy.m_ShowSpellName          = false;
-                enemy.m_BossTitle              = "Rumia";
-                enemy.m_BossLifeCount          = 0;
-                enemy.m_SpellcardBonus         = 0;
-                enemy.m_Life                   = 7500;
-                enemy.m_BossMaxLife            = 7500;
-                enemy.m_BossTimer              = 0;
-                enemy.m_LifeCallbackThreshold  = 800;
-                enemy.m_LifeCallbackSub        = SUB_BOSS_PHASE2_SPELL;
-                enemy.m_TimerCallbackThreshold = 1800;
-                enemy.m_TimerCallbackSub       = SUB_BOSS_PHASE2_SPELL;
-                enemy.m_DeathCallbackSub       = SUB_BOSS_DEATH;
-                for (int k = 0; k < 5; k++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
+                StartRumiaPhase(enemy, ctx,
+                                StageUtil::ConfigId::BossPhase::Stage1RumiaSecondNonspell);
+                StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
             }
             if (t == 200) {
                 enemy.m_CanTakeDamage = true;
@@ -328,7 +285,7 @@ void RunRumiaBossSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
                                        // RingBall spiral)
             // Each bullet redirects vertically after 40f at speed 1.5 (ECL ins_82 flag 0x40).
             if (t == 0) {
-                StartSpellPhase(enemy, ctx, "Demarcation", 3000000, 1500);
+                StartSpellPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage1Demarcation);
             }
             if (t == 120) {
                 enemy.m_CanTakeDamage = true;

@@ -22,10 +22,13 @@ constexpr int SUB_BOSS_PHASE2_ATTACK_D = 21;
 constexpr int SUB_BOSS_PHASE2_SPELL    = 23;
 constexpr int SUB_BOSS_DEATH           = 17;
 
+void InitStage1SmallFairy(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage1MediumFairy(Enemy& enemy, EnemySubCtx& ctx);
+void RunStage1SmallFairyA(Enemy& enemy, int t);
+void RunStage1SmallFairyB(Enemy& enemy, int t);
+void RunStage1MediumFairy(Enemy& enemy, EnemySubCtx& ctx, int t, bool shoots);
 void InitRumiaMidbossSub(Enemy& enemy, EnemySubCtx& ctx);
 void RunRumiaMidbossSub(Enemy& enemy, EnemySubCtx& ctx, int t);
 void InitRumiaBossSub(Enemy& enemy, EnemySubCtx& ctx);
 void RunRumiaBossSub(Enemy& enemy, EnemySubCtx& ctx, int t);
-void InitStage1Sub(Enemy& enemy, EnemySubCtx& ctx);
-void RunStage1Sub(Enemy& enemy, EnemySubCtx& ctx);
 }  // namespace Stage1Detail

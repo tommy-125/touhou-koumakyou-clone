@@ -1,0 +1,434 @@
+{
+  "stage1.rumia_midboss": {
+    "title": "Rumia",
+    "life": 6000,
+    "lifeCount": 0,
+    "timerFrames": 1440,
+    "timerSub": 7,
+    "deathSub": 6,
+    "canTakeDamage": false,
+    "cancelBullets": false
+  },
+  "stage1.rumia_first_nonspell": {
+    "title": "Rumia",
+    "life": 7000,
+    "lifeCount": 1,
+    "timerFrames": 2100,
+    "timerSub": 22,
+    "deathSub": 16,
+    "lifeThreshold": 900,
+    "lifeSub": 22,
+    "canTakeDamage": true,
+    "cancelBullets": false
+  },
+  "stage1.night_bird": {
+    "title": "Night Bird",
+    "lifeCount": 1,
+    "timerFrames": 1500,
+    "timerSub": 16,
+    "deathSub": 16,
+    "spell": true,
+    "showSpellName": true,
+    "spellBonus": 2000000
+  },
+  "stage1.rumia_second_nonspell": {
+    "title": "Rumia",
+    "life": 7500,
+    "lifeCount": 0,
+    "timerFrames": 1800,
+    "timerSub": 23,
+    "deathSub": 17,
+    "lifeThreshold": 800,
+    "lifeSub": 23
+  },
+  "stage1.demarcation": {
+    "title": "Demarcation",
+    "lifeCount": 0,
+    "timerFrames": 1500,
+    "timerSub": 17,
+    "deathSub": 17,
+    "spell": true,
+    "showSpellName": true,
+    "spellBonus": 3000000
+  },
+  "stage2.daiyousei": {
+    "title": "Daiyousei",
+    "life": 10000,
+    "lifeCount": 0,
+    "timerFrames": 1920,
+    "timerSub": 19,
+    "deathSub": 18,
+    "canTakeDamage": false,
+    "cancelBullets": false
+  },
+  "stage2.cirno_first_nonspell": {
+    "title": "Cirno",
+    "life": 10000,
+    "lifeCount": 1,
+    "timerFrames": 1500,
+    "timerSub": 30,
+    "deathSub": 25,
+    "lifeThreshold": 1500,
+    "lifeSub": 30,
+    "cancelBullets": false
+  },
+  "stage2.icicle_fall": {
+    "title": "Icicle Fall",
+    "lifeCount": 1,
+    "timerFrames": 1800,
+    "timerSub": 25,
+    "deathSub": 25,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage2.cirno_second_nonspell": {
+    "title": "Cirno",
+    "life": 13000,
+    "lifeCount": 0,
+    "timerFrames": 3000,
+    "timerSub": 31,
+    "deathSub": 28,
+    "lifeThreshold": 3200,
+    "lifeSub": 31
+  },
+  "stage2.perfect_freeze": {
+    "title": "Perfect Freeze",
+    "lifeCount": 0,
+    "timerFrames": 2400,
+    "timerSub": 28,
+    "deathSub": 28,
+    "lifeThreshold": 1400,
+    "lifeSub": 32,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage2.diamond_blizzard": {
+    "title": "Diamond Blizzard",
+    "lifeCount": 0,
+    "timerFrames": 1980,
+    "timerSub": 28,
+    "deathSub": 28,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage3.meiling_first_nonspell": {
+    "title": "Hong Meiling",
+    "life": 14000,
+    "lifeCount": 2,
+    "timerFrames": 1800,
+    "timerSub": 29,
+    "deathSub": 20,
+    "lifeThreshold": 1900,
+    "lifeSub": 29,
+    "canTakeDamage": true
+  },
+  "stage3.rainbow_wind_chime": {
+    "title": "Rainbow Wind Chime",
+    "lifeCount": 2,
+    "timerFrames": 1800,
+    "timerSub": 20,
+    "deathSub": 20,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage3.meiling_second_nonspell": {
+    "title": "Hong Meiling",
+    "life": 12000,
+    "lifeCount": 1,
+    "timerFrames": 2400,
+    "timerSub": 26,
+    "deathSub": 26,
+    "canTakeDamage": true
+  },
+  "stage3.meiling_final_nonspell": {
+    "title": "Hong Meiling",
+    "life": 16500,
+    "lifeCount": 0,
+    "timerFrames": 2400,
+    "timerSub": 31,
+    "deathSub": 34,
+    "lifeThreshold": 3400,
+    "lifeSub": 31,
+    "canTakeDamage": true
+  },
+  "stage3.colorful_rain": {
+    "title": "Colorful Rain",
+    "lifeCount": 0,
+    "timerFrames": 2160,
+    "timerSub": 33,
+    "deathSub": 33,
+    "lifeThreshold": 2000,
+    "lifeSub": 33,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage4.patchouli_first_nonspell": {
+    "title": "Patchouli Knowledge",
+    "life": 17000,
+    "lifeCount": 2,
+    "timerFrames": 2400,
+    "timerSub": 45,
+    "deathSub": 45,
+    "lifeThreshold": 1600,
+    "lifeSub": 45
+  },
+  "stage4.patchouli_second_nonspell": {
+    "title": "Patchouli Knowledge",
+    "life": 16000,
+    "lifeCount": 1,
+    "timerFrames": 2400,
+    "timerSub": 48,
+    "deathSub": 48,
+    "lifeThreshold": 1600,
+    "lifeSub": 48
+  },
+  "stage4.princess_undine": {
+    "title": "Water Sign \"Princess Undine\"",
+    "lifeCount": 2,
+    "timerFrames": 2100,
+    "timerSub": 37,
+    "deathSub": 37,
+    "lifeSub": 37,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage4.sylphy_horn_advanced": {
+    "title": "Wood Sign \"Sylphy Horn Advanced\"",
+    "lifeCount": 1,
+    "timerFrames": 2100,
+    "timerSub": 39,
+    "deathSub": 39,
+    "lifeSub": 39,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage4.final_nonspell": {
+    "title": "Water & Wood Sign \"Water Elf\"",
+    "life": 3400,
+    "lifeCount": 0,
+    "timerFrames": 2400,
+    "timerSub": 60,
+    "deathSub": 60,
+    "lifeThreshold": 1700,
+    "lifeSub": 40,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage4.phase_out": {
+    "title": "Metal & Water Sign \"Mercury Poison\"",
+    "lifeCount": 0,
+    "timerFrames": 2400,
+    "timerSub": 60,
+    "deathSub": 60,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage4.water_elf": {
+    "title": "Water & Wood Sign \"Water Elf\"",
+    "life": 3400,
+    "lifeCount": 0,
+    "timerFrames": 2400,
+    "timerSub": 60,
+    "deathSub": 60,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage5.midboss_main": {
+    "title": "Sakuya Izayoi",
+    "lifeCount": 0,
+    "timerFrames": 2400,
+    "timerSub": 17,
+    "deathSub": 16,
+    "lifeThreshold": 710,
+    "lifeSub": 18,
+    "canTakeDamage": true
+  },
+  "stage5.misdirection": {
+    "title": "Illusion Sign \"Misdirection\"",
+    "lifeCount": 0,
+    "timerFrames": 1800,
+    "timerSub": 17,
+    "deathSub": 17,
+    "lifeSub": 17,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage5.sakuya_first_nonspell": {
+    "title": "Sakuya Izayoi",
+    "life": 19000,
+    "lifeCount": 2,
+    "timerFrames": 2700,
+    "timerSub": 44,
+    "deathSub": 44,
+    "lifeThreshold": 1400,
+    "lifeSub": 44
+  },
+  "stage5.sakuya_second_nonspell": {
+    "title": "Sakuya Izayoi",
+    "life": 17000,
+    "lifeCount": 1,
+    "timerFrames": 2700,
+    "timerSub": 46,
+    "deathSub": 46,
+    "lifeThreshold": 1400,
+    "lifeSub": 46
+  },
+  "stage5.sakuya_final_nonspell": {
+    "title": "Sakuya Izayoi",
+    "life": 16000,
+    "lifeCount": 0,
+    "timerFrames": 2700,
+    "timerSub": 50,
+    "deathSub": 50,
+    "lifeThreshold": 1700,
+    "lifeSub": 50
+  },
+  "stage5.clock_corpse": {
+    "title": "Illusion Existence \"Clock Corpse\"",
+    "lifeCount": 2,
+    "timerFrames": 1800,
+    "timerSub": 34,
+    "deathSub": 34,
+    "lifeSub": 34,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage5.luna_clock": {
+    "title": "Illusion Image \"Luna Clock\"",
+    "lifeCount": 1,
+    "timerFrames": 1800,
+    "timerSub": 41,
+    "deathSub": 41,
+    "lifeSub": 41,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage5.manipulating_doll": {
+    "title": "Maid Secret Skill \"Manipulating Doll\"",
+    "lifeCount": 0,
+    "timerFrames": 1800,
+    "timerSub": 51,
+    "deathSub": 51,
+    "lifeSub": 51,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage6.sakuya_main": {
+    "title": "Sakuya Izayoi",
+    "lifeCount": 0,
+    "timerFrames": 1020,
+    "timerSub": 13,
+    "deathSub": 12,
+    "lifeThreshold": 1000,
+    "lifeSub": 14
+  },
+  "stage6.eternal_meek": {
+    "title": "Conjuring \"Eternal Meek\"",
+    "lifeCount": 0,
+    "timerFrames": 900,
+    "timerSub": 13,
+    "deathSub": 12,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage6.remilia_nonspell_1": {
+    "title": "Remilia Scarlet",
+    "life": 13000,
+    "lifeCount": 4,
+    "timerFrames": 2700,
+    "timerSub": 30,
+    "deathSub": 19,
+    "lifeThreshold": 1200,
+    "lifeSub": 30,
+    "canTakeDamage": true
+  },
+  "stage6.remilia_nonspell_2": {
+    "title": "Remilia Scarlet",
+    "life": 15500,
+    "lifeCount": 3,
+    "timerFrames": 2700,
+    "timerSub": 32,
+    "deathSub": 23,
+    "lifeThreshold": 1600,
+    "lifeSub": 32,
+    "canTakeDamage": true
+  },
+  "stage6.remilia_nonspell_3": {
+    "title": "Remilia Scarlet",
+    "life": 11000,
+    "lifeCount": 2,
+    "timerFrames": 2700,
+    "timerSub": 34,
+    "deathSub": 26,
+    "lifeThreshold": 1600,
+    "lifeSub": 34,
+    "canTakeDamage": true
+  },
+  "stage6.remilia_nonspell_4": {
+    "title": "Remilia Scarlet",
+    "life": 13000,
+    "lifeCount": 1,
+    "timerFrames": 3600,
+    "timerSub": 38,
+    "deathSub": 43,
+    "lifeThreshold": 1300,
+    "lifeSub": 38,
+    "canTakeDamage": true
+  },
+  "stage6.star_of_david": {
+    "title": "Heaven's Punishment \"Star of David\"",
+    "lifeCount": 4,
+    "timerFrames": 2400,
+    "timerSub": 19,
+    "deathSub": 19,
+    "lifeSub": 19,
+    "spell": true,
+    "showSpellName": true,
+    "canTakeDamage": true
+  },
+  "stage6.scarlet_netherworld": {
+    "title": "Nether Sign \"Scarlet Netherworld\"",
+    "lifeCount": 3,
+    "timerFrames": 2400,
+    "timerSub": 23,
+    "deathSub": 23,
+    "lifeSub": 23,
+    "spell": true,
+    "showSpellName": true,
+    "canTakeDamage": true
+  },
+  "stage6.vlad_tepes": {
+    "title": "Curse \"Curse of Vlad Tepes\"",
+    "lifeCount": 2,
+    "timerFrames": 2400,
+    "timerSub": 26,
+    "deathSub": 26,
+    "lifeSub": 26,
+    "spell": true,
+    "showSpellName": true,
+    "canTakeDamage": true
+  },
+  "stage6.scarlet_shoot": {
+    "title": "Scarlet Sign \"Scarlet Shoot\"",
+    "lifeCount": 1,
+    "timerFrames": 1800,
+    "timerSub": 43,
+    "deathSub": 43,
+    "lifeSub": 43,
+    "spell": true,
+    "showSpellName": true,
+    "canTakeDamage": true
+  },
+  "stage6.red_magic": {
+    "title": "\"Red Magic\"",
+    "life": 4700,
+    "lifeCount": 0,
+    "timerFrames": 7200,
+    "timerSub": 45,
+    "deathSub": 45,
+    "lifeSub": 45,
+    "spell": true,
+    "showSpellName": true,
+    "canTakeDamage": true
+  }
+}

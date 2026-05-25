@@ -1,17 +1,30 @@
+#include <algorithm>
 #include <cmath>
 
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
+#include "Scene/Stage3/Stage3PatternCommon.hpp"
 #include "Scene/Stage3/Stage3Patterns.hpp"
+#include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage3Detail {
 namespace ScriptUtil = EnemyScriptUtil;
+namespace StageUtil  = StageScriptUtil;
 
-glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = {0.0f, -12.0f});
-void SpawnRandomSpeedRange(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulletColor color,
-                           int count, float minSpeed, float maxSpeed, bool rotateWithAngle = false);
+void InitMeilingMidboss(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitBossEntry(
+        enemy, ctx,
+        StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage3MeilingMidboss));
+    enemy.m_BossMaxLife            = std::max(1, enemy.m_Life);
+    enemy.m_TimerCallbackThreshold = 1800;
+    enemy.m_TimerCallbackSub       = SUB_MEILING_MIDBOSS_ESCAPE;
+    enemy.m_LifeCallbackThreshold  = 1300;
+    enemy.m_LifeCallbackSub        = SUB_MEILING_MIDBOSS_SPELL_A;
+    enemy.m_DeathCallbackSub       = SUB_MEILING_MIDBOSS_DEATH;
+    SetMeilingBossPoses(enemy);
+}
 
 void RunMeilingMidbossPattern(Enemy& enemy, EnemySubCtx& ctx, int frame) {
     static constexpr int BLUE_CYCLE_FRAMES = 230;

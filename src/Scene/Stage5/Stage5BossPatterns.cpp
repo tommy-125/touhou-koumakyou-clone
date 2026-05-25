@@ -16,6 +16,15 @@ using EnemyPatternUtil::SpawnAimedCircleStack;
 using EnemyPatternUtil::SpawnCircleStackEcl;
 using EnemyPatternUtil::SpawnFanAbsolute;
 using EnemyPatternUtil::SpawnRandomCircle;
+void InitSakuyaEntry(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::BossEntryConfig config =
+        StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage5Sakuya);
+    config.blocksTimeline = enemy.m_SubId == SUB_SAKUYA_ENTRY;
+    config.lifeCount      = enemy.m_SubId == SUB_SAKUYA_ENTRY ? 2 : 0;
+    StageUtil::InitBossEntry(enemy, ctx, config);
+    SetSakuyaBossPoses(enemy);
+}
+
 void SpawnDownDaggerRing(EnemySubCtx& ctx, glm::vec2 pos, EBulletColor color, int count, int stacks,
                          float speed1, float speed2, float angleOffset) {
     const glm::vec2 downTarget = pos + glm::vec2{0.0f, 1.0f};
@@ -119,19 +128,19 @@ void SpawnTimeStopKnifeField(Enemy& enemy, EnemySubCtx& ctx, int patternPosition
 void RunSakuyaNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t, int phase) {
     if (t == 0) {
         if (phase == 0) {
-            StartSakuyaPhase(enemy, ctx, "Sakuya Izayoi", 19000, 2, 2700, SUB_SAKUYA_CLOCK_CORPSE,
-                             1400, false);
+            StartSakuyaPhase(enemy, ctx,
+                             StageUtil::ConfigId::BossPhase::Stage5SakuyaFirstNonspell);
             ctx.SetTimeStopped(false);
         } else if (phase == 1) {
-            StartSakuyaPhase(enemy, ctx, "Sakuya Izayoi", 17000, 1, 2700, SUB_SAKUYA_LUNA_CLOCK,
-                             1400, false);
+            StartSakuyaPhase(enemy, ctx,
+                             StageUtil::ConfigId::BossPhase::Stage5SakuyaSecondNonspell);
             ctx.SetTimeStopped(false);
-            ScriptUtil::DropPowerItems(enemy, ctx, 12);
+            StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
         } else {
-            StartSakuyaPhase(enemy, ctx, "Sakuya Izayoi", 16000, 0, 2700, SUB_SAKUYA_FINAL_SPELL,
-                             1700, false);
+            StartSakuyaPhase(enemy, ctx,
+                             StageUtil::ConfigId::BossPhase::Stage5SakuyaFinalNonspell);
             ctx.SetTimeStopped(false);
-            ScriptUtil::DropPowerItems(enemy, ctx, 12);
+            StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
         }
         enemy.m_CanTakeDamage = true;
     }
@@ -187,8 +196,8 @@ void RunSakuyaNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t, int phase) {
 }
 
 void RunClockCorpse(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginSakuyaSpellAt(enemy, ctx, t, "Illusion Existence \"Clock Corpse\"", 2,
-                            SUB_SAKUYA_SECOND_NONSPELL, {192.0f, 112.0f})) {
+    if (!BeginSakuyaSpellAt(enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage5ClockCorpse,
+                            {192.0f, 112.0f})) {
         return;
     }
 
@@ -212,8 +221,8 @@ void RunClockCorpse(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunLunaClock(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginSakuyaSpellAt(enemy, ctx, t, "Illusion Image \"Luna Clock\"", 1,
-                            SUB_SAKUYA_FINAL_NONSPELL, {192.0f, 112.0f})) {
+    if (!BeginSakuyaSpellAt(enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage5LunaClock,
+                            {192.0f, 112.0f})) {
         return;
     }
 
@@ -240,8 +249,8 @@ void RunLunaClock(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunFinalSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginSakuyaSpellAt(enemy, ctx, t, "Maid Secret Skill \"Manipulating Doll\"", 0,
-                            SUB_SAKUYA_DEATH, {192.0f, 144.0f})) {
+    if (!BeginSakuyaSpellAt(enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage5ManipulatingDoll,
+                            {192.0f, 144.0f})) {
         return;
     }
 

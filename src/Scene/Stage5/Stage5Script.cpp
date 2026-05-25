@@ -2,34 +2,20 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
-#include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/Enemy.hpp"
-#include "Enemy/EnemyScriptUtil.hpp"
+#include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemySubCtx.hpp"
-#include "Item/ItemManager.hpp"
-#include "Scene/Stage5/Stage5PatternCommon.hpp"
 #include "Scene/Stage5/Stage5Patterns.hpp"
 #include "Scene/StageScriptUtil.hpp"
 
 namespace {
-namespace ScriptUtil = EnemyScriptUtil;
-namespace StageUtil  = StageScriptUtil;
+namespace StageUtil = StageScriptUtil;
 using namespace Stage5Detail;
 }  // namespace
 
 Stage5Script::Stage5Script() {
-    constexpr int offset = Anm::STG5ENM.offset;
-
     AddTimedPattern(
-        {0, 2, 3, 4, 5},
-        [](Enemy& enemy, EnemySubCtx& ctx) {
-            StageUtil::InitVisual(enemy, ctx, {offset, 12, {28.0f, 28.0f}, 670, 678});
-            if (enemy.m_SubId == 2) {
-                StageUtil::SetDropCallback(enemy, SUB_MAID_DROP_4);
-            } else if (enemy.m_SubId >= 3 && enemy.m_SubId <= 5) {
-                StageUtil::SetDropCallback(enemy, SUB_MAID_DROP_6);
-            }
-        },
+        {0, 2, 3, 4, 5}, InitStage5TopMaid,
         [](Enemy& enemy, EnemySubCtx& ctx, int t) {
             switch (enemy.m_SubId) {
                 case 0:
@@ -53,17 +39,11 @@ Stage5Script::Stage5Script() {
         });
 
     AddTimedPattern(
-        {1, 9},
-        [](Enemy& enemy, EnemySubCtx& ctx) {
-            StageUtil::InitVisual(enemy, ctx, {offset, 10, {28.0f, 28.0f}, 670, 678});
-        },
+        {1, 9}, InitStage5SideMaid,
         [](Enemy& enemy, EnemySubCtx& ctx, int t) { RunSideMaid(enemy, ctx, t, enemy.m_SubId); });
 
     AddTimedPattern(
-        {6, 10},
-        [](Enemy& enemy, EnemySubCtx& ctx) {
-            StageUtil::InitVisual(enemy, ctx, {offset, 11, {28.0f, 28.0f}, 670, 678});
-        },
+        {6, 10}, InitStage5RingMaid,
         [](Enemy& enemy, EnemySubCtx& ctx, int t) {
             if (enemy.m_SubId == 6) {
                 RunRingMaid(enemy, ctx, t);
@@ -73,24 +53,19 @@ Stage5Script::Stage5Script() {
         });
 
     AddTimedPattern(
-        11,
-        [](Enemy& enemy, EnemySubCtx& ctx) {
-            StageUtil::InitVisual(enemy, ctx, {offset, 12, {28.0f, 28.0f}, 670, 678});
-        },
+        11, InitStage5TopMaid,
         [](Enemy& enemy, EnemySubCtx& ctx, int t) { RunSideMaid(enemy, ctx, t, enemy.m_SubId); });
 
     AddTimedPattern(
-        SUB_MAID_DROP_4,
-        [](Enemy& enemy, EnemySubCtx& ctx) { StageUtil::InitDropProxy(enemy, ctx, offset, 16); },
+        SUB_MAID_DROP_4, InitStage5MaidDropProxy,
         [](Enemy& enemy, EnemySubCtx& ctx, int t) {
-            if (t == 0) StageUtil::DropPowerAndDie(enemy, ctx, 4);
+            if (t == 0) StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power4Die);
         });
 
     AddTimedPattern(
-        SUB_MAID_DROP_6,
-        [](Enemy& enemy, EnemySubCtx& ctx) { StageUtil::InitDropProxy(enemy, ctx, offset, 16); },
+        SUB_MAID_DROP_6, InitStage5MaidDropProxy,
         [](Enemy& enemy, EnemySubCtx& ctx, int t) {
-            if (t == 0) StageUtil::DropPowerAndDie(enemy, ctx, 6);
+            if (t == 0) StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power6Die);
         });
 
     AddTimedPattern(
@@ -98,34 +73,17 @@ Stage5Script::Stage5Script() {
          SUB_SAKUYA_HELPER_5, SUB_SAKUYA_HELPER_6, SUB_SAKUYA_HELPER_7, SUB_SAKUYA_HELPER_8,
          SUB_SAKUYA_KUNAI_HELPER_1, SUB_SAKUYA_KUNAI_HELPER_2, SUB_SAKUYA_KUNAI_HELPER_3,
          SUB_SAKUYA_KUNAI_HELPER_4},
-        [](Enemy& enemy, EnemySubCtx& ctx) {
-            StageUtil::InitVisual(enemy, ctx, {offset, 16, {0.0f, 0.0f}});
-            InitSakuyaHelper(enemy);
-        },
+        InitStage5SakuyaHelperProxy,
         RunSakuyaHelper);
 
     AddTimedPattern(
-        SUB_SAKUYA_HELPER_DEATH,
-        [](Enemy& enemy, EnemySubCtx& ctx) { StageUtil::InitDropProxy(enemy, ctx, offset, 16); },
+        SUB_SAKUYA_HELPER_DEATH, InitStage5SakuyaHelperDeath,
         [](Enemy& enemy, EnemySubCtx&, int t) {
             if (t >= 60) enemy.m_Alive = false;
         });
 
     AddTimedPattern(
-        {SUB_SAKUYA_MIDBOSS_ENTRY, SUB_SAKUYA_ENTRY},
-        [](Enemy& enemy, EnemySubCtx& ctx) {
-            StageUtil::InitBossEntry(enemy, ctx,
-                                     {Anm::STG5ENM2.offset,
-                                      128,
-                                      {-32.0f, 128.0f},
-                                      {40.0f, 56.0f},
-                                      "Sakuya Izayoi",
-                                      enemy.m_SubId == SUB_SAKUYA_ENTRY,
-                                      enemy.m_SubId == SUB_SAKUYA_ENTRY ? 2 : 0,
-                                      {32.0f, 48.0f},
-                                      {352.0f, 132.0f}});
-            SetSakuyaBossPoses(enemy);
-        },
+        {SUB_SAKUYA_MIDBOSS_ENTRY, SUB_SAKUYA_ENTRY}, InitSakuyaEntry,
         [](Enemy& enemy, EnemySubCtx& ctx, int t) {
             if (t == 0) ctx.StartLerpTo(enemy, 192.0f, 128.0f, 60);
             if (t == 60) {
@@ -140,9 +98,7 @@ Stage5Script::Stage5Script() {
     AddTimedRunOnlyPattern(SUB_SAKUYA_MIDBOSS_DEATH, [](Enemy& enemy, EnemySubCtx& ctx, int t) {
         if (t == 0) {
             ctx.SetTimeStopped(false);
-            ctx.items.SpawnItem(enemy.m_Pos, ItemType::Life);
-            ScriptUtil::DropPowerItems(enemy, ctx, 10);
-            ctx.BulletCancelIntoPointItems();
+            StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power10LifeCancel);
             ctx.TransitionToSub(enemy, SUB_SAKUYA_MIDBOSS_EXIT);
         }
     });

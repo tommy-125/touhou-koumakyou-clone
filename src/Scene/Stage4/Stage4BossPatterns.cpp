@@ -7,22 +7,23 @@
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
+#include "Scene/StageScriptUtil.hpp"
+#include "Scene/Stage4/Stage4PatternCommon.hpp"
 #include "Scene/Stage4/Stage4Patterns.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage4Detail {
 namespace ScriptUtil = EnemyScriptUtil;
+namespace StageUtil  = StageScriptUtil;
 using EnemyPatternUtil::RandAngle;
 using EnemyPatternUtil::SpawnAimedCircleLinearStack;
 
-glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = {0.0f, -12.0f});
-void      SpawnAtEnemyFieldPos(const Enemy& enemy, EnemySubCtx& ctx, int subId, int life, int score,
-                               int itemDrop);
-void      StartPatchouliPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int life,
-                              int lifeCount, int timerFrames, int nextSub, int lifeThreshold,
-                              bool spell);
-void StartPatchouliFinalPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int life,
-                              int lifeThreshold, int lifeSub);
+void InitPatchouliEntry(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitBossEntry(
+        enemy, ctx, StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage4Patchouli));
+    SetPatchouliBossPoses(enemy);
+}
+
 void SpawnPatchouliLaserSet(Enemy&, EnemySubCtx& ctx, float spin, int duration, bool clearFirst) {
     if (clearFirst) ctx.lasers.ClearAll();
 
@@ -74,11 +75,6 @@ void HoldAtFieldCenter(Enemy& enemy) {
 }
 
 void RunPatchouliFirstNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartPatchouliPhase(enemy, ctx, "Patchouli Knowledge", 17000, 2, 2400,
-                            SUB_PATCHOULI_PRINCESS_UNDINE, 1600, false);
-        ctx.StartLerpTo(enemy, 192.0f, 128.0f, 60);
-    }
     if (t == 60) enemy.m_CanTakeDamage = true;
     if (t >= 60 && t < 100) HoldAtFieldCenter(enemy);
     if (t < 100) return;
@@ -105,12 +101,6 @@ void RunPatchouliFirstNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunPatchouliSecondNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartPatchouliPhase(enemy, ctx, "Patchouli Knowledge", 16000, 1, 2400,
-                            SUB_PATCHOULI_SYLPHY_HORN_ADV, 1600, false);
-        ScriptUtil::DropPowerItems(enemy, ctx, 8);
-        ctx.StartLerpTo(enemy, 192.0f, 128.0f, 120);
-    }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t >= 120 && t < 180) HoldAtFieldCenter(enemy);
     if (t < 180) return;
@@ -141,11 +131,6 @@ void RunPatchouliSecondNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunPrincessUndine(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartPatchouliPhase(enemy, ctx, "Water Sign \"Princess Undine\"", -1, 2, 2100,
-                            SUB_PATCHOULI_SECOND_NONSPELL, -1, true);
-        ctx.StartLerpTo(enemy, 192.0f, 80.0f, 120);
-    }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
 
@@ -187,11 +172,6 @@ void SpawnEdgeShardRain(EnemySubCtx& ctx, EBulletColor color, bool fromLeft, int
 }
 
 void RunSylphyHornAdvanced(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartPatchouliPhase(enemy, ctx, "Wood Sign \"Sylphy Horn Advanced\"", -1, 1, 2100,
-                            SUB_PATCHOULI_FINAL_NONSPELL, -1, true);
-        ctx.StartLerpTo(enemy, 192.0f, 80.0f, 120);
-    }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
 
@@ -210,13 +190,6 @@ void RunSylphyHornAdvanced(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunFinalNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartPatchouliFinalPhase(enemy, ctx, "Water & Wood Sign \"Water Elf\"", 3400, 1700,
-                                 SUB_PATCHOULI_PHASE_OUT);
-        ScriptUtil::DropPowerItems(enemy, ctx, 8);
-        ctx.StartLerpTo(enemy, 192.0f, 80.0f, 120);
-        enemy.m_SecondaryShotAngle = 0.0f;
-    }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
 
@@ -242,11 +215,6 @@ void RunFinalNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunMercuryPoison(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartPatchouliFinalPhase(enemy, ctx, "Metal & Water Sign \"Mercury Poison\"", -1, -1, -1);
-        ScriptUtil::DropPowerItems(enemy, ctx, 8);
-        ctx.StartLerpTo(enemy, 192.0f, 80.0f, 120);
-    }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
 
@@ -273,11 +241,6 @@ void RunMercuryPoison(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunWaterElf(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartPatchouliPhase(enemy, ctx, "Water & Wood Sign \"Water Elf\"", 3400, 0, 2400,
-                            SUB_PATCHOULI_DEATH, -1, true);
-        ctx.StartLerpTo(enemy, 192.0f, 80.0f, 120);
-    }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
 

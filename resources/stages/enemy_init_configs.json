@@ -1,0 +1,181 @@
+{
+  "stage1.small_fairy": {
+    "anm": "STG1ENM",
+    "script": 0,
+    "hitbox": [28, 28],
+    "deathEffect": [670, 678],
+    "angle": 1.5707964,
+    "speed": 2.0,
+    "itemDrop": -1
+  },
+  "stage1.medium_fairy": {
+    "anm": "STG1ENM",
+    "script": 3,
+    "hitbox": [28, 28],
+    "deathEffect": [669, 678],
+    "angle": 1.5707964,
+    "speed": 2.0,
+    "itemDrop": 0
+  },
+  "stage2.angled_fairy": {
+    "anm": "STG2ENM",
+    "script": 13,
+    "hitbox": [28, 28],
+    "deathEffect": [669, 678],
+    "speed": 3.0,
+    "acceleration": -0.015,
+    "itemDrop": -1
+  },
+  "stage2.aimed_fairy": {
+    "anm": "STG2ENM",
+    "script": 0,
+    "hitbox": [28, 28],
+    "deathEffect": [670, 678],
+    "speed": 2.4,
+    "itemDrop": -1
+  },
+  "stage2.random_fairy": {
+    "anm": "STG2ENM",
+    "script": 12,
+    "hitbox": [16, 16],
+    "deathEffect": [670, 678],
+    "speed": 3.0,
+    "itemDrop": -1
+  },
+  "stage2.shard_fairy": {
+    "anm": "STG2ENM",
+    "script": 0,
+    "hitbox": [22, 22],
+    "deathEffect": [670, 678],
+    "speed": 5.0,
+    "itemDrop": -1,
+    "rotateWithAngle": true
+  },
+  "stage2.medium_fairy": {
+    "anm": "STG2ENM",
+    "script": 3,
+    "hitbox": [28, 28],
+    "deathEffect": [669, 678],
+    "angle": 1.5707964,
+    "speed": 2.0,
+    "itemDrop": -1
+  },
+  "stage3.opening_fairy": {
+    "anm": "STG3ENM",
+    "script": 13,
+    "hitbox": [28, 28],
+    "deathEffect": [669, 678],
+    "speed": 4.5
+  },
+  "stage3.side_fairy": {
+    "anm": "STG3ENM",
+    "script": 13,
+    "hitbox": [28, 28],
+    "deathEffect": [669, 678],
+    "speed": 4.0
+  },
+  "stage3.script15_fairy": {
+    "anm": "STG3ENM",
+    "script": 15,
+    "hitbox": [28, 28],
+    "deathEffect": [670, 678],
+    "angle": 1.5707964
+  },
+  "stage3.medium_ring_fairy": {
+    "anm": "STG3ENM",
+    "script": 16,
+    "hitbox": [28, 28],
+    "deathEffect": [670, 678],
+    "angle": 1.5707964,
+    "speed": 1.5
+  },
+  "stage3.blue_scatter_fairy": {
+    "anm": "STG3ENM",
+    "script": 0,
+    "hitbox": [28, 28],
+    "deathEffect": [670, 678],
+    "angle": 1.5707964,
+    "speed": 2.0
+  },
+  "stage4.book_fairy": {
+    "anm": "STG4ENM",
+    "script": 12,
+    "hitbox": [28, 28],
+    "deathEffect": [670, 678],
+    "angle": 1.5707964,
+    "speed": 2.0
+  },
+  "stage4.burst_familiar": {
+    "anm": "STG4ENM",
+    "script": 16,
+    "hitbox": [24, 24],
+    "deathEffect": [670, 678],
+    "canTakeDamage": false
+  },
+  "stage4.small_fairy": {
+    "anm": "STG4ENM",
+    "script": 8,
+    "hitbox": [28, 28],
+    "deathEffect": [670, 678],
+    "speed": 4.5
+  },
+  "stage4.ring_caster": {
+    "anm": "STG4ENM",
+    "script": 10,
+    "hitbox": [32, 32],
+    "deathEffect": [671, 676],
+    "speed": 2.0,
+    "deathCallbackSub": 12
+  },
+  "stage4.drop_proxy": {
+    "anm": "STG4ENM",
+    "script": 16,
+    "hitbox": [1, 1],
+    "canTakeDamage": false
+  },
+  "stage4.crystal_fairy": {
+    "anm": "STG4ENM",
+    "script": 13,
+    "hitbox": [28, 28],
+    "deathEffect": [671, 676],
+    "canTakeDamage": false
+  },
+  "stage5.top_maid": {
+    "anm": "STG5ENM",
+    "script": 12,
+    "hitbox": [28, 28],
+    "deathEffect": [670, 678]
+  },
+  "stage5.side_maid": {
+    "anm": "STG5ENM",
+    "script": 10,
+    "hitbox": [28, 28],
+    "deathEffect": [670, 678]
+  },
+  "stage5.ring_maid": {
+    "anm": "STG5ENM",
+    "script": 11,
+    "hitbox": [28, 28],
+    "deathEffect": [670, 678]
+  },
+  "stage5.helper_proxy": {
+    "anm": "STG5ENM",
+    "script": 16,
+    "hitbox": [0, 0]
+  },
+  "stage6.arc_fairy_left": {
+    "anm": "STG6ENM",
+    "script": 8,
+    "hitbox": [28, 28]
+  },
+  "stage6.arc_fairy_right": {
+    "anm": "STG6ENM",
+    "script": 9,
+    "hitbox": [28, 28]
+  },
+  "stage6.burst_fairy": {
+    "anm": "STG6ENM",
+    "script": 11,
+    "hitbox": [28, 28]
+  }
+}

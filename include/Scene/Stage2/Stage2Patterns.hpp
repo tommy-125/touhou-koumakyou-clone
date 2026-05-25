@@ -26,18 +26,24 @@ constexpr int SUB_CIRNO_PERFECT_FREEZE     = 31;
 constexpr int SUB_CIRNO_DIAMOND_BLIZZARD   = 32;
 constexpr int SUB_CIRNO_DEATH              = 28;
 
-void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int timerFrames,
-                     int deathCallbackSub, int lifeCallbackSub = -1,
-                     int lifeCallbackThreshold = -1);
+void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId);
 void SpawnOneWayStackWithCurve(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type,
                                EBulletColor color, int stacks, float speed1, float speed2,
                                float baseAngle, BulletCurve curve, bool rotateWithAngle = false);
 EBulletColor PerfectFreezeColor(int idx);
 void         SpawnAtRandomArea(Enemy& enemy, EnemySubCtx& ctx, float width, int count);
+void         InitStage2AngledFairy(Enemy& enemy, EnemySubCtx& ctx);
+void         InitStage2AimedFairy(Enemy& enemy, EnemySubCtx& ctx);
+void         InitStage2RandomFairy(Enemy& enemy, EnemySubCtx& ctx);
+void         InitStage2ShardFairy(Enemy& enemy, EnemySubCtx& ctx);
+void         InitStage2MediumFairy(Enemy& enemy, EnemySubCtx& ctx);
+void         RunStage2AngledFairy(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunStage2DeathBurst(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunStage2AimedFairy(Enemy& enemy, int t);
+void         RunStage2TimedDespawn(Enemy& enemy, int t);
+void         RunStage2MediumFairy(Enemy& enemy, EnemySubCtx& ctx, int t);
 void         InitDaiyouseiSub(Enemy& enemy, EnemySubCtx& ctx);
 void         RunDaiyouseiSub(Enemy& enemy, EnemySubCtx& ctx, int t);
 void         InitCirnoSub(Enemy& enemy, EnemySubCtx& ctx);
 void         RunCirnoSub(Enemy& enemy, EnemySubCtx& ctx, int t);
-void         InitStage2Sub(Enemy& enemy, EnemySubCtx& ctx);
-void         RunStage2Sub(Enemy& enemy, EnemySubCtx& ctx);
 }  // namespace Stage2Detail

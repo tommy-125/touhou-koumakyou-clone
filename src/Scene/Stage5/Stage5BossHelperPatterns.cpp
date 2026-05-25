@@ -1,3 +1,4 @@
+#include "Anm/AnmDefs.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Scene/Stage5/Stage5PatternCommon.hpp"
@@ -77,6 +78,17 @@ void InitSakuyaHelper(Enemy& enemy, const HelperPattern& pattern) {
 
 void InitSakuyaHelper(Enemy& enemy) {
     InitSakuyaHelper(enemy, GetSakuyaHelperPattern(enemy.m_SubId));
+}
+
+void InitStage5SakuyaHelperProxy(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitEnemy(
+        enemy, ctx,
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage5HelperProxy));
+    InitSakuyaHelper(enemy);
+}
+
+void InitStage5SakuyaHelperDeath(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitDropProxy(enemy, ctx, Anm::STG5ENM.offset, 16);
 }
 
 void RunSakuyaHelper(Enemy& enemy, EnemySubCtx& ctx, int t) {

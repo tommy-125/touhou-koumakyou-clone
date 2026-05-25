@@ -1,31 +1,23 @@
-#include "Enemy/BossPhaseUtil.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemySubCtx.hpp"
 #include "Scene/Stage6/Stage6PatternCommon.hpp"
+#include "Scene/StageScriptUtil.hpp"
 
 namespace Stage6Detail {
+namespace StageUtil = StageScriptUtil;
 using EnemyPatternUtil::RandAngle;
 using EnemyPatternUtil::SpawnFanAbs;
 using EnemyPatternUtil::SpawnRandomArc;
+void InitStage6SakuyaEntry(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitBossEntry(
+        enemy, ctx, StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage6Sakuya));
+    SetSakuyaPoses(enemy);
+}
+
 void RunSakuyaMain(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
-        BossPhaseUtil::StartPhase(enemy, ctx,
-                                  {
-                                      "Sakuya Izayoi",
-                                      -1,
-                                      0,
-                                      1020,
-                                      SUB_SAKUYA_EXIT,
-                                      SUB_SAKUYA_DEATH,
-                                      1000,
-                                      SUB_SAKUYA_ETERNAL_MEEK,
-                                      false,
-                                      false,
-                                      0,
-                                      false,
-                                      true,
-                                  });
+        StageUtil::StartBossPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage6SakuyaMain);
         enemy.m_CanTakeDamage = true;
         ctx.SetTimeStopped(false);
     }
@@ -55,22 +47,7 @@ void RunSakuyaMain(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
 void RunEternalMeek(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
-        BossPhaseUtil::StartPhase(enemy, ctx,
-                                  {
-                                      "Conjuring \"Eternal Meek\"",
-                                      -1,
-                                      0,
-                                      900,
-                                      SUB_SAKUYA_EXIT,
-                                      SUB_SAKUYA_DEATH,
-                                      -1,
-                                      -1,
-                                      true,
-                                      true,
-                                      0,
-                                      false,
-                                      true,
-                                  });
+        StageUtil::StartBossPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage6EternalMeek);
         enemy.m_CanTakeDamage = false;
         ctx.StartLerpTo(enemy, 192.0f, 144.0f, 120);
     }

@@ -1,20 +1,43 @@
+#include "Anm/AnmDefs.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemySubCtx.hpp"
 #include "Scene/Stage6/Stage6PatternCommon.hpp"
+#include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage6Detail {
+namespace StageUtil = StageScriptUtil;
 using EnemyPatternUtil::SpawnRandomArc;
+void InitStage6ArcFairyLeft(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitEnemy(
+        enemy, ctx,
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage6ArcFairyLeft));
+}
+
+void InitStage6ArcFairyRight(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitEnemy(
+        enemy, ctx,
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage6ArcFairyRight));
+}
+
+void InitStage6BurstFairy(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitEnemy(
+        enemy, ctx,
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage6BurstFairy));
+    StageUtil::SetDropCallback(enemy, SUB_FAIRY_DROP_8);
+}
+
+void InitStage6FairyDropProxy(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitDropProxy(enemy, ctx, Anm::STG6ENM.offset, 11);
+}
+
 void RunArcFairy(Enemy& enemy, EnemySubCtx& ctx, int t, bool red, bool highArc) {
-    if (t == 0) {
-        enemy.m_Angle = MirrorAngle(highArc ? 0.5235988f : -1.0471976f, enemy.m_Mirrored);
-        enemy.m_Speed = highArc ? 4.5f : 4.0f;
-    }
-    if (t == 30)
-        enemy.m_AngularVelocity =
-            (enemy.m_Mirrored ? -1.0f : 1.0f) * (highArc ? -0.06544985f : 0.034906585f);
-    if (t == (highArc ? 115 : 90)) enemy.m_AngularVelocity = 0.0f;
+    StageScriptUtil::ApplyMovementProfile(
+        enemy,
+        highArc ? StageScriptUtil::ConfigId::Movement::Stage6ArcFairyHigh
+                : StageScriptUtil::ConfigId::Movement::Stage6ArcFairyLow,
+        t);
     if (t == 80) {
         const auto pos = ShootPos(enemy, {0.0f, 0.0f});
         if (red) {
@@ -27,12 +50,12 @@ void RunArcFairy(Enemy& enemy, EnemySubCtx& ctx, int t, bool red, bool highArc) 
 }
 
 void RunBurstFairy(Enemy& enemy, EnemySubCtx& ctx, int t, bool top) {
-    if (t == 0) {
-        enemy.m_Angle = top ? Util::HALF_PI : (enemy.m_Mirrored ? PI : 0.0f);
-        enemy.m_Speed = 2.0f;
-    }
+    StageScriptUtil::ApplyMovementProfile(
+        enemy,
+        top ? StageScriptUtil::ConfigId::Movement::Stage6BurstFairyTop
+            : StageScriptUtil::ConfigId::Movement::Stage6BurstFairySide,
+        t);
     if (t == 40) {
-        enemy.m_Acceleration = -0.06666667f;
         ctx.bullets.SpawnCircleAimed(ShootPos(enemy), ctx.playerPos, EBulletType::Rice,
                                      EBulletColor::Blue, 60, 1.6f);
     }

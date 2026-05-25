@@ -3,15 +3,16 @@
 #include <initializer_list>
 
 #include "Anm/AnmDefs.hpp"
-#include "Enemy/BossPhaseUtil.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemySubCtx.hpp"
 #include "Scene/Stage6/Stage6PatternCommon.hpp"
+#include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage6Detail {
+namespace StageUtil = StageScriptUtil;
 using EnemyPatternUtil::AimAngle;
 using EnemyPatternUtil::RandAngle;
 using EnemyPatternUtil::RankedLowSpeed;
@@ -21,6 +22,19 @@ using EnemyPatternUtil::SpawnAimedStack;
 using EnemyPatternUtil::SpawnCircleStackAbs;
 using EnemyPatternUtil::SpawnFanAbs;
 using EnemyPatternUtil::SpawnRandomArc;
+void InitStage6RemiliaEntry(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitBossEntry(
+        enemy, ctx, StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage6Remilia));
+    SetRemiliaPoses(enemy);
+}
+
+void InitStage6RemiliaAfterimage(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitDropProxy(enemy, ctx, Anm::STG6ENM2.offset, 165);
+    enemy.m_ItemDrop = -1;
+    enemy.m_Angle    = RandFloat(0.0f, PI);
+    enemy.m_Speed    = RandFloat(4.0f, 5.0f);
+}
+
 void SpawnVampireBurst(EnemySubCtx& ctx, glm::vec2 pos, float baseAngle, bool dense) {
     ctx.bullets.SpawnCircle(pos, EBulletType::Bubble, EBulletColor::Gray, 1, 6.2f, baseAngle);
     SpawnRandomArc(ctx, pos, EBulletType::BigBall, EBulletColor::DarkRed, dense ? 5 : 3, 4.0f, 6.0f,
@@ -113,32 +127,14 @@ void SpawnStage6StarLasers(EnemySubCtx& ctx, glm::vec2 center, int attackType) {
     }
 }
 
-void StartRemiliaPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int life,
-                       int lifeCount, int timerFrames, int nextSub, int lifeThreshold, bool spell,
-                       int deathSub = -1) {
-    const int actualDeathSub = deathSub >= 0 ? deathSub : nextSub;
-    BossPhaseUtil::StartPhase(enemy, ctx,
-                              {
-                                  title,
-                                  life,
-                                  lifeCount,
-                                  timerFrames,
-                                  nextSub,
-                                  actualDeathSub,
-                                  lifeThreshold,
-                                  nextSub,
-                                  spell,
-                                  spell,
-                                  0,
-                                  true,
-                                  true,
-                              });
+void StartRemiliaPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+    StageUtil::StartBossPhase(enemy, ctx, phaseId);
 }
 
-bool BeginRemiliaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t, const char* title, int lifeCount,
-                         int timerFrames, int nextSub, glm::vec2 target, int warmup = 120) {
+bool BeginRemiliaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t, const char* phaseId,
+                         glm::vec2 target, int warmup = 120) {
     if (t == 0) {
-        StartRemiliaPhase(enemy, ctx, title, -1, lifeCount, timerFrames, nextSub, -1, true);
+        StartRemiliaPhase(enemy, ctx, phaseId);
         enemy.m_CanTakeDamage = false;
         ctx.StartLerpTo(enemy, target.x, target.y, warmup);
     }
@@ -148,8 +144,8 @@ bool BeginRemiliaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t, const char* titl
 
 void RunRemiliaNonSpell1(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
-        StartRemiliaPhase(enemy, ctx, "Remilia Scarlet", 13000, 4, 2700, SUB_REMILIA_STAR, 1200,
-                          false, SUB_REMILIA_NONSPELL_2);
+        StartRemiliaPhase(enemy, ctx,
+                          StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell1);
     }
     if (t < 100) return;
     const int loopT = (t - 100) % 720;
@@ -171,9 +167,9 @@ void RunRemiliaNonSpell1(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
 void RunRemiliaNonSpell2(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
-        StartRemiliaPhase(enemy, ctx, "Remilia Scarlet", 15500, 3, 2700, SUB_REMILIA_SCARLET, 1600,
-                          false, SUB_REMILIA_NONSPELL_3);
-        ScriptUtil::DropPowerItems(enemy, ctx, 12);
+        StartRemiliaPhase(enemy, ctx,
+                          StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell2);
+        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
     }
     if (t < 60) return;
     const int  loopT = (t - 60) % 1120;
@@ -199,9 +195,9 @@ void RunRemiliaNonSpell2(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
 void RunRemiliaNonSpell3(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
-        StartRemiliaPhase(enemy, ctx, "Remilia Scarlet", 11000, 2, 2700, SUB_REMILIA_VLAD, 1600,
-                          false, SUB_REMILIA_NONSPELL_4);
-        ScriptUtil::DropPowerItems(enemy, ctx, 12);
+        StartRemiliaPhase(enemy, ctx,
+                          StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell3);
+        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
     }
     if (t < 60) return;
     const int  loopT = (t - 60) % 478;
@@ -226,9 +222,9 @@ void RunRemiliaNonSpell3(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
 void RunRemiliaNonSpell4(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
-        StartRemiliaPhase(enemy, ctx, "Remilia Scarlet", 13000, 1, 3600, SUB_REMILIA_SHOOT, 1300,
-                          false, SUB_REMILIA_RED_MAGIC);
-        ScriptUtil::DropPowerItems(enemy, ctx, 12);
+        StartRemiliaPhase(enemy, ctx,
+                          StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell4);
+        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
         SetRemiliaPoses(enemy);
     }
     if (t < 60) return;
@@ -266,8 +262,8 @@ void RunRemiliaNonSpell4(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunStarOfDavid(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginRemiliaSpellAt(enemy, ctx, t, "Heaven's Punishment \"Star of David\"", 4, 2400,
-                             SUB_REMILIA_NONSPELL_2, {192.0f, 112.0f})) {
+    if (!BeginRemiliaSpellAt(enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage6StarOfDavid,
+                             {192.0f, 112.0f})) {
         return;
     }
     const int loopT = (t - 120) % 184;
@@ -284,8 +280,9 @@ void RunStarOfDavid(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunScarletNetherworld(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginRemiliaSpellAt(enemy, ctx, t, "Nether Sign \"Scarlet Netherworld\"", 3, 2400,
-                             SUB_REMILIA_NONSPELL_3, {192.0f, 144.0f})) {
+    if (!BeginRemiliaSpellAt(enemy, ctx, t,
+                             StageUtil::ConfigId::BossPhase::Stage6ScarletNetherworld,
+                             {192.0f, 144.0f})) {
         return;
     }
     const int loopT = (t - 120) % 231;
@@ -309,8 +306,8 @@ void RunScarletNetherworld(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunVlad(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    const bool active = BeginRemiliaSpellAt(enemy, ctx, t, "Curse \"Curse of Vlad Tepes\"", 2, 2400,
-                                            SUB_REMILIA_NONSPELL_4, {192.0f, 144.0f});
+    const bool active = BeginRemiliaSpellAt(
+        enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage6VladTepes, {192.0f, 144.0f});
     if (t == 0 || t == 120) {
         enemy.m_ScriptState   = 0;
         enemy.m_ScriptTimer   = 0;
@@ -349,8 +346,8 @@ void RunVlad(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunScarletShoot(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginRemiliaSpellAt(enemy, ctx, t, "Scarlet Sign \"Scarlet Shoot\"", 1, 1800,
-                             SUB_REMILIA_RED_MAGIC, {192.0f, 112.0f})) {
+    if (!BeginRemiliaSpellAt(enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage6ScarletShoot,
+                             {192.0f, 112.0f})) {
         return;
     }
     const int  loopT = (t - 120) % 544;
@@ -371,8 +368,8 @@ void RunScarletShoot(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
 void RunRedMagic(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {
-        StartRemiliaPhase(enemy, ctx, "\"Red Magic\"", 4700, 0, 7200, SUB_REMILIA_DEATH, -1, true);
-        ScriptUtil::DropPowerItems(enemy, ctx, 12);
+        StartRemiliaPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage6RedMagic);
+        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
         enemy.m_CanTakeDamage = false;
         ctx.StartLerpTo(enemy, 192.0f, 128.0f, 120);
     }

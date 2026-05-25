@@ -4,10 +4,12 @@
 #include <functional>
 #include <initializer_list>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "Scene/IStageScript.hpp"
+#include "Scene/StageScriptUtil.hpp"
 
 class IEnemySubPattern {
    public:
@@ -41,6 +43,42 @@ class LambdaEnemySubPattern final : public IEnemySubPattern {
     std::vector<int> m_SubIds;
     InitFn           m_Init;
     RunFn            m_Run;
+};
+
+class BossPhaseEnemySubPattern final : public IEnemySubPattern {
+   public:
+    using TimedRunFn = std::function<void(Enemy&, EnemySubCtx&, int)>;
+    using StartFn    = std::function<void(Enemy&, EnemySubCtx&)>;
+
+    BossPhaseEnemySubPattern(std::initializer_list<int> subIds, std::string phaseId,
+                             TimedRunFn run, StartFn onStart = nullptr, int runStartFrame = 0)
+        : m_SubIds(subIds),
+          m_PhaseId(std::move(phaseId)),
+          m_Run(std::move(run)),
+          m_OnStart(std::move(onStart)),
+          m_RunStartFrame(runStartFrame) {}
+
+    bool Handles(int subId) const override {
+        return std::find(m_SubIds.begin(), m_SubIds.end(), subId) != m_SubIds.end();
+    }
+
+    void Init(Enemy&, EnemySubCtx&) override {}
+
+    void Run(Enemy& enemy, EnemySubCtx& ctx) override {
+        const int t = enemy.m_FrameTimer;
+        if (t == 0) {
+            StageScriptUtil::StartBossPhase(enemy, ctx, m_PhaseId);
+            if (m_OnStart) m_OnStart(enemy, ctx);
+        }
+        if (m_Run && t >= m_RunStartFrame) m_Run(enemy, ctx, t);
+    }
+
+   private:
+    std::vector<int> m_SubIds;
+    std::string      m_PhaseId;
+    TimedRunFn       m_Run;
+    StartFn          m_OnStart;
+    int              m_RunStartFrame;
 };
 
 class PatternStageScript : public IStageScript {
@@ -91,6 +129,20 @@ class PatternStageScript : public IStageScript {
 
     void AddTimedRunOnlyPattern(int subId, TimedRunFn run) {
         AddTimedPattern(subId, nullptr, std::move(run));
+    }
+
+    void AddBossPhasePattern(std::initializer_list<int> subIds, std::string phaseId,
+                             TimedRunFn run, BossPhaseEnemySubPattern::StartFn onStart = nullptr,
+                             int runStartFrame = 0) {
+        m_Patterns.push_back(std::make_unique<BossPhaseEnemySubPattern>(
+            subIds, std::move(phaseId), std::move(run), std::move(onStart), runStartFrame));
+    }
+
+    void AddBossPhasePattern(int subId, std::string phaseId, TimedRunFn run,
+                             BossPhaseEnemySubPattern::StartFn onStart       = nullptr,
+                             int                               runStartFrame = 0) {
+        AddBossPhasePattern({subId}, std::move(phaseId), std::move(run), std::move(onStart),
+                            runStartFrame);
     }
 
    private:

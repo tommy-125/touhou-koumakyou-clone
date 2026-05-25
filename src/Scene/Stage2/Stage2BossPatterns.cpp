@@ -3,38 +3,26 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
-#include "Enemy/BossPhaseUtil.hpp"
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
-#include "Item/ItemManager.hpp"
 #include "Scene/Stage2/Stage2Patterns.hpp"
+#include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage2Detail {
 namespace ScriptUtil = EnemyScriptUtil;
+namespace StageUtil  = StageScriptUtil;
 using EnemyPatternUtil::AimAngle;
 using EnemyPatternUtil::SpawnRandomVarianceCircle;
-void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* title, int timerFrames,
-                     int deathCallbackSub, int lifeCallbackSub, int lifeCallbackThreshold) {
-    BossPhaseUtil::StartPhase(enemy, ctx,
-                              {
-                                  title,
-                                  -1,
-                                  enemy.m_BossLifeCount,
-                                  timerFrames,
-                                  deathCallbackSub,
-                                  deathCallbackSub,
-                                  lifeCallbackThreshold,
-                                  lifeCallbackSub,
-                                  true,
-                                  true,
-                                  0,
-                                  false,
-                                  true,
-                              });
+void StartCirnoPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+    StageUtil::StartBossPhase(enemy, ctx, phaseId);
+}
+
+void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+    StartCirnoPhase(enemy, ctx, phaseId);
     ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
 }
 
@@ -77,20 +65,8 @@ void SpawnAtRandomArea(Enemy& enemy, EnemySubCtx& ctx, float width, int count) {
 void InitCirnoSub(Enemy& enemy, EnemySubCtx& ctx) {
     switch (enemy.m_SubId) {
         case SUB_CIRNO_ENTRY: {
-            const int bossOff = Anm::STG2ENM2.offset;
-            ctx.anm.SetScript(enemy.m_Vm, bossOff + 132, bossOff);
-            enemy.m_Pos              = Util::GameFieldToScreen(192.0f, 96.0f);
-            enemy.m_HitboxSize       = {48.0f, 56.0f};
-            enemy.m_IsBoss           = true;
-            enemy.m_CanTakeDamage    = false;
-            enemy.m_ItemDropCount    = 0;
-            enemy.m_BossTitle        = "Cirno";
-            enemy.m_BossLifeCount    = 1;
-            enemy.m_BlocksTimeline   = true;
-            enemy.m_BoundsMin        = Util::GameFieldToScreen(32.0f, 48.0f);
-            enemy.m_BoundsMax        = Util::GameFieldToScreen(352.0f, 134.0f);
+            StageUtil::InitBossEntry(enemy, ctx, StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage2Cirno));
             enemy.m_DeathCallbackSub = SUB_CIRNO_PHASE2_INIT;
-            ScriptUtil::SetDeathEffects(enemy, 671, 676);
             ScriptUtil::SetBossPoses(enemy, 128, 129, 130, 129, 130);
             break;
         }
@@ -112,19 +88,8 @@ void RunCirnoSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
         case SUB_CIRNO_NONSPELL_INIT:
             if (t == 0) {
-                enemy.m_CanTakeDamage          = false;
-                enemy.m_InSpellcard            = false;
-                enemy.m_ShowSpellName          = false;
-                enemy.m_BossTitle              = "Cirno";
-                enemy.m_BossLifeCount          = 1;
-                enemy.m_Life                   = 10000;
-                enemy.m_BossMaxLife            = 10000;
-                enemy.m_BossTimer              = 0;
-                enemy.m_TimerCallbackThreshold = 1500;
-                enemy.m_TimerCallbackSub       = SUB_CIRNO_ICICLE_FALL;
-                enemy.m_LifeCallbackThreshold  = 1500;
-                enemy.m_LifeCallbackSub        = SUB_CIRNO_ICICLE_FALL;
-                enemy.m_DeathCallbackSub       = SUB_CIRNO_PHASE2_INIT;
+                StartCirnoPhase(enemy, ctx,
+                                StageUtil::ConfigId::BossPhase::Stage2CirnoFirstNonspell);
             }
             if (t == 20) enemy.m_CanTakeDamage = true;
             if (t == 70) ctx.TransitionToSub(enemy, SUB_CIRNO_NONSPELL_ATTACK_A);
@@ -175,8 +140,7 @@ void RunCirnoSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
         case SUB_CIRNO_ICICLE_FALL: {
             if (t == 0) {
-                enemy.m_BossLifeCount = 1;
-                StartSpellPhase(enemy, ctx, "Icicle Fall", 1800, SUB_CIRNO_PHASE2_INIT);
+                StartSpellPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage2IcicleFall);
             }
             if (t == 120) enemy.m_CanTakeDamage = true;
             if (t >= 120) {
@@ -213,20 +177,9 @@ void RunCirnoSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
         case SUB_CIRNO_PHASE2_INIT:
             if (t == 0) {
-                enemy.m_CanTakeDamage          = false;
-                enemy.m_InSpellcard            = false;
-                enemy.m_ShowSpellName          = false;
-                enemy.m_BossTitle              = "Cirno";
-                enemy.m_BossLifeCount          = 0;
-                enemy.m_Life                   = 13000;
-                enemy.m_BossMaxLife            = 13000;
-                enemy.m_BossTimer              = 0;
-                enemy.m_TimerCallbackThreshold = 3000;
-                enemy.m_TimerCallbackSub       = SUB_CIRNO_PERFECT_FREEZE;
-                enemy.m_LifeCallbackThreshold  = 3200;
-                enemy.m_LifeCallbackSub        = SUB_CIRNO_PERFECT_FREEZE;
-                enemy.m_DeathCallbackSub       = SUB_CIRNO_DEATH;
-                ScriptUtil::DropPowerItems(enemy, ctx, 5);
+                StartCirnoPhase(enemy, ctx,
+                                StageUtil::ConfigId::BossPhase::Stage2CirnoSecondNonspell);
+                StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
             }
             if (t == 200) {
                 enemy.m_CanTakeDamage = true;
@@ -270,9 +223,7 @@ void RunCirnoSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
         case SUB_CIRNO_PERFECT_FREEZE: {
             if (t == 0) {
-                enemy.m_BossLifeCount = 0;
-                StartSpellPhase(enemy, ctx, "Perfect Freeze", 2400, SUB_CIRNO_DEATH,
-                                SUB_CIRNO_DIAMOND_BLIZZARD, 1400);
+                StartSpellPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage2PerfectFreeze);
                 ctx.anm.SetScript(enemy.m_Vm, Anm::STG2ENM2.offset + 131, Anm::STG2ENM2.offset);
             }
             if (t == 120) enemy.m_CanTakeDamage = true;
@@ -318,17 +269,15 @@ void RunCirnoSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
         case SUB_CIRNO_DIAMOND_BLIZZARD: {
             if (t == 0) {
-                enemy.m_BossLifeCount = 0;
                 enemy.m_CanTakeDamage = false;
                 enemy.m_InSpellcard   = false;
                 enemy.m_ShowSpellName = false;
                 enemy.m_BossTitle     = "Cirno";
                 enemy.m_BossTimer     = 0;
-                ScriptUtil::DropPowerItems(enemy, ctx, 5);
-                ctx.BulletCancelIntoPointItems();
+                StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5Cancel);
             }
             if (t == 60) {
-                StartSpellPhase(enemy, ctx, "Diamond Blizzard", 1980, SUB_CIRNO_DEATH);
+                StartSpellPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage2DiamondBlizzard);
                 ctx.anm.SetScript(enemy.m_Vm, Anm::STG2ENM2.offset + 131, Anm::STG2ENM2.offset);
             }
             if (t == 180) enemy.m_CanTakeDamage = true;

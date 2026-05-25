@@ -1,17 +1,29 @@
+#include <algorithm>
+
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
+#include "Scene/StageScriptUtil.hpp"
+#include "Scene/Stage4/Stage4PatternCommon.hpp"
 #include "Scene/Stage4/Stage4Patterns.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage4Detail {
 namespace ScriptUtil = EnemyScriptUtil;
+namespace StageUtil  = StageScriptUtil;
 using EnemyPatternUtil::RandAngle;
 
-void SpawnAtEnemyFieldPos(const Enemy& enemy, EnemySubCtx& ctx, int subId, int life, int score,
-                          int itemDrop);
+void InitKoakumaMidboss(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitBossEntry(
+        enemy, ctx,
+        StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage4KoakumaMidboss));
+    enemy.m_BossMaxLife            = std::max(1, enemy.m_Life);
+    enemy.m_TimerCallbackThreshold = 2400;
+    enemy.m_TimerCallbackSub       = SUB_KOAKUMA_ESCAPE;
+    enemy.m_DeathCallbackSub       = SUB_KOAKUMA_DEATH;
+}
 
 void RunKoakumaMidboss(Enemy& enemy, EnemySubCtx& ctx, int t) {
     if (t == 0) {

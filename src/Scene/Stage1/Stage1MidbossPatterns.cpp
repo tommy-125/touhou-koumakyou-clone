@@ -6,36 +6,23 @@
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
-#include "Item/ItemManager.hpp"
 #include "Scene/Stage1/Stage1Patterns.hpp"
+#include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage1Detail {
 namespace {
 namespace ScriptUtil = EnemyScriptUtil;
-}
+namespace StageUtil  = StageScriptUtil;
+}  // namespace
 
 void InitRumiaMidbossSub(Enemy& enemy, EnemySubCtx& ctx) {
-    const int offset = Anm::STG1ENM.offset;
     switch (enemy.m_SubId) {
         case SUB_MIDBOSS_MAIN: {  // Mid-boss main pattern entry
-            ctx.anm.SetScript(enemy.m_Vm, offset + 128, offset);
-            enemy.m_HitboxSize             = {48, 56};
-            enemy.m_ItemDrop               = -1;
-            enemy.m_ItemDropCount          = 0;
-            enemy.m_Pos                    = Util::GameFieldToScreen(192.0f, -32.0f);
-            enemy.m_IsBoss                 = true;
-            enemy.m_CanTakeDamage          = false;
-            enemy.m_BossMaxLife            = 6000;
-            enemy.m_DeathCallbackSub       = SUB_MIDBOSS_DEATH;
-            enemy.m_LifeCallbackThreshold  = -1;  // Normal has no mid-boss life callback
-            enemy.m_LifeCallbackSub        = -1;
-            enemy.m_TimerCallbackThreshold = 1440;
-            enemy.m_TimerCallbackSub       = SUB_MIDBOSS_ESCAPE;
-            enemy.m_BlocksTimeline         = true;
-            enemy.m_BossTitle              = "Rumia";
-            enemy.m_BossLifeCount          = 0;
-            ScriptUtil::SetDeathEffects(enemy, 671, 676);
+            StageUtil::InitBossEntry(enemy, ctx,
+                                     StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage1RumiaMidboss));
+            StageUtil::StartBossPhase(enemy, ctx,
+                                      StageUtil::ConfigId::BossPhase::Stage1RumiaMidboss);
             ScriptUtil::SetBossPoses(enemy, 128, 131, 132, 129, 130);
             break;
         }
@@ -130,7 +117,7 @@ void RunRumiaMidbossSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
                 ctx.bullets.ClearAll();
                 ctx.lasers.ClearAll();
                 enemy.m_Speed = 0.0f;
-                for (int k = 0; k < 5; k++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
+                StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
             }
             if (t == 40) ctx.StartLerpTo(enemy, 192.0f, -64.0f, 120);
             if (t == 160) {

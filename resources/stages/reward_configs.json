@@ -1,0 +1,61 @@
+{
+  "power_3_cancel_die": {
+    "power": 3,
+    "bulletCancelToPoints": true,
+    "die": true
+  },
+  "power_4_die": {
+    "power": 4,
+    "die": true
+  },
+  "power_5": {
+    "power": 5
+  },
+  "power_5_cancel": {
+    "power": 5,
+    "bulletCancelToPoints": true
+  },
+  "power_5_die": {
+    "power": 5,
+    "die": true
+  },
+  "power_6_die": {
+    "power": 6,
+    "die": true
+  },
+  "power_8": {
+    "power": 8
+  },
+  "power_8_die": {
+    "power": 8,
+    "die": true
+  },
+  "power_8_bomb": {
+    "power": 8,
+    "items": ["Bomb"]
+  },
+  "power_10_life_cancel": {
+    "power": 10,
+    "items": ["Life"],
+    "bulletCancelToPoints": true
+  },
+  "power_12": {
+    "power": 12
+  },
+  "power_20_bomb_cancel_die": {
+    "power": 20,
+    "items": ["Bomb"],
+    "bulletCancelToPoints": true,
+    "die": true
+  },
+  "bomb_die": {
+    "items": ["Bomb"],
+    "die": true
+  },
+  "life": {
+    "items": ["Life"]
+  },
+  "life_to_exit": {
+    "items": ["Life"]
+  }
+}

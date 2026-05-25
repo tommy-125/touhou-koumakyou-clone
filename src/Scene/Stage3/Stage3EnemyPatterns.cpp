@@ -5,12 +5,49 @@
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Scene/Stage3/Stage3Patterns.hpp"
+#include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage3Detail {
 namespace ScriptUtil = EnemyScriptUtil;
+namespace StageUtil  = StageScriptUtil;
 using EnemyPatternUtil::AimAngleToPlayer;
 using EnemyPatternUtil::SpawnRandomVarianceCircle;
+
+void InitStage3OpeningFairy(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage3OpeningFairy);
+    config.visual.script = enemy.m_SubId == 0 ? 13 : 14;
+    config.angle         = enemy.m_Mirrored ? 2.6179938f : 0.5235988f;
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
+void InitStage3SideFairy(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage3SideFairy);
+    config.angle = enemy.m_Mirrored ? -2.0943952f : -1.0471976f;
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
+void InitStage3Script15Fairy(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage3Script15Fairy);
+    config.speed = enemy.m_SubId == 8 ? 2.5f : 1.5f;
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
+void InitStage3MediumRingFairy(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage3MediumRingFairy);
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
+void InitStage3BlueScatterFairy(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage3BlueScatterFairy);
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
 void RunOpeningFairy(Enemy& enemy, int t) {
     if (t == 30) {
         enemy.m_AngularVelocity = enemy.m_Mirrored ? 0.06544985f : -0.06544985f;

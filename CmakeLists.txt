@@ -24,8 +24,8 @@ FetchContent_MakeAvailable(PTSD nlohmann_json)
 # set(ptsd_SOURCE_DIR C:/Users/tommy/Desktop/Projects/MyProjects/practical-tools-for-simple-design)
 # add_subdirectory(${ptsd_SOURCE_DIR} ptsd-build)
 
-file(GLOB_RECURSE SRC_FILES src/*.cpp)
-file(GLOB_RECURSE HEADER_FILES include/*.hpp)
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS src/*.cpp)
+file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS include/*.hpp)
 
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES})
 

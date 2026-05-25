@@ -25,33 +25,21 @@ void Stage2Script::Preload(Anm::Manager& anm) {
 }
 
 Stage2Script::Stage2Script() {
-    AddPattern({0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                SUB_DAIYOUSEI_MAIN,
-                SUB_DAIYOUSEI_DEATH,
-                SUB_DAIYOUSEI_ESCAPE,
-                SUB_CIRNO_ENTRY,
-                SUB_CIRNO_NONSPELL_INIT,
-                SUB_CIRNO_NONSPELL_ATTACK_A,
-                SUB_CIRNO_NONSPELL_ATTACK_B,
-                SUB_CIRNO_ICICLE_FALL,
-                SUB_CIRNO_PHASE2_INIT,
-                SUB_CIRNO_PREFREEZE_ATTACK_A,
-                SUB_CIRNO_PREFREEZE_ATTACK_B,
-                SUB_CIRNO_PERFECT_FREEZE,
-                SUB_CIRNO_DIAMOND_BLIZZARD,
-                SUB_CIRNO_DEATH},
-               InitStage2Sub, RunStage2Sub);
+    AddTimedPattern({0, 1, 2, 3, 4}, InitStage2AngledFairy, RunStage2AngledFairy);
+    AddTimedRunOnlyPattern(5, RunStage2DeathBurst);
+    AddTimedPattern(6, InitStage2AimedFairy,
+                    [](Enemy& enemy, EnemySubCtx&, int t) { RunStage2AimedFairy(enemy, t); });
+    AddTimedPattern(7, InitStage2RandomFairy,
+                    [](Enemy& enemy, EnemySubCtx&, int t) { RunStage2TimedDespawn(enemy, t); });
+    AddTimedPattern({8, 9, 10, 11}, InitStage2ShardFairy,
+                    [](Enemy& enemy, EnemySubCtx&, int t) { RunStage2TimedDespawn(enemy, t); });
+    AddTimedPattern({12, 13}, InitStage2MediumFairy, RunStage2MediumFairy);
+
+    AddTimedPattern({SUB_DAIYOUSEI_MAIN, SUB_DAIYOUSEI_DEATH, SUB_DAIYOUSEI_ESCAPE},
+                    InitDaiyouseiSub, RunDaiyouseiSub);
+    AddTimedPattern({SUB_CIRNO_ENTRY, SUB_CIRNO_NONSPELL_INIT, SUB_CIRNO_NONSPELL_ATTACK_A,
+                     SUB_CIRNO_NONSPELL_ATTACK_B, SUB_CIRNO_ICICLE_FALL, SUB_CIRNO_PHASE2_INIT,
+                     SUB_CIRNO_PREFREEZE_ATTACK_A, SUB_CIRNO_PREFREEZE_ATTACK_B,
+                     SUB_CIRNO_PERFECT_FREEZE, SUB_CIRNO_DIAMOND_BLIZZARD, SUB_CIRNO_DEATH},
+                    InitCirnoSub, RunCirnoSub);
 }

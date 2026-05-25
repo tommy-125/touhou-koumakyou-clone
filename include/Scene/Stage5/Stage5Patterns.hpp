@@ -42,6 +42,13 @@ constexpr float SAKUYA_FINAL_RANK_SPEED = 0.25f;
 
 void SetSakuyaBossPoses(Enemy& enemy);
 void InitSakuyaHelper(Enemy& enemy);
+void InitStage5TopMaid(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage5SideMaid(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage5RingMaid(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage5MaidDropProxy(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage5SakuyaHelperProxy(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage5SakuyaHelperDeath(Enemy& enemy, EnemySubCtx& ctx);
+void InitSakuyaEntry(Enemy& enemy, EnemySubCtx& ctx);
 
 void RunSakuyaHelper(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunTopMaid(Enemy& enemy, EnemySubCtx& ctx, int t, EBulletColor color, bool dense,

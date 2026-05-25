@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <cstdlib>
 
 #include "Anm/AnmDefs.hpp"
@@ -7,12 +6,13 @@
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
-#include "Item/ItemManager.hpp"
 #include "Scene/Stage2/Stage2Patterns.hpp"
+#include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage2Detail {
 namespace ScriptUtil = EnemyScriptUtil;
+namespace StageUtil  = StageScriptUtil;
 
 void RunDaiyouseiMove(Enemy& enemy, EnemySubCtx& ctx, int local) {
     const int offset = Anm::STG2ENM.offset;
@@ -82,22 +82,12 @@ void RunDaiyouseiPattern(Enemy& enemy, EnemySubCtx& ctx, int frame) {
 }
 
 void InitDaiyouseiSub(Enemy& enemy, EnemySubCtx& ctx) {
-    const int offset = Anm::STG2ENM.offset;
     switch (enemy.m_SubId) {
         case SUB_DAIYOUSEI_MAIN:
-            ctx.anm.SetScript(enemy.m_Vm, offset + 64, offset);
-            enemy.m_Pos                    = Util::GameFieldToScreen(192.0f, -32.0f);
-            enemy.m_HitboxSize             = {45.0f, 56.0f};
-            enemy.m_IsBoss                 = true;
-            enemy.m_CanTakeDamage          = false;
-            enemy.m_ItemDropCount          = 0;
-            enemy.m_BossMaxLife            = std::max(1, enemy.m_Life);
-            enemy.m_BossTitle              = "Daiyousei";
-            enemy.m_BossLifeCount          = 0;
-            enemy.m_TimerCallbackThreshold = 1920;
-            enemy.m_TimerCallbackSub       = SUB_DAIYOUSEI_ESCAPE;
-            enemy.m_DeathCallbackSub       = SUB_DAIYOUSEI_DEATH;
-            ScriptUtil::SetDeathEffects(enemy, 671, 676);
+            StageUtil::InitBossEntry(enemy, ctx,
+                                     StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage2Daiyousei));
+            StageUtil::StartBossPhase(enemy, ctx,
+                                      StageUtil::ConfigId::BossPhase::Stage2Daiyousei);
             break;
 
         default:
@@ -119,8 +109,7 @@ void RunDaiyouseiSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
             if (t == 0) {
                 enemy.m_CanTakeDamage = false;
                 enemy.m_ShowSpellName = false;
-                ctx.items.SpawnItem(enemy.m_Pos, ItemType::Bomb);
-                enemy.m_Alive = false;
+                StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::BombDie);
             }
             break;
 

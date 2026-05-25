@@ -7,15 +7,61 @@
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
+#include "Scene/StageScriptUtil.hpp"
+#include "Scene/Stage4/Stage4PatternCommon.hpp"
 #include "Scene/Stage4/Stage4Patterns.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage4Detail {
 namespace ScriptUtil = EnemyScriptUtil;
+namespace StageUtil  = StageScriptUtil;
 using EnemyPatternUtil::RandAngle;
 
-void SpawnAtEnemyFieldPos(const Enemy& enemy, EnemySubCtx& ctx, int subId, int life, int score,
-                          int itemDrop);
+void InitStage4BookFairy(Enemy& enemy, EnemySubCtx& ctx) {
+    const StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage4BookFairy);
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
+void InitStage4SideBookFairy(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage4BookFairy);
+    config.angle = enemy.m_Mirrored ? PI : 0.0f;
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
+void InitStage4BurstFamiliar(Enemy& enemy, EnemySubCtx& ctx) {
+    const StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage4BurstFamiliar);
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
+void InitStage4SmallFairyEnemy(Enemy& enemy, EnemySubCtx& ctx) {
+    const StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage4SmallFairy);
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
+void InitStage4RingCaster(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage4RingCaster);
+    config.angle = enemy.m_SubId == 13 ? 0.0f : Util::HALF_PI;
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
+void InitStage4DropProxy(Enemy& enemy, EnemySubCtx& ctx) {
+    const StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage4DropProxy);
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
+void InitStage4CrystalFairy(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::EnemyInitConfig config =
+        StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage4CrystalFairy);
+    config.visual.script = enemy.m_SubId == 16 ? 14 : 13;
+    StageUtil::InitEnemy(enemy, ctx, config);
+}
+
 void SpawnAimedRiceFan(Enemy& enemy, EnemySubCtx& ctx, int t, int count, float speed, float spread,
                        int stacks = 2, float innerSpeed = -1.0f) {
     if (t < 0) return;

@@ -40,6 +40,13 @@ constexpr int SUB_REMILIA_DEATH      = 45;
 float RandFloat(float min, float max);
 void  SetSakuyaPoses(Enemy& enemy);
 void  SetRemiliaPoses(Enemy& enemy);
+void  InitStage6ArcFairyLeft(Enemy& enemy, EnemySubCtx& ctx);
+void  InitStage6ArcFairyRight(Enemy& enemy, EnemySubCtx& ctx);
+void  InitStage6BurstFairy(Enemy& enemy, EnemySubCtx& ctx);
+void  InitStage6FairyDropProxy(Enemy& enemy, EnemySubCtx& ctx);
+void  InitStage6SakuyaEntry(Enemy& enemy, EnemySubCtx& ctx);
+void  InitStage6RemiliaEntry(Enemy& enemy, EnemySubCtx& ctx);
+void  InitStage6RemiliaAfterimage(Enemy& enemy, EnemySubCtx& ctx);
 
 void RunArcFairy(Enemy& enemy, EnemySubCtx& ctx, int t, bool red, bool highArc);
 void RunBurstFairy(Enemy& enemy, EnemySubCtx& ctx, int t, bool top);

@@ -1,0 +1,57 @@
+{
+  "stage5.top_maid": {
+    "events": [
+      { "time": 0, "angle": 1.5707964, "speed": 2.0 },
+      { "time": 40, "acceleration": -0.06666667 },
+      { "time": 70, "acceleration": 0.0 },
+      { "time": 110, "angle": 1.5707964, "speed": 1.8 }
+    ]
+  },
+  "stage5.top_maid_dense": {
+    "events": [
+      { "time": 0, "angle": 1.5707964, "speed": 2.0 },
+      { "time": 40, "acceleration": -0.06666667 },
+      { "time": 70, "acceleration": 0.0 },
+      { "time": 90, "angle": 1.5707964, "speed": 1.8 }
+    ]
+  },
+  "stage5.side_maid": {
+    "events": [
+      { "time": 0, "angle": 0.0, "mirroredAngle": 3.1415927, "speed": 2.5 }
+    ]
+  },
+  "stage5.ring_maid": {
+    "events": [
+      { "time": 0, "angle": 1.5707964, "speed": 2.0 },
+      { "time": 40, "acceleration": -0.06666667 },
+      { "time": 70, "acceleration": 0.0 },
+      { "time": 190, "angle": 1.5707964, "speed": 1.8 }
+    ]
+  },
+  "stage6.arc_fairy_low": {
+    "events": [
+      { "time": 0, "angle": -1.0471976, "mirroredAngle": 4.1887903, "speed": 4.0 },
+      { "time": 30, "angularVelocity": 0.034906585, "mirroredAngularVelocity": -0.034906585 },
+      { "time": 90, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage6.arc_fairy_high": {
+    "events": [
+      { "time": 0, "angle": 0.5235988, "mirroredAngle": 2.6179938, "speed": 4.5 },
+      { "time": 30, "angularVelocity": -0.06544985, "mirroredAngularVelocity": 0.06544985 },
+      { "time": 115, "angularVelocity": 0.0, "mirroredAngularVelocity": 0.0 }
+    ]
+  },
+  "stage6.burst_fairy_side": {
+    "events": [
+      { "time": 0, "angle": 0.0, "mirroredAngle": 3.1415927, "speed": 2.0 },
+      { "time": 40, "acceleration": -0.06666667 }
+    ]
+  },
+  "stage6.burst_fairy_top": {
+    "events": [
+      { "time": 0, "angle": 1.5707964, "speed": 2.0 },
+      { "time": 40, "acceleration": -0.06666667 }
+    ]
+  }
+}

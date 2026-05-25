@@ -6,21 +6,24 @@
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
+#include "Scene/Stage3/Stage3PatternCommon.hpp"
 #include "Scene/Stage3/Stage3Patterns.hpp"
+#include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"
 
 namespace Stage3Detail {
 namespace ScriptUtil = EnemyScriptUtil;
+namespace StageUtil  = StageScriptUtil;
 using EnemyPatternUtil::AimAngleToPlayer;
 
-glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = {0.0f, -12.0f});
-void SpawnRandomSpeedRange(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulletColor color,
-                           int count, float minSpeed, float maxSpeed, bool rotateWithAngle = false);
-void SpawnRandomVectorAccel(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulletColor color,
-                            int count, float maxSpeed, float minSpeed, float accelSpeed,
-                            float accelAngle, bool rotateWithAngle = true);
-void SpawnRandomDownAccel(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBulletColor color,
-                          int count, float maxSpeed, float minSpeed, bool rotateWithAngle = true);
+void InitMeilingBossEntry(Enemy& enemy, EnemySubCtx& ctx) {
+    StageUtil::InitBossEntry(
+        enemy, ctx,
+        StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage3MeilingBoss));
+    enemy.m_DeathCallbackSub = SUB_MEILING_DEATH;
+    SetMeilingBossPoses(enemy);
+}
+
 void RunMeilingFirstNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
     const int loopT = (t - 50) % 272;
     const int cycle = (t - 50) / 272;
@@ -237,7 +240,7 @@ void RunGorgeousTyphoonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
         enemy.m_LifeCallbackThreshold  = -1;
         enemy.m_LifeCallbackSub        = -1;
         enemy.m_DeathCallbackSub       = SUB_MEILING_DEATH;
-        ScriptUtil::DropPowerItems(enemy, ctx, 5);
+        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
         ctx.BulletCancelIntoPointItems();
     }
     if (t == 60) {

@@ -21,6 +21,15 @@ constexpr int SUB_PATCHOULI_WATER_ELF       = 56;
 constexpr int SUB_PATCHOULI_DEATH           = 60;
 
 void SetPatchouliBossPoses(Enemy& enemy);
+void InitStage4BookFairy(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage4SideBookFairy(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage4BurstFamiliar(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage4SmallFairyEnemy(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage4RingCaster(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage4DropProxy(Enemy& enemy, EnemySubCtx& ctx);
+void InitStage4CrystalFairy(Enemy& enemy, EnemySubCtx& ctx);
+void InitKoakumaMidboss(Enemy& enemy, EnemySubCtx& ctx);
+void InitPatchouliEntry(Enemy& enemy, EnemySubCtx& ctx);
 void RunStage4SmallFairy(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunBookFairy(Enemy& enemy, EnemySubCtx& ctx, int t, int burstSub);
 void RunBurstFamiliar(Enemy& enemy, EnemySubCtx& ctx, int t, bool laser, bool denseKunai);
@@ -35,6 +44,4 @@ void RunSylphyHornAdvanced(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunFinalNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunMercuryPoison(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunWaterElf(Enemy& enemy, EnemySubCtx& ctx, int t);
-void InitStage4Sub(Enemy& enemy, EnemySubCtx& ctx);
-void RunStage4Sub(Enemy& enemy, EnemySubCtx& ctx);
 }  // namespace Stage4Detail
