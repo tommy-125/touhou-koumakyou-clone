@@ -1,12 +1,11 @@
 #include "Scene/StageScriptUtil.hpp"
 
-#include <fstream>
-#include <nlohmann/json.hpp>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 
 #include "Anm/AnmDefs.hpp"
+#include "Util/JsonConfigLoader.hpp"
 
 namespace {
 using EnemyInitConfigMap = std::unordered_map<std::string, StageScriptUtil::EnemyInitConfig>;
@@ -14,6 +13,9 @@ using BossEntryConfigMap = std::unordered_map<std::string, StageScriptUtil::Boss
 using BossPhaseConfigMap = std::unordered_map<std::string, BossPhaseUtil::PhaseConfig>;
 using MovementProfileMap = std::unordered_map<std::string, StageScriptUtil::MovementProfile>;
 using RewardConfigMap    = std::unordered_map<std::string, StageScriptUtil::RewardConfig>;
+namespace JsonConfig     = Util::JsonConfig;
+using JsonConfig::ParseVec2;
+using JsonConfig::ReadOptional;
 
 int AnmBaseFromName(const std::string& name) {
     if (name == "STG1ENM") return Anm::STG1ENM.offset;
@@ -25,59 +27,6 @@ int AnmBaseFromName(const std::string& name) {
     if (name == "STG6ENM") return Anm::STG6ENM.offset;
     if (name == "STG6ENM2") return Anm::STG6ENM2.offset;
     throw std::runtime_error("unknown ANM base: " + name);
-}
-
-glm::vec2 ParseVec2(const nlohmann::json& value, const char* fieldName) {
-    if (!value.is_array() || value.size() != 2) {
-        throw std::runtime_error(std::string(fieldName) + " must be a two-element array");
-    }
-    return {value.at(0).get<float>(), value.at(1).get<float>()};
-}
-
-template <typename T>
-void ReadOptional(const nlohmann::json& item, const char* key, std::optional<T>& output) {
-    if (item.contains(key)) output = item.at(key).get<T>();
-}
-
-template <typename Config, typename ParseFn>
-std::unordered_map<std::string, Config> LoadConfigMap(const char* path, const char* label,
-                                                      ParseFn parse) {
-    std::ifstream file(path);
-    if (!file) {
-        throw std::runtime_error(std::string("failed to open ") + label + " JSON: " + path);
-    }
-
-    try {
-        nlohmann::json root;
-        file >> root;
-        if (!root.is_object()) {
-            throw std::runtime_error("root must be an object keyed by config id");
-        }
-
-        std::unordered_map<std::string, Config> configs;
-        configs.reserve(root.size());
-        for (const auto& [id, value] : root.items()) {
-            try {
-                configs.emplace(id, parse(value));
-            } catch (const std::exception& e) {
-                throw std::runtime_error("entry '" + id + "': " + e.what());
-            }
-        }
-        return configs;
-    } catch (const std::exception& e) {
-        throw std::runtime_error(std::string("failed to parse ") + label + " JSON " + path +
-                                 ": " + e.what());
-    }
-}
-
-template <typename ConfigMap>
-typename ConfigMap::mapped_type FindConfigOrDefault(const ConfigMap& configs, const std::string& id,
-                                                    const char* label) {
-    const auto it = configs.find(id);
-    if (it == configs.end()) {
-        throw std::runtime_error(std::string("missing ") + label + " config: " + id);
-    }
-    return it->second;
 }
 
 StageScriptUtil::EnemyInitConfig ParseEnemyInitConfig(const nlohmann::json& item) {
@@ -193,59 +142,58 @@ StageScriptUtil::RewardConfig ParseRewardConfig(const nlohmann::json& item) {
 }
 
 const EnemyInitConfigMap& EnemyInitConfigs() {
-    static const EnemyInitConfigMap configs = LoadConfigMap<StageScriptUtil::EnemyInitConfig>(
-        GA_RESOURCE_DIR "/stages/enemy_init_configs.json", "enemy init config",
-        ParseEnemyInitConfig);
+    static const EnemyInitConfigMap configs =
+        JsonConfig::LoadConfigMap<StageScriptUtil::EnemyInitConfig>(
+            "stages/enemy_init_configs.json", "enemy init config", ParseEnemyInitConfig);
     return configs;
 }
 
 const BossEntryConfigMap& BossEntryConfigs() {
-    static const BossEntryConfigMap configs = LoadConfigMap<StageScriptUtil::BossEntryConfig>(
-        GA_RESOURCE_DIR "/stages/boss_entry_configs.json", "boss entry config",
-        ParseBossEntryConfig);
+    static const BossEntryConfigMap configs =
+        JsonConfig::LoadConfigMap<StageScriptUtil::BossEntryConfig>(
+            "stages/boss_entry_configs.json", "boss entry config", ParseBossEntryConfig);
     return configs;
 }
 
 const BossPhaseConfigMap& BossPhaseConfigs() {
-    static const BossPhaseConfigMap configs =
-        LoadConfigMap<BossPhaseUtil::PhaseConfig>(GA_RESOURCE_DIR "/stages/boss_phase_configs.json",
-                                                  "boss phase config", ParseBossPhaseConfig);
+    static const BossPhaseConfigMap configs = JsonConfig::LoadConfigMap<BossPhaseUtil::PhaseConfig>(
+        "stages/boss_phase_configs.json", "boss phase config", ParseBossPhaseConfig);
     return configs;
 }
 
 const RewardConfigMap& RewardConfigs() {
-    static const RewardConfigMap configs = LoadConfigMap<StageScriptUtil::RewardConfig>(
-        GA_RESOURCE_DIR "/stages/reward_configs.json", "reward config", ParseRewardConfig);
+    static const RewardConfigMap configs = JsonConfig::LoadConfigMap<StageScriptUtil::RewardConfig>(
+        "stages/reward_configs.json", "reward config", ParseRewardConfig);
     return configs;
 }
 
 const MovementProfileMap& MovementProfiles() {
-    static const MovementProfileMap configs = LoadConfigMap<StageScriptUtil::MovementProfile>(
-        GA_RESOURCE_DIR "/stages/movement_profiles.json", "movement profile",
-        ParseMovementProfile);
+    static const MovementProfileMap configs =
+        JsonConfig::LoadConfigMap<StageScriptUtil::MovementProfile>(
+            "stages/movement_profiles.json", "movement profile", ParseMovementProfile);
     return configs;
 }
 }  // namespace
 
 namespace StageScriptUtil {
 EnemyInitConfig LoadEnemyInitConfig(const std::string& id) {
-    return FindConfigOrDefault(EnemyInitConfigs(), id, "enemy init");
+    return JsonConfig::FindConfigOrThrow(EnemyInitConfigs(), id, "enemy init");
 }
 
 BossEntryConfig LoadBossEntryConfig(const std::string& id) {
-    return FindConfigOrDefault(BossEntryConfigs(), id, "boss entry");
+    return JsonConfig::FindConfigOrThrow(BossEntryConfigs(), id, "boss entry");
 }
 
 BossPhaseUtil::PhaseConfig LoadBossPhaseConfig(const std::string& id) {
-    return FindConfigOrDefault(BossPhaseConfigs(), id, "boss phase");
+    return JsonConfig::FindConfigOrThrow(BossPhaseConfigs(), id, "boss phase");
 }
 
 RewardConfig LoadRewardConfig(const std::string& id) {
-    return FindConfigOrDefault(RewardConfigs(), id, "reward");
+    return JsonConfig::FindConfigOrThrow(RewardConfigs(), id, "reward");
 }
 
 MovementProfile LoadMovementProfile(const std::string& id) {
-    return FindConfigOrDefault(MovementProfiles(), id, "movement profile");
+    return JsonConfig::FindConfigOrThrow(MovementProfiles(), id, "movement profile");
 }
 
 void ApplyMovementProfile(Enemy& enemy, const MovementProfile& profile, int time) {
@@ -268,12 +216,9 @@ void ApplyMovementProfile(Enemy& enemy, const MovementProfile& profile, int time
 }
 
 void ApplyMovementProfile(Enemy& enemy, const std::string& id, int time) {
-    const auto& configs = MovementProfiles();
-    const auto  it      = configs.find(id);
-    if (it == configs.end()) {
-        throw std::runtime_error("missing movement profile config: " + id);
-    }
-    ApplyMovementProfile(enemy, it->second, time);
+    ApplyMovementProfile(enemy, JsonConfig::FindConfigRefOrThrow(MovementProfiles(), id,
+                                                                 "movement profile"),
+                         time);
 }
 
 void ApplyReward(Enemy& enemy, EnemySubCtx& ctx, const RewardConfig& config) {
