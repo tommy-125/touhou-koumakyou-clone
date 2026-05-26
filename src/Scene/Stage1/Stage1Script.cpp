@@ -24,10 +24,19 @@ Stage1Script::Stage1Script() {
 
     AddTimedPattern({SUB_MIDBOSS_MAIN, SUB_MIDBOSS_ESCAPE, SUB_MIDBOSS_DEATH}, InitRumiaMidbossSub,
                     RunRumiaMidbossSub);
-    AddTimedPattern(
-        {SUB_BOSS_ENTRY, SUB_BOSS_PHASE1_INIT, SUB_BOSS_PHASE1_ATTACK_A, SUB_BOSS_PHASE1_ATTACK_B,
-         SUB_BOSS_PHASE1_ATTACK_C, SUB_BOSS_PHASE1_ATTACK_D, SUB_BOSS_PHASE1_SPELL,
-         SUB_BOSS_PHASE2_INIT, SUB_BOSS_PHASE2_ATTACK_A, SUB_BOSS_PHASE2_ATTACK_B,
-         SUB_BOSS_PHASE2_ATTACK_C, SUB_BOSS_PHASE2_ATTACK_D, SUB_BOSS_PHASE2_SPELL, SUB_BOSS_DEATH},
-        InitRumiaBossSub, RunRumiaBossSub);
+
+    AddTimedPattern(SUB_BOSS_ENTRY, InitRumiaBossEntry, RunRumiaBossEntry);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE1_INIT, RunRumiaFirstNonspellInit);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE1_ATTACK_A, RunRumiaFirstAttackA);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE1_ATTACK_B, RunRumiaFirstAttackB);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE1_ATTACK_C, RunRumiaFirstAttackC);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE1_ATTACK_D, RunRumiaFirstAttackD);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE1_SPELL, RunNightBird);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE2_INIT, RunRumiaSecondNonspellInit);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE2_ATTACK_A, RunRumiaSecondAttackA);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE2_ATTACK_B, RunRumiaSecondAttackB);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE2_ATTACK_C, RunRumiaSecondAttackC);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE2_ATTACK_D, RunRumiaSecondAttackD);
+    AddTimedRunOnlyPattern(SUB_BOSS_PHASE2_SPELL, RunDemarcation);
+    AddTimedRunOnlyPattern(SUB_BOSS_DEATH, RunRumiaBossDeath);
 }
