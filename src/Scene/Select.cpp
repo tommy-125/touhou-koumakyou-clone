@@ -111,150 +111,149 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
 void Select::Update() {
     m_EnterSelectBlackMask.Update();
 
-    if (Util::Input::IsKeyDown(Util::Keycode::NUM_2)) {
-        m_DebugStartStage2 = true;
-        m_Done             = true;
-        return;
-    }
-    if (Util::Input::IsKeyDown(Util::Keycode::NUM_3)) {
-        m_DebugStartStage3 = true;
-        m_Done             = true;
-        return;
-    }
-    if (Util::Input::IsKeyDown(Util::Keycode::NUM_4)) {
-        m_DebugStartStage4 = true;
-        m_Done             = true;
-        return;
-    }
-    if (Util::Input::IsKeyDown(Util::Keycode::NUM_5)) {
-        m_DebugStartStage5 = true;
-        m_Done             = true;
-        return;
-    }
-    if (Util::Input::IsKeyDown(Util::Keycode::NUM_6)) {
-        m_DebugStartStage6 = true;
-        m_Done             = true;
-        return;
-    }
+    if (HandleDebugStageShortcut()) return;
 
     switch (m_CurrentState) {
         case SelectState::Difficulty:
-            if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
-                m_SelectedDifficultyItemIdx =
-                    (m_SelectedDifficultyItemIdx - 1 + SELECT_DIFFICULTY_COUNT) %
-                    SELECT_DIFFICULTY_COUNT;
-            } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
-                m_SelectedDifficultyItemIdx =
-                    (m_SelectedDifficultyItemIdx + 1) % SELECT_DIFFICULTY_COUNT;
-            } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
-                m_CurrentState = SelectState::Character;
-                HandleInterruptEvent(SelectEvent::EnterCharaSelect);
-
-            } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
-                HandleInterruptEvent(SelectEvent::ReturnTitle);
-                m_EnterSelectBlackMask.Fade(30, 1.0f);  // fade to black before returning to title
-                m_Quitting = true;                      // start quit timer and animation
-            }
-            m_SelectedDifficultyItem = static_cast<DifficultyItem>(m_SelectedDifficultyItemIdx);
-
+            UpdateDifficultySelect();
             break;
         case SelectState::Character:
-            if (Util::Input::IsKeyDown(Util::Keycode::LEFT)) {
-                m_SelectedCharacterItemIdx =
-                    (m_SelectedCharacterItemIdx - 1 + SELECT_CHARACTER_COUNT) %
-                    SELECT_CHARACTER_COUNT;
-                HandleInterruptEvent(SelectEvent::SwapCharaItemLeft);
-            } else if (Util::Input::IsKeyDown(Util::Keycode::RIGHT)) {
-                m_SelectedCharacterItemIdx =
-                    (m_SelectedCharacterItemIdx + 1) % SELECT_CHARACTER_COUNT;
-                HandleInterruptEvent(SelectEvent::SwapCharaItemRight);
-            } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
-                m_CurrentState = SelectState::SpellCard;
-                HandleInterruptEvent(SelectEvent::EnterSpellCardSelect);
-            } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
-                m_CurrentState = SelectState::Difficulty;
-                HandleInterruptEvent(SelectEvent::ReturnDifficultySelect);
-            }
-            m_SelectedCharacterItem = static_cast<CharacterItem>(m_SelectedCharacterItemIdx);
+            UpdateCharacterSelect();
             break;
         case SelectState::SpellCard:
-            if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
-                m_SelectedSpellCardItemIdx =
-                    (m_SelectedSpellCardItemIdx - 1 + SELECT_SPELLCARD_COUNT) %
-                    SELECT_SPELLCARD_COUNT;
-            } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
-                m_SelectedSpellCardItemIdx =
-                    (m_SelectedSpellCardItemIdx + 1) % SELECT_SPELLCARD_COUNT;
-            } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
-                m_Quitting = true;  // start quit timer and animation
-            } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
-                m_CurrentState = SelectState::Character;
-                HandleInterruptEvent(SelectEvent::ReturnCharaSelect);
-            }
-
-            m_SelectedSpellCardItem = static_cast<SpellCardItem>(m_SelectedSpellCardItemIdx);
+            UpdateSpellCardSelect();
             break;
     }
 
-    if (m_Quitting) {
-        m_QuitTimer++;
-        if (m_QuitTimer >= 30) {  // 30 frames of animation
-            m_Done = true;
-        }
-    }
+    UpdateQuitTimer();
 
     m_Anm.UpdateObjects(m_Vms);
 
-    // overwrite alpha value of difficulty items of the original instructions
-    for (int i = 0; i < SELECT_DIFFICULTY_COUNT; i++) {
-        if (m_CurrentState == SelectState::Difficulty) {
-            if (i == m_SelectedDifficultyItemIdx) {
-                m_DifficultyItemVms[i]->obj->SetAlpha(1.0f);
-            } else {
-                m_DifficultyItemVms[i]->obj->SetAlpha(0.5f);
-            }
-        }
-    }
-
-    if (m_CurrentState == SelectState::SpellCard) {
-        if (m_SelectedCharacterItem == CharacterItem::Reimu) {
-            for (int i = 0; i < SELECT_SPELLCARD_COUNT; i++) {
-                if (i == m_SelectedSpellCardItemIdx) {
-                    m_SpellCardItemVms[0][i]->alpha = 1.0f;
-                } else {
-                    m_SpellCardItemVms[0][i]->alpha = 0.5f;
-                }
-            }
-        } else if (m_SelectedCharacterItem == CharacterItem::Marisa) {
-            for (int i = 0; i < SELECT_SPELLCARD_COUNT; i++) {
-                if (i == m_SelectedSpellCardItemIdx) {
-                    m_SpellCardItemVms[1][i]->alpha = 1.0f;
-                } else {
-                    m_SpellCardItemVms[1][i]->alpha = 0.5f;
-                }
-            }
-        }
-    }
+    UpdateDifficultyItemAlpha();
+    UpdateSpellCardItemAlpha();
 
     m_Renderer.Update();
 }
 
+bool Select::HandleDebugStageShortcut() {
+    const struct {
+        Util::Keycode key;
+        int           stage;
+    } shortcuts[] = {
+        {Util::Keycode::NUM_2, 2},
+        {Util::Keycode::NUM_3, 3},
+        {Util::Keycode::NUM_4, 4},
+        {Util::Keycode::NUM_5, 5},
+        {Util::Keycode::NUM_6, 6},
+    };
+
+    for (const auto& shortcut : shortcuts) {
+        if (Util::Input::IsKeyDown(shortcut.key)) {
+            m_DebugStartStage = shortcut.stage;
+            m_Done            = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+void Select::UpdateDifficultySelect() {
+    if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
+        m_SelectedDifficultyItemIdx =
+            (m_SelectedDifficultyItemIdx - 1 + SELECT_DIFFICULTY_COUNT) % SELECT_DIFFICULTY_COUNT;
+    } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
+        m_SelectedDifficultyItemIdx =
+            (m_SelectedDifficultyItemIdx + 1) % SELECT_DIFFICULTY_COUNT;
+    } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
+        m_CurrentState = SelectState::Character;
+        HandleInterruptEvent(SelectEvent::EnterCharaSelect);
+    } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
+        HandleInterruptEvent(SelectEvent::ReturnTitle);
+        m_EnterSelectBlackMask.Fade(30, 1.0f);
+        m_Quitting = true;
+    }
+    m_SelectedDifficultyItem = static_cast<DifficultyItem>(m_SelectedDifficultyItemIdx);
+}
+
+void Select::UpdateCharacterSelect() {
+    if (Util::Input::IsKeyDown(Util::Keycode::LEFT)) {
+        m_SelectedCharacterItemIdx =
+            (m_SelectedCharacterItemIdx - 1 + SELECT_CHARACTER_COUNT) % SELECT_CHARACTER_COUNT;
+        HandleInterruptEvent(SelectEvent::SwapCharaItemLeft);
+    } else if (Util::Input::IsKeyDown(Util::Keycode::RIGHT)) {
+        m_SelectedCharacterItemIdx = (m_SelectedCharacterItemIdx + 1) % SELECT_CHARACTER_COUNT;
+        HandleInterruptEvent(SelectEvent::SwapCharaItemRight);
+    } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
+        m_CurrentState = SelectState::SpellCard;
+        HandleInterruptEvent(SelectEvent::EnterSpellCardSelect);
+    } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
+        m_CurrentState = SelectState::Difficulty;
+        HandleInterruptEvent(SelectEvent::ReturnDifficultySelect);
+    }
+    m_SelectedCharacterItem = static_cast<CharacterItem>(m_SelectedCharacterItemIdx);
+}
+
+void Select::UpdateSpellCardSelect() {
+    if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
+        m_SelectedSpellCardItemIdx =
+            (m_SelectedSpellCardItemIdx - 1 + SELECT_SPELLCARD_COUNT) % SELECT_SPELLCARD_COUNT;
+    } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
+        m_SelectedSpellCardItemIdx = (m_SelectedSpellCardItemIdx + 1) % SELECT_SPELLCARD_COUNT;
+    } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
+        m_Quitting = true;
+    } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
+        m_CurrentState = SelectState::Character;
+        HandleInterruptEvent(SelectEvent::ReturnCharaSelect);
+    }
+    m_SelectedSpellCardItem = static_cast<SpellCardItem>(m_SelectedSpellCardItemIdx);
+}
+
+void Select::UpdateQuitTimer() {
+    if (!m_Quitting) return;
+    m_QuitTimer++;
+    if (m_QuitTimer >= 30) {
+        m_Done = true;
+    }
+}
+
+void Select::UpdateDifficultyItemAlpha() {
+    if (m_CurrentState != SelectState::Difficulty) return;
+    for (int i = 0; i < SELECT_DIFFICULTY_COUNT; i++) {
+        m_DifficultyItemVms[i]->obj->SetAlpha(i == m_SelectedDifficultyItemIdx ? 1.0f : 0.5f);
+    }
+}
+
+void Select::UpdateSpellCardItemAlpha() {
+    if (m_CurrentState != SelectState::SpellCard) return;
+
+    const int characterIdx = m_SelectedCharacterItem == CharacterItem::Reimu ? 0 : 1;
+    for (int i = 0; i < SELECT_SPELLCARD_COUNT; i++) {
+        m_SpellCardItemVms[characterIdx][i]->alpha =
+            i == m_SelectedSpellCardItemIdx ? 1.0f : 0.5f;
+    }
+}
+
+std::unique_ptr<Scene> Select::CreateDebugStageScene() {
+    switch (m_DebugStartStage) {
+        case 2:
+            return std::make_unique<Stage2>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
+        case 3:
+            return std::make_unique<Stage3>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
+        case 4:
+            return std::make_unique<Stage4>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
+        case 5:
+            return std::make_unique<Stage5>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
+        case 6:
+            return std::make_unique<Stage6>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
+        default:
+            return nullptr;
+    }
+}
+
 std::unique_ptr<Scene> Select::NextScene() {
     if (m_Done) {
-        if (m_DebugStartStage4) {
-            return std::make_unique<Stage4>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
-        }
-        if (m_DebugStartStage5) {
-            return std::make_unique<Stage5>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
-        }
-        if (m_DebugStartStage6) {
-            return std::make_unique<Stage6>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
-        }
-        if (m_DebugStartStage3) {
-            return std::make_unique<Stage3>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
-        }
-        if (m_DebugStartStage2) {
-            return std::make_unique<Stage2>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
+        if (auto debugStage = CreateDebugStageScene()) {
+            return debugStage;
         }
 
         switch (m_CurrentState) {

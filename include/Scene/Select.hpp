@@ -71,6 +71,15 @@ class Select : public Scene {
     void                   HandleInterruptEvent(SelectEvent event);
 
    private:
+    bool                   HandleDebugStageShortcut();
+    void                   UpdateDifficultySelect();
+    void                   UpdateCharacterSelect();
+    void                   UpdateSpellCardSelect();
+    void                   UpdateQuitTimer();
+    void                   UpdateDifficultyItemAlpha();
+    void                   UpdateSpellCardItemAlpha();
+    std::unique_ptr<Scene> CreateDebugStageScene();
+
     SelectState    m_CurrentState           = SelectState::Difficulty;
     DifficultyItem m_SelectedDifficultyItem = DifficultyItem::Normal;
     CharacterItem  m_SelectedCharacterItem  = CharacterItem::Reimu;
@@ -100,11 +109,7 @@ class Select : public Scene {
 
     bool m_Quitting  = false;
     int  m_QuitTimer = 0;  // quit timer for animation
-    bool m_DebugStartStage2 = false;
-    bool m_DebugStartStage3 = false;
-    bool m_DebugStartStage4 = false;
-    bool m_DebugStartStage5 = false;
-    bool m_DebugStartStage6 = false;
+    int  m_DebugStartStage = 0;
 };
 
 #endif
