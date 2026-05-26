@@ -37,9 +37,16 @@ Stage2Script::Stage2Script() {
 
     AddTimedPattern({SUB_DAIYOUSEI_MAIN, SUB_DAIYOUSEI_DEATH, SUB_DAIYOUSEI_ESCAPE},
                     InitDaiyouseiSub, RunDaiyouseiSub);
-    AddTimedPattern({SUB_CIRNO_ENTRY, SUB_CIRNO_NONSPELL_INIT, SUB_CIRNO_NONSPELL_ATTACK_A,
-                     SUB_CIRNO_NONSPELL_ATTACK_B, SUB_CIRNO_ICICLE_FALL, SUB_CIRNO_PHASE2_INIT,
-                     SUB_CIRNO_PREFREEZE_ATTACK_A, SUB_CIRNO_PREFREEZE_ATTACK_B,
-                     SUB_CIRNO_PERFECT_FREEZE, SUB_CIRNO_DIAMOND_BLIZZARD, SUB_CIRNO_DEATH},
-                    InitCirnoSub, RunCirnoSub);
+
+    AddTimedPattern(SUB_CIRNO_ENTRY, InitCirnoEntry, RunCirnoEntry);
+    AddTimedRunOnlyPattern(SUB_CIRNO_NONSPELL_INIT, RunCirnoFirstNonspellInit);
+    AddTimedRunOnlyPattern(SUB_CIRNO_NONSPELL_ATTACK_A, RunCirnoNonspellAttackA);
+    AddTimedRunOnlyPattern(SUB_CIRNO_NONSPELL_ATTACK_B, RunCirnoNonspellAttackB);
+    AddTimedRunOnlyPattern(SUB_CIRNO_ICICLE_FALL, RunIcicleFall);
+    AddTimedRunOnlyPattern(SUB_CIRNO_PHASE2_INIT, RunCirnoSecondNonspellInit);
+    AddTimedRunOnlyPattern(SUB_CIRNO_PREFREEZE_ATTACK_A, RunCirnoPrefreezeAttackA);
+    AddTimedRunOnlyPattern(SUB_CIRNO_PREFREEZE_ATTACK_B, RunCirnoPrefreezeAttackB);
+    AddTimedRunOnlyPattern(SUB_CIRNO_PERFECT_FREEZE, RunPerfectFreeze);
+    AddTimedRunOnlyPattern(SUB_CIRNO_DIAMOND_BLIZZARD, RunDiamondBlizzard);
+    AddTimedRunOnlyPattern(SUB_CIRNO_DEATH, RunCirnoDeath);
 }

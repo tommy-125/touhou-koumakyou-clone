@@ -44,6 +44,16 @@ void         RunStage2TimedDespawn(Enemy& enemy, int t);
 void         RunStage2MediumFairy(Enemy& enemy, EnemySubCtx& ctx, int t);
 void         InitDaiyouseiSub(Enemy& enemy, EnemySubCtx& ctx);
 void         RunDaiyouseiSub(Enemy& enemy, EnemySubCtx& ctx, int t);
-void         InitCirnoSub(Enemy& enemy, EnemySubCtx& ctx);
-void         RunCirnoSub(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         InitCirnoEntry(Enemy& enemy, EnemySubCtx& ctx);
+void         RunCirnoEntry(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunCirnoFirstNonspellInit(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunCirnoNonspellAttackA(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunCirnoNonspellAttackB(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunIcicleFall(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunCirnoSecondNonspellInit(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunCirnoPrefreezeAttackA(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunCirnoPrefreezeAttackB(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunPerfectFreeze(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunDiamondBlizzard(Enemy& enemy, EnemySubCtx& ctx, int t);
+void         RunCirnoDeath(Enemy& enemy, EnemySubCtx& ctx, int t);
 }  // namespace Stage2Detail
