@@ -176,24 +176,26 @@ const MovementProfileMap& MovementProfiles() {
 }  // namespace
 
 namespace StageScriptUtil {
-EnemyInitConfig LoadEnemyInitConfig(const std::string& id) {
-    return JsonConfig::FindConfigOrThrow(EnemyInitConfigs(), id, "enemy init");
+EnemyInitConfig LoadEnemyInitConfig(ConfigId::EnemyInitId id) {
+    return JsonConfig::FindConfigOrThrow(EnemyInitConfigs(), std::string(id.value), "enemy init");
 }
 
-BossEntryConfig LoadBossEntryConfig(const std::string& id) {
-    return JsonConfig::FindConfigOrThrow(BossEntryConfigs(), id, "boss entry");
+BossEntryConfig LoadBossEntryConfig(ConfigId::BossEntryId id) {
+    return JsonConfig::FindConfigOrThrow(BossEntryConfigs(), std::string(id.value), "boss entry");
 }
 
-BossPhaseUtil::PhaseConfig LoadBossPhaseConfig(const std::string& id) {
-    return JsonConfig::FindConfigOrThrow(BossPhaseConfigs(), id, "boss phase");
+BossPhaseUtil::PhaseConfig LoadBossPhaseConfig(ConfigId::BossPhaseId id) {
+    return JsonConfig::FindConfigOrThrow(BossPhaseConfigs(), std::string(id.value),
+                                         "boss phase");
 }
 
-RewardConfig LoadRewardConfig(const std::string& id) {
-    return JsonConfig::FindConfigOrThrow(RewardConfigs(), id, "reward");
+RewardConfig LoadRewardConfig(ConfigId::RewardId id) {
+    return JsonConfig::FindConfigOrThrow(RewardConfigs(), std::string(id.value), "reward");
 }
 
-MovementProfile LoadMovementProfile(const std::string& id) {
-    return JsonConfig::FindConfigOrThrow(MovementProfiles(), id, "movement profile");
+MovementProfile LoadMovementProfile(ConfigId::MovementId id) {
+    return JsonConfig::FindConfigOrThrow(MovementProfiles(), std::string(id.value),
+                                         "movement profile");
 }
 
 void ApplyMovementProfile(Enemy& enemy, const MovementProfile& profile, int time) {
@@ -215,8 +217,9 @@ void ApplyMovementProfile(Enemy& enemy, const MovementProfile& profile, int time
     }
 }
 
-void ApplyMovementProfile(Enemy& enemy, const std::string& id, int time) {
-    ApplyMovementProfile(enemy, JsonConfig::FindConfigRefOrThrow(MovementProfiles(), id,
+void ApplyMovementProfile(Enemy& enemy, ConfigId::MovementId id, int time) {
+    ApplyMovementProfile(enemy, JsonConfig::FindConfigRefOrThrow(MovementProfiles(),
+                                                                 std::string(id.value),
                                                                  "movement profile"),
                          time);
 }
@@ -230,7 +233,7 @@ void ApplyReward(Enemy& enemy, EnemySubCtx& ctx, const RewardConfig& config) {
     if (config.die) enemy.m_Alive = false;
 }
 
-void ApplyReward(Enemy& enemy, EnemySubCtx& ctx, const std::string& id) {
+void ApplyReward(Enemy& enemy, EnemySubCtx& ctx, ConfigId::RewardId id) {
     ApplyReward(enemy, ctx, LoadRewardConfig(id));
 }
 }  // namespace StageScriptUtil

@@ -62,7 +62,7 @@ inline void InitEnemy(Enemy& enemy, EnemySubCtx& ctx, const EnemyInitConfig& con
     if (config.rotateWithAngle) enemy.m_RotateWithAngle = *config.rotateWithAngle;
 }
 
-EnemyInitConfig LoadEnemyInitConfig(const std::string& id);
+EnemyInitConfig LoadEnemyInitConfig(ConfigId::EnemyInitId id);
 
 inline void SetDropCallback(Enemy& enemy, int callbackSub) {
     enemy.m_DeathCallbackSub = callbackSub;
@@ -106,10 +106,10 @@ inline void InitBossEntry(Enemy& enemy, EnemySubCtx& ctx, const BossEntryConfig&
     enemy.m_BoundsMax     = Util::GameFieldToScreen(config.boundsMaxField);
 }
 
-BossEntryConfig            LoadBossEntryConfig(const std::string& id);
-BossPhaseUtil::PhaseConfig LoadBossPhaseConfig(const std::string& id);
+BossEntryConfig            LoadBossEntryConfig(ConfigId::BossEntryId id);
+BossPhaseUtil::PhaseConfig LoadBossPhaseConfig(ConfigId::BossPhaseId id);
 
-inline void StartBossPhase(Enemy& enemy, const EnemySubCtx& ctx, const std::string& id) {
+inline void StartBossPhase(Enemy& enemy, const EnemySubCtx& ctx, ConfigId::BossPhaseId id) {
     BossPhaseUtil::StartPhase(enemy, ctx, LoadBossPhaseConfig(id));
 }
 
@@ -127,9 +127,9 @@ struct MovementProfile {
     std::vector<MovementEvent> events;
 };
 
-MovementProfile LoadMovementProfile(const std::string& id);
+MovementProfile LoadMovementProfile(ConfigId::MovementId id);
 void            ApplyMovementProfile(Enemy& enemy, const MovementProfile& profile, int time);
-void            ApplyMovementProfile(Enemy& enemy, const std::string& id, int time);
+void            ApplyMovementProfile(Enemy& enemy, ConfigId::MovementId id, int time);
 
 struct RewardConfig {
     int                   power = 0;
@@ -138,9 +138,9 @@ struct RewardConfig {
     bool                  die                  = false;
 };
 
-RewardConfig LoadRewardConfig(const std::string& id);
+RewardConfig LoadRewardConfig(ConfigId::RewardId id);
 void         ApplyReward(Enemy& enemy, EnemySubCtx& ctx, const RewardConfig& config);
-void         ApplyReward(Enemy& enemy, EnemySubCtx& ctx, const std::string& id);
+void         ApplyReward(Enemy& enemy, EnemySubCtx& ctx, ConfigId::RewardId id);
 
 inline void DropPowerAndDie(Enemy& enemy, EnemySubCtx& ctx, int count) {
     EnemyScriptUtil::DropPowerItems(enemy, ctx, count);

@@ -52,10 +52,11 @@ class BossPhaseEnemySubPattern final : public IEnemySubPattern {
     using TimedRunFn = std::function<void(Enemy&, EnemySubCtx&, int)>;
     using StartFn    = std::function<void(Enemy&, EnemySubCtx&)>;
 
-    BossPhaseEnemySubPattern(std::initializer_list<int> subIds, std::string phaseId,
+    BossPhaseEnemySubPattern(std::initializer_list<int> subIds,
+                             StageScriptUtil::ConfigId::BossPhaseId phaseId,
                              TimedRunFn run, StartFn onStart = nullptr, int runStartFrame = 0)
         : m_SubIds(subIds),
-          m_PhaseId(std::move(phaseId)),
+          m_PhaseId(phaseId),
           m_Run(std::move(run)),
           m_OnStart(std::move(onStart)),
           m_RunStartFrame(runStartFrame) {}
@@ -76,11 +77,11 @@ class BossPhaseEnemySubPattern final : public IEnemySubPattern {
     }
 
    private:
-    std::vector<int> m_SubIds;
-    std::string      m_PhaseId;
-    TimedRunFn       m_Run;
-    StartFn          m_OnStart;
-    int              m_RunStartFrame;
+    std::vector<int>                         m_SubIds;
+    StageScriptUtil::ConfigId::BossPhaseId   m_PhaseId;
+    TimedRunFn                               m_Run;
+    StartFn                                  m_OnStart;
+    int                                      m_RunStartFrame;
 };
 
 class PatternStageScript : public IStageScript {
@@ -148,30 +149,35 @@ class PatternStageScript : public IStageScript {
         AddTimedPattern(subId, nullptr, std::move(run));
     }
 
-    void AddBossPhasePattern(std::initializer_list<int> subIds, std::string phaseId,
+    void AddBossPhasePattern(std::initializer_list<int> subIds,
+                             StageScriptUtil::ConfigId::BossPhaseId phaseId,
                              TimedRunFn run, BossPhaseEnemySubPattern::StartFn onStart = nullptr,
                              int runStartFrame = 0) {
         RegisterBossPhase(phaseId);
         m_Patterns.push_back(std::make_unique<BossPhaseEnemySubPattern>(
-            subIds, std::move(phaseId), std::move(run), std::move(onStart), runStartFrame));
+            subIds, phaseId, std::move(run), std::move(onStart), runStartFrame));
     }
 
-    void AddBossPhasePattern(int subId, std::string phaseId, TimedRunFn run,
+    void AddBossPhasePattern(int subId, StageScriptUtil::ConfigId::BossPhaseId phaseId,
+                             TimedRunFn run,
                              BossPhaseEnemySubPattern::StartFn onStart       = nullptr,
                              int                               runStartFrame = 0) {
-        AddBossPhasePattern({subId}, std::move(phaseId), std::move(run), std::move(onStart),
-                            runStartFrame);
+        AddBossPhasePattern({subId}, phaseId, std::move(run), std::move(onStart), runStartFrame);
     }
 
-    void RegisterBossPhase(std::string phaseId) {
-        if (std::find(m_BossPhaseIds.begin(), m_BossPhaseIds.end(), phaseId) !=
-            m_BossPhaseIds.end()) {
+    void RegisterBossPhase(StageScriptUtil::ConfigId::BossPhaseId phaseId) {
+        const auto hasPhase = std::find_if(
+            m_BossPhaseIds.begin(), m_BossPhaseIds.end(), [phaseId](const auto& registered) {
+                return registered.value == phaseId.value;
+            });
+        if (hasPhase != m_BossPhaseIds.end()) {
             return;
         }
-        m_BossPhaseIds.push_back(std::move(phaseId));
+        m_BossPhaseIds.push_back(phaseId);
     }
 
-    void RegisterBossPhases(std::initializer_list<std::string> phaseIds) {
+    void RegisterBossPhases(
+        std::initializer_list<StageScriptUtil::ConfigId::BossPhaseId> phaseIds) {
         for (const auto& phaseId : phaseIds) {
             RegisterBossPhase(phaseId);
         }
@@ -195,15 +201,16 @@ class PatternStageScript : public IStageScript {
         throw std::runtime_error("unhandled enemy subId: " + std::to_string(subId));
     }
 
-    void ValidateBossPhaseSub(const std::string& phaseId, const char* field, int subId) const {
+    void ValidateBossPhaseSub(StageScriptUtil::ConfigId::BossPhaseId phaseId, const char* field,
+                              int subId) const {
         if (subId < 0 || HasSub(subId)) return;
 
-        throw std::runtime_error("boss phase '" + phaseId + "' " + field +
+        throw std::runtime_error("boss phase '" + std::string(phaseId.value) + "' " + field +
                                  " uses unhandled enemy subId: " + std::to_string(subId));
     }
 
     std::vector<std::unique_ptr<IEnemySubPattern>> m_Patterns;
-    std::vector<std::string>                       m_BossPhaseIds;
+    std::vector<StageScriptUtil::ConfigId::BossPhaseId> m_BossPhaseIds;
 };
 
 #endif  // SCENE_PATTERN_STAGE_SCRIPT_HPP

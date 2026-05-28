@@ -20,11 +20,13 @@ void TransitionToRandomSub(Enemy& enemy, const EnemySubCtx& ctx, int subA, int s
     ctx.TransitionToSub(enemy, roll == 0 ? subA : (roll == 1 ? subB : subC));
 }
 
-void StartRumiaPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+void StartRumiaPhase(Enemy& enemy, const EnemySubCtx& ctx,
+                     StageUtil::ConfigId::BossPhaseId phaseId) {
     StageUtil::StartBossPhase(enemy, ctx, phaseId);
 }
 
-void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx,
+                     StageUtil::ConfigId::BossPhaseId phaseId) {
     StartRumiaPhase(enemy, ctx, phaseId);
     ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
 }

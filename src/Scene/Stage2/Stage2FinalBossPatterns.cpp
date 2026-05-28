@@ -17,11 +17,13 @@ namespace ScriptUtil = EnemyScriptUtil;
 namespace StageUtil  = StageScriptUtil;
 using EnemyPatternUtil::AimAngle;
 using EnemyPatternUtil::SpawnRandomVarianceCircle;
-void StartCirnoPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+void StartCirnoPhase(Enemy& enemy, const EnemySubCtx& ctx,
+                     StageUtil::ConfigId::BossPhaseId phaseId) {
     StageUtil::StartBossPhase(enemy, ctx, phaseId);
 }
 
-void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx,
+                     StageUtil::ConfigId::BossPhaseId phaseId) {
     StartCirnoPhase(enemy, ctx, phaseId);
     ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
 }

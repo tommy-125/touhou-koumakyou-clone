@@ -127,12 +127,14 @@ void SpawnStage6StarLasers(EnemySubCtx& ctx, glm::vec2 center, int attackType) {
     }
 }
 
-void StartRemiliaPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+void StartRemiliaPhase(Enemy& enemy, const EnemySubCtx& ctx,
+                       StageUtil::ConfigId::BossPhaseId phaseId) {
     StageUtil::StartBossPhase(enemy, ctx, phaseId);
 }
 
-bool BeginRemiliaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t, const char* phaseId,
-                         glm::vec2 target, int warmup = 120) {
+bool BeginRemiliaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t,
+                         StageUtil::ConfigId::BossPhaseId phaseId, glm::vec2 target,
+                         int warmup = 120) {
     if (t == 0) {
         StartRemiliaPhase(enemy, ctx, phaseId);
         enemy.m_CanTakeDamage = false;

@@ -71,7 +71,7 @@ void SpawnAimedRiceFan(Enemy& enemy, EnemySubCtx& ctx, int t, int count, float s
 }
 
 void RunStage4SmallFairy(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    const char* profile = StageUtil::ConfigId::Movement::Stage4SmallDown;
+    StageUtil::ConfigId::MovementId profile = StageUtil::ConfigId::Movement::Stage4SmallDown;
     switch (enemy.m_SubId) {
         case 2:
         case 4:

@@ -20,12 +20,13 @@ void SetSakuyaBossPoses(Enemy& enemy) {
     ScriptUtil::SetBossPoses(enemy, 128, 131, 132, 129, 130);
 }
 
-void StartSakuyaPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId) {
+void StartSakuyaPhase(Enemy& enemy, const EnemySubCtx& ctx,
+                      StageUtil::ConfigId::BossPhaseId phaseId) {
     StageUtil::StartBossPhase(enemy, ctx, phaseId);
 }
 
-bool BeginSakuyaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t, const char* phaseId,
-                        glm::vec2 target, int warmup) {
+bool BeginSakuyaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t,
+                        StageUtil::ConfigId::BossPhaseId phaseId, glm::vec2 target, int warmup) {
     if (t == 0) {
         StartSakuyaPhase(enemy, ctx, phaseId);
         enemy.m_CanTakeDamage = false;
