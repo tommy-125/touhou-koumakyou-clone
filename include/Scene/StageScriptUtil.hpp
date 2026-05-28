@@ -141,6 +141,7 @@ struct RewardConfig {
 RewardConfig LoadRewardConfig(ConfigId::RewardId id);
 void         ApplyReward(Enemy& enemy, EnemySubCtx& ctx, const RewardConfig& config);
 void         ApplyReward(Enemy& enemy, EnemySubCtx& ctx, ConfigId::RewardId id);
+void         ValidateAllConfigs();
 
 inline void DropPowerAndDie(Enemy& enemy, EnemySubCtx& ctx, int count) {
     EnemyScriptUtil::DropPowerItems(enemy, ctx, count);

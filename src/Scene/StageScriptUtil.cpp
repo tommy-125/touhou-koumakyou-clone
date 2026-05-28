@@ -19,7 +19,9 @@ using JsonConfig::ReadOptional;
 
 int AnmBaseFromName(const std::string& name) {
     if (name == "STG1ENM") return Anm::STG1ENM.offset;
+    if (name == "STG1ENM2") return Anm::STG1ENM2.offset;
     if (name == "STG2ENM") return Anm::STG2ENM.offset;
+    if (name == "STG2ENM2") return Anm::STG2ENM2.offset;
     if (name == "STG3ENM") return Anm::STG3ENM.offset;
     if (name == "STG4ENM") return Anm::STG4ENM.offset;
     if (name == "STG5ENM") return Anm::STG5ENM.offset;
@@ -235,5 +237,13 @@ void ApplyReward(Enemy& enemy, EnemySubCtx& ctx, const RewardConfig& config) {
 
 void ApplyReward(Enemy& enemy, EnemySubCtx& ctx, ConfigId::RewardId id) {
     ApplyReward(enemy, ctx, LoadRewardConfig(id));
+}
+
+void ValidateAllConfigs() {
+    (void)EnemyInitConfigs();
+    (void)BossEntryConfigs();
+    (void)BossPhaseConfigs();
+    (void)RewardConfigs();
+    (void)MovementProfiles();
 }
 }  // namespace StageScriptUtil

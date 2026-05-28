@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "Scene/StageScriptUtil.hpp"
 #include "Scene/Title.hpp"
 #include "Util/Image.hpp"
 
@@ -14,6 +15,11 @@ Loading::Loading() {
 }
 
 void Loading::Update() {
+    if (!m_ValidatedConfigs) {
+        StageScriptUtil::ValidateAllConfigs();
+        m_ValidatedConfigs = true;
+    }
+
     m_Renderer.Update();
 
     // TODO: Wait for actual resource loading to complete before setting m_Done = true

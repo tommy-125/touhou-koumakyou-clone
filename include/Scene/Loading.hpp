@@ -13,6 +13,7 @@ class Loading : public Scene {
 
    private:
     std::shared_ptr<Util::GameObject> m_LoadingObj;
+    bool                              m_ValidatedConfigs = false;
 };
 
 #endif
