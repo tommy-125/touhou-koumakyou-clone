@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_STAGE5_STAGE5_PATTERNS_HPP
+#define SCENE_STAGE5_STAGE5_PATTERNS_HPP
 
 #include "Enemy/EnemyBulletManager.hpp"
 
@@ -62,3 +63,5 @@ void RunClockCorpse(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunLunaClock(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunFinalSpell(Enemy& enemy, EnemySubCtx& ctx, int t);
 }  // namespace Stage5Detail
+
+#endif  // SCENE_STAGE5_STAGE5_PATTERNS_HPP

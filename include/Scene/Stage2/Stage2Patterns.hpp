@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_STAGE2_STAGE2_PATTERNS_HPP
+#define SCENE_STAGE2_STAGE2_PATTERNS_HPP
 
 #include <glm/vec2.hpp>
 
@@ -57,3 +58,5 @@ void         RunPerfectFreeze(Enemy& enemy, EnemySubCtx& ctx, int t);
 void         RunDiamondBlizzard(Enemy& enemy, EnemySubCtx& ctx, int t);
 void         RunCirnoDeath(Enemy& enemy, EnemySubCtx& ctx, int t);
 }  // namespace Stage2Detail
+
+#endif  // SCENE_STAGE2_STAGE2_PATTERNS_HPP

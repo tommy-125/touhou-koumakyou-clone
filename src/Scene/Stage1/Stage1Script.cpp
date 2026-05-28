@@ -3,6 +3,7 @@
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
 #include "Scene/Stage1/Stage1Patterns.hpp"
+#include "Scene/StageScriptUtil.hpp"
 
 using namespace Stage1Detail;
 void Stage1Script::Preload(Anm::Manager& anm) {
@@ -11,6 +12,14 @@ void Stage1Script::Preload(Anm::Manager& anm) {
 }
 
 Stage1Script::Stage1Script() {
+    RegisterBossPhases({
+        StageScriptUtil::ConfigId::BossPhase::Stage1RumiaMidboss,
+        StageScriptUtil::ConfigId::BossPhase::Stage1RumiaFirstNonspell,
+        StageScriptUtil::ConfigId::BossPhase::Stage1NightBird,
+        StageScriptUtil::ConfigId::BossPhase::Stage1RumiaSecondNonspell,
+        StageScriptUtil::ConfigId::BossPhase::Stage1Demarcation,
+    });
+
     AddTimedPattern(0, InitStage1SmallFairy,
                     [](Enemy& enemy, EnemySubCtx&, int t) { RunStage1SmallFairyA(enemy, t); });
     AddTimedPattern(1, InitStage1SmallFairy,

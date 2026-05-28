@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_STAGE6_STAGE6_PATTERNS_HPP
+#define SCENE_STAGE6_STAGE6_PATTERNS_HPP
 
 class Enemy;
 struct EnemySubCtx;
@@ -62,3 +63,5 @@ void RunVlad(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunScarletShoot(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunRedMagic(Enemy& enemy, EnemySubCtx& ctx, int t);
 }  // namespace Stage6Detail
+
+#endif  // SCENE_STAGE6_STAGE6_PATTERNS_HPP

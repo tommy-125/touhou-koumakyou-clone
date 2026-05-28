@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_STAGE3_STAGE3_PATTERN_HELPER_HPP
+#define SCENE_STAGE3_STAGE3_PATTERN_HELPER_HPP
 
 #include <glm/glm.hpp>
 
@@ -21,3 +22,5 @@ void SpawnRandomDownAccel(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type, EBu
                           int count, float maxSpeed, float minSpeed,
                           bool rotateWithAngle = true);
 }  // namespace Stage3Detail
+
+#endif  // SCENE_STAGE3_STAGE3_PATTERN_HELPER_HPP

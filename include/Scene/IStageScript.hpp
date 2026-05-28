@@ -11,6 +11,8 @@ class IStageScript {
     virtual void Preload(Anm::Manager& anm)          = 0;
     virtual void InitSub(Enemy& e, EnemySubCtx& ctx) = 0;
     virtual void RunSub(Enemy& e, EnemySubCtx& ctx)  = 0;
+    virtual bool HasSub(int subId) const             = 0;
+    virtual void Validate() const {}
 };
 
 #endif  // ISTAGE_SCRIPT_HPP

@@ -1,6 +1,8 @@
 #include "Enemy/EnemyManager.hpp"
 
 #include <cstdlib>
+#include <stdexcept>
+#include <string>
 #include <utility>
 
 #include "GameManager.hpp"
@@ -43,7 +45,11 @@ void EnemyManager::TurnAllBulletsIntoPointItems() {
 
 void EnemyManager::SetScript(std::unique_ptr<IStageScript> script) {
     m_Script = std::move(script);
-    if (m_Script) m_Script->Preload(m_Anm);
+    if (m_Script) {
+        m_Script->Preload(m_Anm);
+        m_Script->Validate();
+        ValidateTimelineSubIds();
+    }
 }
 
 EnemySubCtx EnemyManager::MakeCtx() {
@@ -226,6 +232,19 @@ void EnemyManager::SetTimeline(std::vector<TimelineEntry> entries) {
     m_Timeline    = std::move(entries);
     m_TimelineIdx = 0;
     m_TimelineFrame = 0;
+    ValidateTimelineSubIds();
+}
+
+void EnemyManager::ValidateTimelineSubIds() const {
+    if (!m_Script) return;
+
+    for (const auto& entry : m_Timeline) {
+        if (m_Script->HasSub(entry.subId)) continue;
+
+        throw std::runtime_error("timeline frame " + std::to_string(entry.frame) +
+                                 " uses unhandled enemy subId: " +
+                                 std::to_string(entry.subId));
+    }
 }
 
 void EnemyManager::RunTimeline() {

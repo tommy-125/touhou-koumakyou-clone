@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_STAGE4_STAGE4_PATTERN_HELPER_HPP
+#define SCENE_STAGE4_STAGE4_PATTERN_HELPER_HPP
 
 #include <glm/glm.hpp>
 
@@ -13,3 +14,5 @@ void      SetPatchouliBossPoses(Enemy& enemy);
 void      SpawnAtEnemyFieldPos(const Enemy& enemy, EnemySubCtx& ctx, int subId, int life, int score,
                                int itemDrop);
 }  // namespace Stage4Detail
+
+#endif  // SCENE_STAGE4_STAGE4_PATTERN_HELPER_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_STAGE6_STAGE6_PATTERN_HELPER_HPP
+#define SCENE_STAGE6_STAGE6_PATTERN_HELPER_HPP
 
 #include <glm/glm.hpp>
 
@@ -16,3 +17,5 @@ glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = {0.0f, -12.0f});
 void      SetSakuyaPoses(Enemy& enemy);
 void      SetRemiliaPoses(Enemy& enemy);
 }  // namespace Stage6Detail
+
+#endif  // SCENE_STAGE6_STAGE6_PATTERN_HELPER_HPP

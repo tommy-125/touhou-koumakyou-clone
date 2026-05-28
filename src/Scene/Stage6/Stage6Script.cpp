@@ -12,6 +12,20 @@ using namespace Stage6Detail;
 }  // namespace
 
 Stage6Script::Stage6Script() {
+    RegisterBossPhases({
+        StageUtil::ConfigId::BossPhase::Stage6SakuyaMain,
+        StageUtil::ConfigId::BossPhase::Stage6EternalMeek,
+        StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell1,
+        StageUtil::ConfigId::BossPhase::Stage6StarOfDavid,
+        StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell2,
+        StageUtil::ConfigId::BossPhase::Stage6ScarletNetherworld,
+        StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell3,
+        StageUtil::ConfigId::BossPhase::Stage6VladTepes,
+        StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell4,
+        StageUtil::ConfigId::BossPhase::Stage6ScarletShoot,
+        StageUtil::ConfigId::BossPhase::Stage6RedMagic,
+    });
+
     AddTimedRunOnlyPattern(SUB_STAGE_EFFECTS, [](Enemy& enemy, EnemySubCtx&, int t) {
         if (t >= 2160) enemy.m_Alive = false;
     });

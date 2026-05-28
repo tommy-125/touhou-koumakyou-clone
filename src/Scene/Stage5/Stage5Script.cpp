@@ -14,6 +14,17 @@ using namespace Stage5Detail;
 }  // namespace
 
 Stage5Script::Stage5Script() {
+    RegisterBossPhases({
+        StageUtil::ConfigId::BossPhase::Stage5MidbossMain,
+        StageUtil::ConfigId::BossPhase::Stage5Misdirection,
+        StageUtil::ConfigId::BossPhase::Stage5SakuyaFirstNonspell,
+        StageUtil::ConfigId::BossPhase::Stage5ClockCorpse,
+        StageUtil::ConfigId::BossPhase::Stage5SakuyaSecondNonspell,
+        StageUtil::ConfigId::BossPhase::Stage5LunaClock,
+        StageUtil::ConfigId::BossPhase::Stage5SakuyaFinalNonspell,
+        StageUtil::ConfigId::BossPhase::Stage5ManipulatingDoll,
+    });
+
     AddTimedPattern(
         {0, 2, 3, 4, 5}, InitStage5TopMaid,
         [](Enemy& enemy, EnemySubCtx& ctx, int t) {

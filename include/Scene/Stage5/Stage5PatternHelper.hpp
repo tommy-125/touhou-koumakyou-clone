@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_STAGE5_STAGE5_PATTERN_HELPER_HPP
+#define SCENE_STAGE5_STAGE5_PATTERN_HELPER_HPP
 
 #include <glm/glm.hpp>
 
@@ -22,3 +23,5 @@ void      StartSakuyaPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* pha
 bool      BeginSakuyaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t, const char* phaseId,
                              glm::vec2 target, int warmup = 120);
 }  // namespace Stage5Detail
+
+#endif  // SCENE_STAGE5_STAGE5_PATTERN_HELPER_HPP

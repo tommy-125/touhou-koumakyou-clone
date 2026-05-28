@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_STAGE1_STAGE1_PATTERNS_HPP
+#define SCENE_STAGE1_STAGE1_PATTERNS_HPP
 
 class Enemy;
 struct EnemySubCtx;
@@ -45,3 +46,5 @@ void RunRumiaSecondAttackD(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunDemarcation(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunRumiaBossDeath(Enemy& enemy, EnemySubCtx& ctx, int t);
 }  // namespace Stage1Detail
+
+#endif  // SCENE_STAGE1_STAGE1_PATTERNS_HPP

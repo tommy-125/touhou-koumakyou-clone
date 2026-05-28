@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_STAGE_SCRIPT_UTIL_HPP
+#define SCENE_STAGE_SCRIPT_UTIL_HPP
 
 #include <glm/glm.hpp>
 #include <optional>
@@ -163,3 +164,5 @@ inline void FinishBossDeath(Enemy& enemy, EnemySubCtx& ctx) {
     enemy.m_Alive = false;
 }
 }  // namespace StageScriptUtil
+
+#endif  // SCENE_STAGE_SCRIPT_UTIL_HPP

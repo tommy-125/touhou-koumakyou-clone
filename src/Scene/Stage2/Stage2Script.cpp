@@ -11,6 +11,7 @@
 #include "Enemy/EnemyScriptUtil.hpp"
 #include "Item/ItemManager.hpp"
 #include "Scene/Stage2/Stage2Patterns.hpp"
+#include "Scene/StageScriptUtil.hpp"
 #include "Util/Math.hpp"
 
 namespace {
@@ -25,6 +26,15 @@ void Stage2Script::Preload(Anm::Manager& anm) {
 }
 
 Stage2Script::Stage2Script() {
+    RegisterBossPhases({
+        StageScriptUtil::ConfigId::BossPhase::Stage2Daiyousei,
+        StageScriptUtil::ConfigId::BossPhase::Stage2CirnoFirstNonspell,
+        StageScriptUtil::ConfigId::BossPhase::Stage2IcicleFall,
+        StageScriptUtil::ConfigId::BossPhase::Stage2CirnoSecondNonspell,
+        StageScriptUtil::ConfigId::BossPhase::Stage2PerfectFreeze,
+        StageScriptUtil::ConfigId::BossPhase::Stage2DiamondBlizzard,
+    });
+
     AddTimedPattern({0, 1, 2, 3, 4}, InitStage2AngledFairy, RunStage2AngledFairy);
     AddTimedRunOnlyPattern(5, RunStage2DeathBurst);
     AddTimedPattern(6, InitStage2AimedFairy,

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENE_STAGE_CONFIG_IDS_HPP
+#define SCENE_STAGE_CONFIG_IDS_HPP
 
 namespace StageScriptUtil::ConfigId {
 namespace EnemyInit {
@@ -136,3 +137,5 @@ inline constexpr char Life[]                 = "life";
 inline constexpr char LifeToExit[]           = "life_to_exit";
 }  // namespace Reward
 }  // namespace StageScriptUtil::ConfigId
+
+#endif  // SCENE_STAGE_CONFIG_IDS_HPP

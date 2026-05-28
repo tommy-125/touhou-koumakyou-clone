@@ -72,6 +72,7 @@ class EnemyManager {
     void        UpdateEffects();
     EnemySubCtx MakeCtx();
     void        SetTimeStopped(bool stopped);
+    void        ValidateTimelineSubIds() const;
 
     std::array<Enemy, MAX_ENEMIES> m_Enemies{};
     std::array<EffectInstance, MAX_EFFECTS> m_Effects{};

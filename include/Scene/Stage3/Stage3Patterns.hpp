@@ -1,4 +1,5 @@
-﻿#pragma once
+#ifndef SCENE_STAGE3_STAGE3_PATTERNS_HPP
+#define SCENE_STAGE3_STAGE3_PATTERNS_HPP
 
 class Enemy;
 struct EnemySubCtx;
@@ -47,3 +48,5 @@ void RunMeilingFinalNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunColorfulRainSpell(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunGorgeousTyphoonSpell(Enemy& enemy, EnemySubCtx& ctx, int t);
 }  // namespace Stage3Detail
+
+#endif  // SCENE_STAGE3_STAGE3_PATTERNS_HPP

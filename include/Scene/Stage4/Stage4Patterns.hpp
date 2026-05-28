@@ -1,4 +1,5 @@
-﻿#pragma once
+#ifndef SCENE_STAGE4_STAGE4_PATTERNS_HPP
+#define SCENE_STAGE4_STAGE4_PATTERNS_HPP
 
 class Enemy;
 struct EnemySubCtx;
@@ -45,3 +46,5 @@ void RunFinalNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunMercuryPoison(Enemy& enemy, EnemySubCtx& ctx, int t);
 void RunWaterElf(Enemy& enemy, EnemySubCtx& ctx, int t);
 }  // namespace Stage4Detail
+
+#endif  // SCENE_STAGE4_STAGE4_PATTERNS_HPP

@@ -1,9 +1,11 @@
-#pragma once
+#ifndef SCENE_PATTERN_STAGE_SCRIPT_HPP
+#define SCENE_PATTERN_STAGE_SCRIPT_HPP
 
 #include <algorithm>
 #include <functional>
 #include <initializer_list>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -86,12 +88,27 @@ class PatternStageScript : public IStageScript {
     void InitSub(Enemy& enemy, EnemySubCtx& ctx) override {
         if (IEnemySubPattern* pattern = FindPattern(enemy.m_SubId)) {
             pattern->Init(enemy, ctx);
+            return;
         }
+        ThrowMissingPattern(enemy.m_SubId);
     }
 
     void RunSub(Enemy& enemy, EnemySubCtx& ctx) override {
         if (IEnemySubPattern* pattern = FindPattern(enemy.m_SubId)) {
             pattern->Run(enemy, ctx);
+            return;
+        }
+        ThrowMissingPattern(enemy.m_SubId);
+    }
+
+    bool HasSub(int subId) const override { return FindPattern(subId) != nullptr; }
+
+    void Validate() const override {
+        for (const auto& phaseId : m_BossPhaseIds) {
+            const auto config = StageScriptUtil::LoadBossPhaseConfig(phaseId);
+            ValidateBossPhaseSub(phaseId, "timerSub", config.timerSub);
+            ValidateBossPhaseSub(phaseId, "deathSub", config.deathSub);
+            ValidateBossPhaseSub(phaseId, "lifeSub", config.lifeSub);
         }
     }
 
@@ -134,6 +151,7 @@ class PatternStageScript : public IStageScript {
     void AddBossPhasePattern(std::initializer_list<int> subIds, std::string phaseId,
                              TimedRunFn run, BossPhaseEnemySubPattern::StartFn onStart = nullptr,
                              int runStartFrame = 0) {
+        RegisterBossPhase(phaseId);
         m_Patterns.push_back(std::make_unique<BossPhaseEnemySubPattern>(
             subIds, std::move(phaseId), std::move(run), std::move(onStart), runStartFrame));
     }
@@ -143,6 +161,20 @@ class PatternStageScript : public IStageScript {
                              int                               runStartFrame = 0) {
         AddBossPhasePattern({subId}, std::move(phaseId), std::move(run), std::move(onStart),
                             runStartFrame);
+    }
+
+    void RegisterBossPhase(std::string phaseId) {
+        if (std::find(m_BossPhaseIds.begin(), m_BossPhaseIds.end(), phaseId) !=
+            m_BossPhaseIds.end()) {
+            return;
+        }
+        m_BossPhaseIds.push_back(std::move(phaseId));
+    }
+
+    void RegisterBossPhases(std::initializer_list<std::string> phaseIds) {
+        for (const auto& phaseId : phaseIds) {
+            RegisterBossPhase(phaseId);
+        }
     }
 
    private:
@@ -159,5 +191,19 @@ class PatternStageScript : public IStageScript {
         return nullptr;
     }
 
+    [[noreturn]] static void ThrowMissingPattern(int subId) {
+        throw std::runtime_error("unhandled enemy subId: " + std::to_string(subId));
+    }
+
+    void ValidateBossPhaseSub(const std::string& phaseId, const char* field, int subId) const {
+        if (subId < 0 || HasSub(subId)) return;
+
+        throw std::runtime_error("boss phase '" + phaseId + "' " + field +
+                                 " uses unhandled enemy subId: " + std::to_string(subId));
+    }
+
     std::vector<std::unique_ptr<IEnemySubPattern>> m_Patterns;
+    std::vector<std::string>                       m_BossPhaseIds;
 };
+
+#endif  // SCENE_PATTERN_STAGE_SCRIPT_HPP

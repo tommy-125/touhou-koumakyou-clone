@@ -1,7 +1,7 @@
 #include "Scene/TimelineLoader.hpp"
 
 #include <fstream>
-#include <iostream>
+#include <stdexcept>
 
 #include <nlohmann/json.hpp>
 
@@ -26,8 +26,7 @@ TimelineEntry ParseTimelineEntry(const nlohmann::json& item) {
 std::vector<TimelineEntry> LoadTimelineFromJson(const std::string& path) {
     std::ifstream file(path);
     if (!file) {
-        std::cerr << "Failed to open timeline JSON: " << path << '\n';
-        return {};
+        throw std::runtime_error("failed to open timeline JSON: " + path);
     }
 
     try {
@@ -36,8 +35,7 @@ std::vector<TimelineEntry> LoadTimelineFromJson(const std::string& path) {
 
         const auto& timelineJson = root.at("timeline");
         if (!timelineJson.is_array()) {
-            std::cerr << "Timeline JSON field is not an array: " << path << '\n';
-            return {};
+            throw std::runtime_error("timeline field is not an array");
         }
 
         std::vector<TimelineEntry> entries;
@@ -47,7 +45,6 @@ std::vector<TimelineEntry> LoadTimelineFromJson(const std::string& path) {
         }
         return entries;
     } catch (const std::exception& e) {
-        std::cerr << "Failed to parse timeline JSON " << path << ": " << e.what() << '\n';
-        return {};
+        throw std::runtime_error("failed to parse timeline JSON " + path + ": " + e.what());
     }
 }
