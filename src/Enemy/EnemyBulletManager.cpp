@@ -427,6 +427,29 @@ void EnemyBulletManager::TurnAllBulletsIntoPointItems(ItemManager& items) {
     }
 }
 
+void EnemyBulletManager::TurnBulletsIntoPointItemsInRadiusRange(ItemManager& items,
+                                                                glm::vec2 center,
+                                                                float innerRadius,
+                                                                float outerRadius) {
+    const float inner2 = innerRadius * innerRadius;
+    const float outer2 = outerRadius * outerRadius;
+
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive) continue;
+
+        const glm::vec2 delta = b.m_Pos - center;
+        const float     dist2 = delta.x * delta.x + delta.y * delta.y;
+        if (dist2 < inner2 || dist2 > outer2) continue;
+
+        items.SpawnItem(b.m_Pos, ItemType::PointBullet, 1);
+        b.m_Alive = false;
+        if (b.m_Vm.obj) {
+            m_Renderer.RemoveChild(b.m_Vm.obj);
+            b.m_Vm.obj = nullptr;
+        }
+    }
+}
+
 void EnemyBulletManager::Update(glm::vec2 playerPos) {
     if (m_TimeStopped) {
         for (auto& b : m_Bullets) {

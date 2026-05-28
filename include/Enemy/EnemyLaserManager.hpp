@@ -22,6 +22,8 @@ class EnemyLaserManager {
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
     void TurnAllLasersIntoPointItems(ItemManager& items);
+    void TurnLasersIntoPointItemsInRadiusRange(ItemManager& items, glm::vec2 center,
+                                               float innerRadius, float outerRadius);
     void SetTimeStopped(bool stopped) { m_TimeStopped = stopped; }
 
     static constexpr int MAX_LASERS = 128;

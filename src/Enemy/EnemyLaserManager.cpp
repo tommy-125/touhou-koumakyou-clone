@@ -41,6 +41,44 @@ static bool LaserSegmentOverlapsGameBounds(glm::vec2 pos, float angle, float sta
            minY <= Util::GAME_BOUNDS_BOTTOM + margin;
 }
 
+static float DistanceSquaredToSegment(glm::vec2 point, glm::vec2 a, glm::vec2 b) {
+    const glm::vec2 ab  = b - a;
+    const glm::vec2 ap  = point - a;
+    const float     len = ab.x * ab.x + ab.y * ab.y;
+    if (len <= 0.0f) {
+        const glm::vec2 delta = point - a;
+        return delta.x * delta.x + delta.y * delta.y;
+    }
+
+    const float t = std::clamp((ap.x * ab.x + ap.y * ab.y) / len, 0.0f, 1.0f);
+    const glm::vec2 closest = a + ab * t;
+    const glm::vec2 delta   = point - closest;
+    return delta.x * delta.x + delta.y * delta.y;
+}
+
+static bool LaserSegmentIntersectsRadiusRange(const EnemyLaser& l, glm::vec2 center,
+                                              float innerRadius, float outerRadius) {
+    const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_StartOffset + l.m_Offset;
+    const float visibleLength =
+        std::max(0.0f, std::min(l.m_Length, std::max(0.0f, endOffset)) - l.m_StartOffset);
+    const float startOffset =
+        l.m_Speed == 0.0f ? l.m_StartOffset : std::max(l.m_StartOffset, endOffset - l.m_Length);
+    const glm::vec2 dir = {std::cos(l.m_Angle), std::sin(l.m_Angle)};
+    const glm::vec2 a   = l.m_Pos + dir * startOffset;
+    const glm::vec2 b   = l.m_Pos + dir * (startOffset + visibleLength);
+
+    const float outer = outerRadius + l.m_CurWidth * 0.5f;
+    if (DistanceSquaredToSegment(center, a, b) > outer * outer) return false;
+
+    const float inner = std::max(0.0f, innerRadius - l.m_CurWidth * 0.5f);
+    if (inner <= 0.0f) return true;
+
+    const glm::vec2 da = a - center;
+    const glm::vec2 db = b - center;
+    return da.x * da.x + da.y * da.y >= inner * inner ||
+           db.x * db.x + db.y * db.y >= inner * inner;
+}
+
 EnemyLaser* EnemyLaserManager::AllocLaser() {
     for (auto& l : m_Lasers) {
         if (!l.m_Alive) return &l;
@@ -239,6 +277,37 @@ void EnemyLaserManager::ClearAll() {
 void EnemyLaserManager::TurnAllLasersIntoPointItems(ItemManager& items) {
     for (auto& l : m_Lasers) {
         if (!l.m_Alive) continue;
+
+        const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_StartOffset + l.m_Offset;
+        const float visibleLength =
+            std::max(0.0f, std::min(l.m_Length, std::max(0.0f, endOffset)) - l.m_StartOffset);
+        const float startOffset =
+            l.m_Speed == 0.0f ? l.m_StartOffset : std::max(l.m_StartOffset, endOffset - l.m_Length);
+        const glm::vec2 origin = {
+            l.m_Pos.x + std::cos(l.m_Angle) * startOffset,
+            l.m_Pos.y + std::sin(l.m_Angle) * startOffset,
+        };
+        items.SpawnItem(origin, ItemType::PointBullet, 1);
+        for (float offset = 0.0f; offset <= visibleLength; offset += 32.0f) {
+            glm::vec2 itemPos = {
+                origin.x + std::cos(l.m_Angle) * offset,
+                origin.y + std::sin(l.m_Angle) * offset,
+            };
+            items.SpawnItem(itemPos, ItemType::PointBullet, 1);
+        }
+
+        l.m_Alive = false;
+        RemoveLaserObjects(l, m_Renderer);
+    }
+}
+
+void EnemyLaserManager::TurnLasersIntoPointItemsInRadiusRange(ItemManager& items,
+                                                              glm::vec2 center,
+                                                              float innerRadius,
+                                                              float outerRadius) {
+    for (auto& l : m_Lasers) {
+        if (!l.m_Alive) continue;
+        if (!LaserSegmentIntersectsRadiusRange(l, center, innerRadius, outerRadius)) continue;
 
         const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_StartOffset + l.m_Offset;
         const float visibleLength =

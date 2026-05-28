@@ -141,6 +141,8 @@ class EnemyBulletManager {
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
     void TurnAllBulletsIntoPointItems(ItemManager& items);
+    void TurnBulletsIntoPointItemsInRadiusRange(ItemManager& items, glm::vec2 center,
+                                                float innerRadius, float outerRadius);
     void SetTimeStopped(bool stopped) { m_TimeStopped = stopped; }
     void RedirectTimeStopBullets(glm::vec2 playerPos, int maxBullets);
     void FreezeAllBulletsAsWhite();

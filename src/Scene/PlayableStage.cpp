@@ -1,5 +1,6 @@
 #include "Scene/PlayableStage.hpp"
 
+#include <algorithm>
 #include <memory>
 #include <utility>
 
@@ -8,14 +9,18 @@
 #include "Util/Input.hpp"
 
 namespace {
-static constexpr float INTRO_CENTER_X    = -96.0f;
-static constexpr float INTRO_STAGE_NO_SCALE   = 1.0f;
-static constexpr float INTRO_STAGE_NAME_SCALE = 0.9f;
-static constexpr float INTRO_SONG_SCALE       = 0.62f;
-static constexpr int   MAX_DEBUG_LIVES        = 8;
-static const glm::vec2 INTRO_SONG_POS         = {64.0f, -204.0f};
-static const Util::Color INTRO_STAGE_YELLOW = Util::Color::FromRGB(255, 255, 64);
-static const Util::Color INTRO_LIGHT_CYAN   = Util::Color::FromRGB(224, 255, 255);
+static constexpr float   INTRO_CENTER_X         = -96.0f;
+static constexpr float   INTRO_STAGE_NO_SCALE   = 1.0f;
+static constexpr float   INTRO_STAGE_NAME_SCALE = 0.9f;
+static constexpr float   INTRO_SONG_SCALE       = 0.62f;
+static constexpr int     MAX_DEBUG_LIVES        = 8;
+static constexpr int     MIN_BOMBS_AFTER_DEATH  = 3;
+static constexpr float   BOMB_CLEAR_WAVE_SPEED  = 28.0f;
+static constexpr float   BOMB_CLEAR_WAVE_WIDTH  = 72.0f;
+static constexpr float   BOMB_CLEAR_WAVE_RADIUS = 640.0f;
+static const glm::vec2   INTRO_SONG_POS         = {64.0f, -204.0f};
+static const Util::Color INTRO_STAGE_YELLOW     = Util::Color::FromRGB(255, 255, 64);
+static const Util::Color INTRO_LIGHT_CYAN       = Util::Color::FromRGB(224, 255, 255);
 
 static float IntroAlpha(int frame) {
     if (frame < 30) return static_cast<float>(frame) / 30.0f;
@@ -42,11 +47,9 @@ PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
     m_EnemyManager.SetScript(std::move(script));
 
     SetupIntroAsciiLine(m_IntroStageNoLine, m_Config.stageNo, {INTRO_CENTER_X, 42.0f},
-                        INTRO_STAGE_NO_SCALE, Util::AsciiTextAlign::Center,
-                        INTRO_STAGE_YELLOW);
+                        INTRO_STAGE_NO_SCALE, Util::AsciiTextAlign::Center, INTRO_STAGE_YELLOW);
     SetupIntroAsciiLine(m_IntroStageNameLine, m_Config.stageName, {INTRO_CENTER_X, 16.0f},
-                        INTRO_STAGE_NAME_SCALE, Util::AsciiTextAlign::Center,
-                        INTRO_LIGHT_CYAN);
+                        INTRO_STAGE_NAME_SCALE, Util::AsciiTextAlign::Center, INTRO_LIGHT_CYAN);
     SetupIntroAsciiLine(m_IntroSongLine, m_Config.songName, INTRO_SONG_POS, INTRO_SONG_SCALE,
                         Util::AsciiTextAlign::Right, INTRO_LIGHT_CYAN);
     if (m_Config.hasStageClear) m_ClearOverlay.Init();
@@ -140,6 +143,27 @@ void PlayableStage::HandleDebugShortcuts() {
     }
 }
 
+void PlayableStage::StartBombClearWave(glm::vec2 origin) {
+    m_BombClearWaveActive = true;
+    m_BombClearWaveOrigin = origin;
+    m_BombClearWaveTimer  = 0;
+}
+
+void PlayableStage::UpdateBombClearWave() {
+    if (!m_BombClearWaveActive) return;
+
+    const float outerRadius =
+        static_cast<float>(m_BombClearWaveTimer + 1) * BOMB_CLEAR_WAVE_SPEED;
+    const float innerRadius = std::max(0.0f, outerRadius - BOMB_CLEAR_WAVE_WIDTH);
+    m_EnemyManager.TurnBulletsIntoPointItemsInRadiusRange(m_BombClearWaveOrigin, innerRadius,
+                                                          outerRadius);
+
+    ++m_BombClearWaveTimer;
+    if (outerRadius >= BOMB_CLEAR_WAVE_RADIUS) {
+        m_BombClearWaveActive = false;
+    }
+}
+
 void PlayableStage::Update() {
     if (Util::Input::IsKeyDown(Util::Keycode::ESCAPE)) {
         m_StageMenu.Toggle();
@@ -179,11 +203,10 @@ void PlayableStage::Update() {
     m_EnemyManager.Update(m_Player.GetPos(), m_GameManager);
     m_Player.Update(m_GameManager);
     if (!m_GameManager.timeStopped) {
-        const bool usedBomb = m_Player.TryUseBomb(m_GameManager);
+        const bool usedBomb      = m_Player.TryUseBomb(m_GameManager);
         m_GameManager.bombActive = usedBomb || m_Player.IsBombActive();
-        if (m_GameManager.bombActive) {
-            m_EnemyManager.ClearAllBullets();
-        }
+        if (usedBomb) StartBombClearWave(m_Player.GetPos());
+        UpdateBombClearWave();
     }
 
     int scoreGained =
@@ -197,6 +220,9 @@ void PlayableStage::Update() {
     if (m_Player.IsVulnerable() &&
         m_EnemyManager.CheckPlayerHit(m_Player.GetPos(), {PLAYER_HITBOX_X, PLAYER_HITBOX_Y})) {
         m_Player.Die();
+        if (m_GameManager.bombsRemaining < MIN_BOMBS_AFTER_DEATH) {
+            m_GameManager.bombsRemaining = MIN_BOMBS_AFTER_DEATH;
+        }
         if (--m_GameManager.livesRemaining < 0) {
             m_GameManager.livesRemaining = 0;
             m_GameOver                   = true;

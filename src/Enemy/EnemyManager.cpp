@@ -43,6 +43,17 @@ void EnemyManager::TurnAllBulletsIntoPointItems() {
     m_LaserManager.TurnAllLasersIntoPointItems(*m_Items);
 }
 
+void EnemyManager::TurnBulletsIntoPointItemsInRadiusRange(glm::vec2 center, float innerRadius,
+                                                          float outerRadius) {
+    SetTimeStopped(false);
+    if (!m_Items) return;
+
+    m_BulletManager.TurnBulletsIntoPointItemsInRadiusRange(*m_Items, center, innerRadius,
+                                                           outerRadius);
+    m_LaserManager.TurnLasersIntoPointItemsInRadiusRange(*m_Items, center, innerRadius,
+                                                         outerRadius);
+}
+
 void EnemyManager::SetScript(std::unique_ptr<IStageScript> script) {
     m_Script = std::move(script);
     if (m_Script) {

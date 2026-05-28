@@ -15,6 +15,8 @@ static constexpr float ITEM_VEL_INIT_Y  = -2.2f;
 static constexpr float ITEM_GRAVITY     = 0.03f;
 static constexpr float ITEM_VEL_MAX_Y   = 3.0f;
 static constexpr float ITEM_AUTOGET_Y   = Util::FIELD_OFFSET_Y + 128.0f;
+static constexpr int   MAX_LIVES        = 8;
+static constexpr int   MAX_BOMBS        = 8;
 
 ItemManager::ItemManager() {
     m_Anm.LoadAnm(Anm::ETAMA3.folder, Anm::ETAMA3.txt, Anm::ETAMA3.offset);
@@ -117,8 +119,12 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                     break;
                 }
                 case ItemType::Bomb:
+                    gm.bombsRemaining = std::min(MAX_BOMBS, gm.bombsRemaining + 1);
+                    break;
                 case ItemType::FullPower:
+                    break;
                 case ItemType::Life:
+                    gm.livesRemaining = std::min(MAX_LIVES, gm.livesRemaining + 1);
                     break;
             }
             if (gm.score > gm.highScore) gm.highScore = gm.score;

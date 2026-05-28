@@ -43,6 +43,8 @@ class EnemyManager {
     bool         CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void         ClearAllBullets();
     void         TurnAllBulletsIntoPointItems();
+    void         TurnBulletsIntoPointItemsInRadiusRange(glm::vec2 center, float innerRadius,
+                                                        float outerRadius);
     BossHudState GetBossHudState() const;
     int          GetTimelineFrame() const { return m_TimelineFrame; }
     void         SkipToFrame(int frame);
