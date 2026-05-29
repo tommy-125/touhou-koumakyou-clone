@@ -126,25 +126,6 @@ void SpawnTimeStopKnifeField(Enemy& enemy, EnemySubCtx& ctx, int patternPosition
 }
 
 void RunSakuyaNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t, int phase) {
-    if (t == 0) {
-        if (phase == 0) {
-            StartSakuyaPhase(enemy, ctx,
-                             StageUtil::ConfigId::BossPhase::Stage5SakuyaFirstNonspell);
-            ctx.SetTimeStopped(false);
-        } else if (phase == 1) {
-            StartSakuyaPhase(enemy, ctx,
-                             StageUtil::ConfigId::BossPhase::Stage5SakuyaSecondNonspell);
-            ctx.SetTimeStopped(false);
-            StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
-        } else {
-            StartSakuyaPhase(enemy, ctx,
-                             StageUtil::ConfigId::BossPhase::Stage5SakuyaFinalNonspell);
-            ctx.SetTimeStopped(false);
-            StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
-        }
-        enemy.m_CanTakeDamage = true;
-    }
-
     const int  loopLen = phase == 2 ? 230 : (phase == 1 ? 260 : 300);
     const int  loopT   = (t - (phase == 0 ? 100 : 60) + loopLen) % loopLen;
     const auto pos     = ShootPos(enemy);
@@ -196,8 +177,7 @@ void RunSakuyaNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t, int phase) {
 }
 
 void RunClockCorpse(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginSakuyaSpellAt(enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage5ClockCorpse,
-                            {192.0f, 112.0f})) {
+    if (!BeginSakuyaSpellAt(enemy, ctx, t, {192.0f, 112.0f})) {
         return;
     }
 
@@ -221,8 +201,7 @@ void RunClockCorpse(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunLunaClock(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginSakuyaSpellAt(enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage5LunaClock,
-                            {192.0f, 112.0f})) {
+    if (!BeginSakuyaSpellAt(enemy, ctx, t, {192.0f, 112.0f})) {
         return;
     }
 
@@ -249,8 +228,7 @@ void RunLunaClock(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunFinalSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginSakuyaSpellAt(enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage5ManipulatingDoll,
-                            {192.0f, 144.0f})) {
+    if (!BeginSakuyaSpellAt(enemy, ctx, t, {192.0f, 144.0f})) {
         return;
     }
 

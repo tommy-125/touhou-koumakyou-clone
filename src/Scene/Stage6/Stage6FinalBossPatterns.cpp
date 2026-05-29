@@ -127,16 +127,9 @@ void SpawnStage6StarLasers(EnemySubCtx& ctx, glm::vec2 center, int attackType) {
     }
 }
 
-void StartRemiliaPhase(Enemy& enemy, const EnemySubCtx& ctx,
-                       StageUtil::ConfigId::BossPhaseId phaseId) {
-    StageUtil::StartBossPhase(enemy, ctx, phaseId);
-}
-
-bool BeginRemiliaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t,
-                         StageUtil::ConfigId::BossPhaseId phaseId, glm::vec2 target,
+bool BeginRemiliaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t, glm::vec2 target,
                          int warmup = 120) {
     if (t == 0) {
-        StartRemiliaPhase(enemy, ctx, phaseId);
         enemy.m_CanTakeDamage = false;
         ctx.StartLerpTo(enemy, target.x, target.y, warmup);
     }
@@ -145,10 +138,6 @@ bool BeginRemiliaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t,
 }
 
 void RunRemiliaNonSpell1(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartRemiliaPhase(enemy, ctx,
-                          StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell1);
-    }
     if (t < 100) return;
     const int loopT = (t - 100) % 720;
     if (loopT == 0) enemy.m_LockedShotAngle = RandAngle();
@@ -168,11 +157,6 @@ void RunRemiliaNonSpell1(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunRemiliaNonSpell2(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartRemiliaPhase(enemy, ctx,
-                          StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell2);
-        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
-    }
     if (t < 60) return;
     const int  loopT = (t - 60) % 1120;
     const auto pos   = ShootPos(enemy);
@@ -196,11 +180,6 @@ void RunRemiliaNonSpell2(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunRemiliaNonSpell3(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartRemiliaPhase(enemy, ctx,
-                          StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell3);
-        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
-    }
     if (t < 60) return;
     const int  loopT = (t - 60) % 478;
     const auto pos   = ShootPos(enemy);
@@ -223,12 +202,6 @@ void RunRemiliaNonSpell3(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunRemiliaNonSpell4(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartRemiliaPhase(enemy, ctx,
-                          StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell4);
-        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
-        SetRemiliaPoses(enemy);
-    }
     if (t < 60) return;
     const int  loopT = (t - 60) % 430;
     const auto pos   = ShootPos(enemy);
@@ -264,8 +237,7 @@ void RunRemiliaNonSpell4(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunStarOfDavid(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginRemiliaSpellAt(enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage6StarOfDavid,
-                             {192.0f, 112.0f})) {
+    if (!BeginRemiliaSpellAt(enemy, ctx, t, {192.0f, 112.0f})) {
         return;
     }
     const int loopT = (t - 120) % 184;
@@ -282,9 +254,7 @@ void RunStarOfDavid(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunScarletNetherworld(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginRemiliaSpellAt(enemy, ctx, t,
-                             StageUtil::ConfigId::BossPhase::Stage6ScarletNetherworld,
-                             {192.0f, 144.0f})) {
+    if (!BeginRemiliaSpellAt(enemy, ctx, t, {192.0f, 144.0f})) {
         return;
     }
     const int loopT = (t - 120) % 231;
@@ -308,8 +278,7 @@ void RunScarletNetherworld(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunVlad(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    const bool active = BeginRemiliaSpellAt(
-        enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage6VladTepes, {192.0f, 144.0f});
+    const bool active = BeginRemiliaSpellAt(enemy, ctx, t, {192.0f, 144.0f});
     if (t == 0 || t == 120) {
         enemy.m_ScriptState   = 0;
         enemy.m_ScriptTimer   = 0;
@@ -348,8 +317,7 @@ void RunVlad(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunScarletShoot(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (!BeginRemiliaSpellAt(enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage6ScarletShoot,
-                             {192.0f, 112.0f})) {
+    if (!BeginRemiliaSpellAt(enemy, ctx, t, {192.0f, 112.0f})) {
         return;
     }
     const int  loopT = (t - 120) % 544;
@@ -369,12 +337,6 @@ void RunScarletShoot(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunRedMagic(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartRemiliaPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage6RedMagic);
-        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
-        enemy.m_CanTakeDamage = false;
-        ctx.StartLerpTo(enemy, 192.0f, 128.0f, 120);
-    }
     if (t == 180) enemy.m_CanTakeDamage = true;
     if (t < 180) return;
     const int  loopT = (t - 180) % 1056;

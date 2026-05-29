@@ -20,17 +20,6 @@ void TransitionToRandomSub(Enemy& enemy, const EnemySubCtx& ctx, int subA, int s
     ctx.TransitionToSub(enemy, roll == 0 ? subA : (roll == 1 ? subB : subC));
 }
 
-void StartRumiaPhase(Enemy& enemy, const EnemySubCtx& ctx,
-                     StageUtil::ConfigId::BossPhaseId phaseId) {
-    StageUtil::StartBossPhase(enemy, ctx, phaseId);
-}
-
-void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx,
-                     StageUtil::ConfigId::BossPhaseId phaseId) {
-    StartRumiaPhase(enemy, ctx, phaseId);
-    ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
-}
-
 }  // namespace
 
 void InitRumiaBossEntry(Enemy& enemy, EnemySubCtx& ctx) {
@@ -52,10 +41,6 @@ void RunRumiaBossEntry(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunRumiaFirstNonspellInit(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        ScriptUtil::SetDeathEffects(enemy, 671, 676);
-        StartRumiaPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage1RumiaFirstNonspell);
-    }
     if (t == 100) ctx.TransitionToSub(enemy, SUB_BOSS_PHASE1_ATTACK_A);
 }
 
@@ -142,7 +127,6 @@ void RunRumiaFirstAttackD(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunNightBird(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) StartSpellPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage1NightBird);
     if (t == 120) enemy.m_CanTakeDamage = true;
 
     int loopT = (t >= 120) ? (t - 120) % 356 : -1;
@@ -174,11 +158,6 @@ void RunNightBird(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunRumiaSecondNonspellInit(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        ScriptUtil::SetDeathEffects(enemy, 671, 676);
-        StartRumiaPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage1RumiaSecondNonspell);
-        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
-    }
     if (t == 200) {
         enemy.m_CanTakeDamage = true;
         ctx.TransitionToSub(enemy, SUB_BOSS_PHASE2_ATTACK_A);
@@ -254,7 +233,6 @@ void RunRumiaSecondAttackD(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunDemarcation(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) StartSpellPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage1Demarcation);
     if (t == 120) enemy.m_CanTakeDamage = true;
 
     int loopT = (t >= 120) ? (t - 120) % 336 : -1;

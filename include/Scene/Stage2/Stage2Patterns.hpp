@@ -27,7 +27,6 @@ constexpr int SUB_CIRNO_PERFECT_FREEZE     = 31;
 constexpr int SUB_CIRNO_DIAMOND_BLIZZARD   = 32;
 constexpr int SUB_CIRNO_DEATH              = 28;
 
-void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx, const char* phaseId);
 void SpawnOneWayStackWithCurve(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type,
                                EBulletColor color, int stacks, float speed1, float speed2,
                                float baseAngle, BulletCurve curve, bool rotateWithAngle = false);

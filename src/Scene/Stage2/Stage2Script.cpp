@@ -9,6 +9,7 @@
 #include "Enemy/EnemyLaserManager.hpp"
 #include "Enemy/EnemyPatternUtil.hpp"
 #include "Enemy/EnemyScriptUtil.hpp"
+#include "Enemy/EnemySubCtx.hpp"
 #include "Item/ItemManager.hpp"
 #include "Scene/Stage2/Stage2Patterns.hpp"
 #include "Scene/StageScriptUtil.hpp"
@@ -16,6 +17,7 @@
 
 namespace {
 namespace ScriptUtil = EnemyScriptUtil;
+namespace StageUtil  = StageScriptUtil;
 using EnemyPatternUtil::AimAngle;
 using EnemyPatternUtil::SpawnRandomVarianceCircle;
 using namespace Stage2Detail;
@@ -26,14 +28,46 @@ void Stage2Script::Preload(Anm::Manager& anm) {
 }
 
 Stage2Script::Stage2Script() {
-    RegisterBossPhases({
-        StageScriptUtil::ConfigId::BossPhase::Stage2Daiyousei,
-        StageScriptUtil::ConfigId::BossPhase::Stage2CirnoFirstNonspell,
-        StageScriptUtil::ConfigId::BossPhase::Stage2IcicleFall,
-        StageScriptUtil::ConfigId::BossPhase::Stage2CirnoSecondNonspell,
-        StageScriptUtil::ConfigId::BossPhase::Stage2PerfectFreeze,
-        StageScriptUtil::ConfigId::BossPhase::Stage2DiamondBlizzard,
-    });
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage2Daiyousei,
+                               {SUB_DAIYOUSEI_MAIN}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage2CirnoFirstNonspell,
+                               {SUB_CIRNO_NONSPELL_INIT, SUB_CIRNO_NONSPELL_ATTACK_A,
+                                SUB_CIRNO_NONSPELL_ATTACK_B}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage2IcicleFall,
+                               {SUB_CIRNO_ICICLE_FALL})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage2CirnoSecondNonspell,
+                               {SUB_CIRNO_PHASE2_INIT, SUB_CIRNO_PREFREEZE_ATTACK_A,
+                                SUB_CIRNO_PREFREEZE_ATTACK_B})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage2PerfectFreeze,
+                               {SUB_CIRNO_PERFECT_FREEZE})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
+                         ctx.anm.SetScript(enemy.m_Vm, Anm::STG2ENM2.offset + 131,
+                                           Anm::STG2ENM2.offset);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage2DiamondBlizzard,
+                               {SUB_CIRNO_DIAMOND_BLIZZARD})
+                     .Prepare([](Enemy& enemy, EnemySubCtx& ctx) {
+                         enemy.m_CanTakeDamage = false;
+                         enemy.m_InSpellcard   = false;
+                         enemy.m_ShowSpellName = false;
+                         enemy.m_BossTitle     = "Cirno";
+                         enemy.m_BossTimer     = 0;
+                         StageUtil::ApplyReward(enemy, ctx,
+                                                StageUtil::ConfigId::Reward::Power5Cancel);
+                     })
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
+                         ctx.anm.SetScript(enemy.m_Vm, Anm::STG2ENM2.offset + 131,
+                                           Anm::STG2ENM2.offset);
+                     })
+                     .StartFrame(60));
 
     AddTimedPattern({0, 1, 2, 3, 4}, InitStage2AngledFairy, RunStage2AngledFairy);
     AddTimedRunOnlyPattern(5, RunStage2DeathBurst);

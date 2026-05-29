@@ -2,8 +2,13 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
+#include "Enemy/EnemyScriptUtil.hpp"
 #include "Scene/Stage1/Stage1Patterns.hpp"
 #include "Scene/StageScriptUtil.hpp"
+
+namespace {
+namespace StageUtil = StageScriptUtil;
+}  // namespace
 
 using namespace Stage1Detail;
 void Stage1Script::Preload(Anm::Manager& anm) {
@@ -12,13 +17,33 @@ void Stage1Script::Preload(Anm::Manager& anm) {
 }
 
 Stage1Script::Stage1Script() {
-    RegisterBossPhases({
-        StageScriptUtil::ConfigId::BossPhase::Stage1RumiaMidboss,
-        StageScriptUtil::ConfigId::BossPhase::Stage1RumiaFirstNonspell,
-        StageScriptUtil::ConfigId::BossPhase::Stage1NightBird,
-        StageScriptUtil::ConfigId::BossPhase::Stage1RumiaSecondNonspell,
-        StageScriptUtil::ConfigId::BossPhase::Stage1Demarcation,
-    });
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage1RumiaMidboss,
+                               {SUB_MIDBOSS_MAIN}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage1RumiaFirstNonspell,
+                               {SUB_BOSS_PHASE1_INIT, SUB_BOSS_PHASE1_ATTACK_A,
+                                SUB_BOSS_PHASE1_ATTACK_B, SUB_BOSS_PHASE1_ATTACK_C,
+                                SUB_BOSS_PHASE1_ATTACK_D})
+                     .Start([](Enemy& enemy, EnemySubCtx&) {
+                         EnemyScriptUtil::SetDeathEffects(enemy, 671, 676);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage1NightBird,
+                               {SUB_BOSS_PHASE1_SPELL})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage1RumiaSecondNonspell,
+                               {SUB_BOSS_PHASE2_INIT, SUB_BOSS_PHASE2_ATTACK_A,
+                                SUB_BOSS_PHASE2_ATTACK_B, SUB_BOSS_PHASE2_ATTACK_C,
+                                SUB_BOSS_PHASE2_ATTACK_D})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         EnemyScriptUtil::SetDeathEffects(enemy, 671, 676);
+                         StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage1Demarcation,
+                               {SUB_BOSS_PHASE2_SPELL})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
+                     }));
 
     AddTimedPattern(0, InitStage1SmallFairy,
                     [](Enemy& enemy, EnemySubCtx&, int t) { RunStage1SmallFairyA(enemy, t); });

@@ -16,11 +16,6 @@ void InitStage6SakuyaEntry(Enemy& enemy, EnemySubCtx& ctx) {
 }
 
 void RunSakuyaMain(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StageUtil::StartBossPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage6SakuyaMain);
-        enemy.m_CanTakeDamage = true;
-        ctx.SetTimeStopped(false);
-    }
     if (t < 30) return;
     const int  loopT = (t - 30) % 130;
     const auto pos   = ShootPos(enemy);
@@ -46,11 +41,6 @@ void RunSakuyaMain(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunEternalMeek(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StageUtil::StartBossPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage6EternalMeek);
-        enemy.m_CanTakeDamage = false;
-        ctx.StartLerpTo(enemy, 192.0f, 144.0f, 120);
-    }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
     const int  loopT = (t - 120) % 4;

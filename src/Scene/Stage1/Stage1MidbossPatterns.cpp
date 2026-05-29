@@ -21,8 +21,6 @@ void InitRumiaMidbossSub(Enemy& enemy, EnemySubCtx& ctx) {
         case SUB_MIDBOSS_MAIN: {  // Mid-boss main pattern entry
             StageUtil::InitBossEntry(enemy, ctx,
                                      StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage1RumiaMidboss));
-            StageUtil::StartBossPhase(enemy, ctx,
-                                      StageUtil::ConfigId::BossPhase::Stage1RumiaMidboss);
             ScriptUtil::SetBossPoses(enemy, 128, 131, 132, 129, 130);
             break;
         }

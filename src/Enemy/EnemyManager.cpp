@@ -393,8 +393,13 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
             if (enemy.m_IsBoss) {
                 enemy.m_Life             = 0;
                 enemy.m_CanTakeDamage    = false;
-                int sub                  = enemy.m_DeathCallbackSub;
+                int sub                  = enemy.m_DeathCallbackSub >= 0
+                                               ? enemy.m_DeathCallbackSub
+                                               : enemy.m_LifeCallbackSub;
                 enemy.m_DeathCallbackSub = -1;
+                enemy.m_LifeCallbackSub  = -1;
+                enemy.m_TimerCallbackThreshold = -1;
+                enemy.m_TimerCallbackSub       = -1;
                 if (sub >= 0) {
                     TurnAllBulletsIntoPointItems();
                     SpawnDeathEffect(enemy);

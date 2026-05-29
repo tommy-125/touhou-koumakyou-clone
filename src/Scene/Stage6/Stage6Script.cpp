@@ -3,6 +3,7 @@
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
 #include "Enemy/Enemy.hpp"
+#include "Enemy/EnemySubCtx.hpp"
 #include "Scene/Stage6/Stage6Patterns.hpp"
 #include "Scene/StageScriptUtil.hpp"
 
@@ -12,19 +13,51 @@ using namespace Stage6Detail;
 }  // namespace
 
 Stage6Script::Stage6Script() {
-    RegisterBossPhases({
-        StageUtil::ConfigId::BossPhase::Stage6SakuyaMain,
-        StageUtil::ConfigId::BossPhase::Stage6EternalMeek,
-        StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell1,
-        StageUtil::ConfigId::BossPhase::Stage6StarOfDavid,
-        StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell2,
-        StageUtil::ConfigId::BossPhase::Stage6ScarletNetherworld,
-        StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell3,
-        StageUtil::ConfigId::BossPhase::Stage6VladTepes,
-        StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell4,
-        StageUtil::ConfigId::BossPhase::Stage6ScarletShoot,
-        StageUtil::ConfigId::BossPhase::Stage6RedMagic,
-    });
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6SakuyaMain,
+                               {SUB_SAKUYA_MAIN})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         enemy.m_CanTakeDamage = true;
+                         ctx.SetTimeStopped(false);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6EternalMeek,
+                               {SUB_SAKUYA_ETERNAL_MEEK})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         enemy.m_CanTakeDamage = false;
+                         ctx.StartLerpTo(enemy, 192.0f, 144.0f, 120);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell1,
+                               {SUB_REMILIA_NONSPELL_1}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6StarOfDavid,
+                               {SUB_REMILIA_STAR}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell2,
+                               {SUB_REMILIA_NONSPELL_2})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6ScarletNetherworld,
+                               {SUB_REMILIA_SCARLET}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell3,
+                               {SUB_REMILIA_NONSPELL_3})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6VladTepes,
+                               {SUB_REMILIA_VLAD}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6RemiliaNonspell4,
+                               {SUB_REMILIA_NONSPELL_4})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
+                         SetRemiliaPoses(enemy);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6ScarletShoot,
+                               {SUB_REMILIA_SHOOT}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage6RedMagic,
+                               {SUB_REMILIA_RED_MAGIC})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
+                         enemy.m_CanTakeDamage = false;
+                         ctx.StartLerpTo(enemy, 192.0f, 128.0f, 120);
+                     }));
 
     AddTimedRunOnlyPattern(SUB_STAGE_EFFECTS, [](Enemy& enemy, EnemySubCtx&, int t) {
         if (t >= 2160) enemy.m_Alive = false;

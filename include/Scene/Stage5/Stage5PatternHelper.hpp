@@ -19,10 +19,7 @@ glm::vec2 ShootPos(const Enemy& enemy, glm::vec2 offset = SAKUYA_SHOOT_OFFSET);
 float     RankedSpeed1(float speed);
 float     RankedSpeed2(float speed);
 void      SetSakuyaBossPoses(Enemy& enemy);
-void      StartSakuyaPhase(Enemy& enemy, const EnemySubCtx& ctx,
-                           StageUtil::ConfigId::BossPhaseId phaseId);
-bool      BeginSakuyaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t,
-                             StageUtil::ConfigId::BossPhaseId phaseId, glm::vec2 target,
+bool      BeginSakuyaSpellAt(Enemy& enemy, EnemySubCtx& ctx, int t, glm::vec2 target,
                              int warmup = 120);
 }  // namespace Stage5Detail
 

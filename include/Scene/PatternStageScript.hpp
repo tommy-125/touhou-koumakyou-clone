@@ -50,15 +50,11 @@ class LambdaEnemySubPattern final : public IEnemySubPattern {
 class BossPhaseEnemySubPattern final : public IEnemySubPattern {
    public:
     using TimedRunFn = std::function<void(Enemy&, EnemySubCtx&, int)>;
-    using StartFn    = std::function<void(Enemy&, EnemySubCtx&)>;
 
-    BossPhaseEnemySubPattern(std::initializer_list<int> subIds,
-                             StageScriptUtil::ConfigId::BossPhaseId phaseId,
-                             TimedRunFn run, StartFn onStart = nullptr, int runStartFrame = 0)
+    BossPhaseEnemySubPattern(std::initializer_list<int> subIds, TimedRunFn run,
+                             int runStartFrame = 0)
         : m_SubIds(subIds),
-          m_PhaseId(phaseId),
           m_Run(std::move(run)),
-          m_OnStart(std::move(onStart)),
           m_RunStartFrame(runStartFrame) {}
 
     bool Handles(int subId) const override {
@@ -69,19 +65,13 @@ class BossPhaseEnemySubPattern final : public IEnemySubPattern {
 
     void Run(Enemy& enemy, EnemySubCtx& ctx) override {
         const int t = enemy.m_FrameTimer;
-        if (t == 0) {
-            StageScriptUtil::StartBossPhase(enemy, ctx, m_PhaseId);
-            if (m_OnStart) m_OnStart(enemy, ctx);
-        }
         if (m_Run && t >= m_RunStartFrame) m_Run(enemy, ctx, t);
     }
 
    private:
-    std::vector<int>                         m_SubIds;
-    StageScriptUtil::ConfigId::BossPhaseId   m_PhaseId;
-    TimedRunFn                               m_Run;
-    StartFn                                  m_OnStart;
-    int                                      m_RunStartFrame;
+    std::vector<int> m_SubIds;
+    TimedRunFn       m_Run;
+    int              m_RunStartFrame;
 };
 
 class PatternStageScript : public IStageScript {
@@ -96,6 +86,7 @@ class PatternStageScript : public IStageScript {
 
     void RunSub(Enemy& enemy, EnemySubCtx& ctx) override {
         if (IEnemySubPattern* pattern = FindPattern(enemy.m_SubId)) {
+            RunBossPhaseHooks(enemy, ctx);
             pattern->Run(enemy, ctx);
             return;
         }
@@ -105,6 +96,7 @@ class PatternStageScript : public IStageScript {
     bool HasSub(int subId) const override { return FindPattern(subId) != nullptr; }
 
     void Validate() const override {
+        ValidateBossPhaseGroups();
         for (const auto& phaseId : m_BossPhaseIds) {
             const auto config = StageScriptUtil::LoadBossPhaseConfig(phaseId);
             ValidateBossPhaseSub(phaseId, "timerSub", config.timerSub);
@@ -117,6 +109,41 @@ class PatternStageScript : public IStageScript {
     using InitFn     = LambdaEnemySubPattern::InitFn;
     using RunFn      = LambdaEnemySubPattern::RunFn;
     using TimedRunFn = std::function<void(Enemy&, EnemySubCtx&, int)>;
+    using StartFn    = std::function<void(Enemy&, EnemySubCtx&)>;
+
+    struct BossPhaseSpec {
+        BossPhaseSpec(StageScriptUtil::ConfigId::BossPhaseId id, std::initializer_list<int> subs)
+            : phaseId(id), subIds(subs), startSub(subs.size() > 0 ? *subs.begin() : -1) {}
+
+        BossPhaseSpec& StartSub(int subId) {
+            startSub = subId;
+            return *this;
+        }
+
+        BossPhaseSpec& Prepare(StartFn fn, int frame = 0) {
+            onPrepare   = std::move(fn);
+            prepareFrame = frame;
+            return *this;
+        }
+
+        BossPhaseSpec& Start(StartFn fn) {
+            onStart = std::move(fn);
+            return *this;
+        }
+
+        BossPhaseSpec& StartFrame(int frame) {
+            phaseStartFrame = frame;
+            return *this;
+        }
+
+        StageScriptUtil::ConfigId::BossPhaseId phaseId;
+        std::vector<int>                       subIds;
+        int                                    startSub        = -1;
+        int                                    prepareFrame    = 0;
+        int                                    phaseStartFrame = 0;
+        StartFn                                onPrepare;
+        StartFn                                onStart;
+    };
 
     void AddPattern(std::initializer_list<int> subIds, InitFn init, RunFn run) {
         m_Patterns.push_back(
@@ -151,21 +178,52 @@ class PatternStageScript : public IStageScript {
 
     void AddBossPhasePattern(std::initializer_list<int> subIds,
                              StageScriptUtil::ConfigId::BossPhaseId phaseId,
-                             TimedRunFn run, BossPhaseEnemySubPattern::StartFn onStart = nullptr,
+                             TimedRunFn run, StartFn onStart = nullptr,
                              int runStartFrame = 0) {
-        RegisterBossPhase(phaseId);
-        m_Patterns.push_back(std::make_unique<BossPhaseEnemySubPattern>(
-            subIds, phaseId, std::move(run), std::move(onStart), runStartFrame));
+        AddBossPhase(BossPhaseSpec(phaseId, subIds).Start(std::move(onStart)));
+        m_Patterns.push_back(
+            std::make_unique<BossPhaseEnemySubPattern>(subIds, std::move(run), runStartFrame));
     }
 
     void AddBossPhasePattern(int subId, StageScriptUtil::ConfigId::BossPhaseId phaseId,
-                             TimedRunFn run,
-                             BossPhaseEnemySubPattern::StartFn onStart       = nullptr,
-                             int                               runStartFrame = 0) {
+                             TimedRunFn run, StartFn onStart = nullptr, int runStartFrame = 0) {
         AddBossPhasePattern({subId}, phaseId, std::move(run), std::move(onStart), runStartFrame);
     }
 
-    void RegisterBossPhase(StageScriptUtil::ConfigId::BossPhaseId phaseId) {
+    void AddBossPhase(BossPhaseSpec spec) {
+        TrackBossPhaseConfig(spec.phaseId);
+        auto existing = std::find_if(
+            m_BossPhaseGroups.begin(), m_BossPhaseGroups.end(), [&spec](const auto& group) {
+                return group.phaseId.value == spec.phaseId.value;
+            });
+
+        if (existing == m_BossPhaseGroups.end()) {
+            m_BossPhaseGroups.push_back(std::move(spec));
+            return;
+        }
+
+        for (int subId : spec.subIds) {
+            if (std::find(existing->subIds.begin(), existing->subIds.end(), subId) ==
+                existing->subIds.end()) {
+                existing->subIds.push_back(subId);
+            }
+        }
+
+        if (spec.startSub >= 0) existing->startSub = spec.startSub;
+        existing->prepareFrame    = spec.prepareFrame;
+        existing->phaseStartFrame = spec.phaseStartFrame;
+        if (spec.onPrepare) existing->onPrepare = std::move(spec.onPrepare);
+        if (spec.onStart) existing->onStart = std::move(spec.onStart);
+    }
+
+   private:
+    static RunFn WithFrameTimer(TimedRunFn run) {
+        return [run = std::move(run)](Enemy& enemy, EnemySubCtx& ctx) {
+            run(enemy, ctx, enemy.m_FrameTimer);
+        };
+    }
+
+    void TrackBossPhaseConfig(StageScriptUtil::ConfigId::BossPhaseId phaseId) {
         const auto hasPhase = std::find_if(
             m_BossPhaseIds.begin(), m_BossPhaseIds.end(), [phaseId](const auto& registered) {
                 return registered.value == phaseId.value;
@@ -176,20 +234,6 @@ class PatternStageScript : public IStageScript {
         m_BossPhaseIds.push_back(phaseId);
     }
 
-    void RegisterBossPhases(
-        std::initializer_list<StageScriptUtil::ConfigId::BossPhaseId> phaseIds) {
-        for (const auto& phaseId : phaseIds) {
-            RegisterBossPhase(phaseId);
-        }
-    }
-
-   private:
-    static RunFn WithFrameTimer(TimedRunFn run) {
-        return [run = std::move(run)](Enemy& enemy, EnemySubCtx& ctx) {
-            run(enemy, ctx, enemy.m_FrameTimer);
-        };
-    }
-
     IEnemySubPattern* FindPattern(int subId) const {
         for (const auto& pattern : m_Patterns) {
             if (pattern->Handles(subId)) return pattern.get();
@@ -197,8 +241,80 @@ class PatternStageScript : public IStageScript {
         return nullptr;
     }
 
+    void RunBossPhaseHooks(Enemy& enemy, EnemySubCtx& ctx) const {
+        const BossPhaseSpec* group = FindBossPhaseGroupForStart(enemy.m_SubId);
+        if (!group) return;
+
+        const int t = enemy.m_FrameTimer;
+        if (group->onPrepare && t == group->prepareFrame) {
+            group->onPrepare(enemy, ctx);
+        }
+        if (t == group->phaseStartFrame) {
+            StageScriptUtil::StartBossPhase(enemy, ctx, group->phaseId);
+            if (group->onStart) group->onStart(enemy, ctx);
+        }
+    }
+
     [[noreturn]] static void ThrowMissingPattern(int subId) {
         throw std::runtime_error("unhandled enemy subId: " + std::to_string(subId));
+    }
+
+    bool HasBossPhaseGroup(StageScriptUtil::ConfigId::BossPhaseId phaseId) const {
+        return std::find_if(m_BossPhaseGroups.begin(), m_BossPhaseGroups.end(),
+                            [phaseId](const auto& group) {
+                                return group.phaseId.value == phaseId.value;
+                            }) != m_BossPhaseGroups.end();
+    }
+
+    const BossPhaseSpec* FindBossPhaseGroupForStart(int subId) const {
+        const auto found = std::find_if(m_BossPhaseGroups.begin(), m_BossPhaseGroups.end(),
+                                        [subId](const auto& group) {
+                                            return group.startSub == subId;
+                                        });
+        return found == m_BossPhaseGroups.end() ? nullptr : &(*found);
+    }
+
+    void ValidateBossPhaseGroups() const {
+        for (const auto& phaseId : m_BossPhaseIds) {
+            if (!HasBossPhaseGroup(phaseId)) {
+                throw std::runtime_error("boss phase '" + std::string(phaseId.value) +
+                                         "' has no registered phase group");
+            }
+        }
+
+        for (const auto& group : m_BossPhaseGroups) {
+            if (group.subIds.empty()) {
+                throw std::runtime_error("boss phase '" + std::string(group.phaseId.value) +
+                                         "' has an empty phase group");
+            }
+
+            if (group.startSub < 0 || std::find(group.subIds.begin(), group.subIds.end(),
+                                                group.startSub) == group.subIds.end()) {
+                throw std::runtime_error("boss phase '" + std::string(group.phaseId.value) +
+                                         "' startSub is not in its phase group");
+            }
+
+            for (int subId : group.subIds) {
+                ValidateBossPhaseSub(group.phaseId, "phase group", subId);
+            }
+        }
+
+        for (size_t i = 0; i < m_BossPhaseGroups.size(); ++i) {
+            const auto& lhs = m_BossPhaseGroups[i];
+            for (size_t j = i + 1; j < m_BossPhaseGroups.size(); ++j) {
+                const auto& rhs = m_BossPhaseGroups[j];
+                for (int lhsSub : lhs.subIds) {
+                    if (std::find(rhs.subIds.begin(), rhs.subIds.end(), lhsSub) !=
+                        rhs.subIds.end()) {
+                        throw std::runtime_error(
+                            "enemy subId " + std::to_string(lhsSub) +
+                            " is registered in multiple boss phase groups: '" +
+                            std::string(lhs.phaseId.value) + "' and '" +
+                            std::string(rhs.phaseId.value) + "'");
+                    }
+                }
+            }
+        }
     }
 
     void ValidateBossPhaseSub(StageScriptUtil::ConfigId::BossPhaseId phaseId, const char* field,
@@ -211,6 +327,7 @@ class PatternStageScript : public IStageScript {
 
     std::vector<std::unique_ptr<IEnemySubPattern>> m_Patterns;
     std::vector<StageScriptUtil::ConfigId::BossPhaseId> m_BossPhaseIds;
+    std::vector<BossPhaseSpec> m_BossPhaseGroups;
 };
 
 #endif  // SCENE_PATTERN_STAGE_SCRIPT_HPP

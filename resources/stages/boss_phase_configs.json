@@ -15,7 +15,6 @@
     "lifeCount": 1,
     "timerFrames": 2100,
     "timerSub": 22,
-    "deathSub": 16,
     "lifeThreshold": 900,
     "lifeSub": 22,
     "canTakeDamage": true,
@@ -26,7 +25,7 @@
     "lifeCount": 1,
     "timerFrames": 1500,
     "timerSub": 16,
-    "deathSub": 16,
+    "lifeSub": 16,
     "spell": true,
     "showSpellName": true,
     "spellBonus": 2000000
@@ -37,7 +36,6 @@
     "lifeCount": 0,
     "timerFrames": 1800,
     "timerSub": 23,
-    "deathSub": 17,
     "lifeThreshold": 800,
     "lifeSub": 23
   },
@@ -67,7 +65,6 @@
     "lifeCount": 1,
     "timerFrames": 1500,
     "timerSub": 30,
-    "deathSub": 25,
     "lifeThreshold": 1500,
     "lifeSub": 30,
     "cancelBullets": false
@@ -77,7 +74,7 @@
     "lifeCount": 1,
     "timerFrames": 1800,
     "timerSub": 25,
-    "deathSub": 25,
+    "lifeSub": 25,
     "spell": true,
     "showSpellName": true
   },
@@ -87,7 +84,6 @@
     "lifeCount": 0,
     "timerFrames": 3000,
     "timerSub": 31,
-    "deathSub": 28,
     "lifeThreshold": 3200,
     "lifeSub": 31
   },
@@ -95,8 +91,7 @@
     "title": "Perfect Freeze",
     "lifeCount": 0,
     "timerFrames": 2400,
-    "timerSub": 28,
-    "deathSub": 28,
+    "timerSub": 32,
     "lifeThreshold": 1400,
     "lifeSub": 32,
     "spell": true,
@@ -117,7 +112,6 @@
     "lifeCount": 2,
     "timerFrames": 1800,
     "timerSub": 29,
-    "deathSub": 20,
     "lifeThreshold": 1900,
     "lifeSub": 29,
     "canTakeDamage": true
@@ -127,7 +121,7 @@
     "lifeCount": 2,
     "timerFrames": 1800,
     "timerSub": 20,
-    "deathSub": 20,
+    "lifeSub": 20,
     "spell": true,
     "showSpellName": true
   },
@@ -137,7 +131,7 @@
     "lifeCount": 1,
     "timerFrames": 2400,
     "timerSub": 26,
-    "deathSub": 26,
+    "lifeSub": 26,
     "canTakeDamage": true
   },
   "stage3.meiling_final_nonspell": {
@@ -146,7 +140,6 @@
     "lifeCount": 0,
     "timerFrames": 2400,
     "timerSub": 31,
-    "deathSub": 34,
     "lifeThreshold": 3400,
     "lifeSub": 31,
     "canTakeDamage": true
@@ -156,7 +149,6 @@
     "lifeCount": 0,
     "timerFrames": 2160,
     "timerSub": 33,
-    "deathSub": 33,
     "lifeThreshold": 2000,
     "lifeSub": 33,
     "spell": true,
@@ -168,7 +160,6 @@
     "lifeCount": 2,
     "timerFrames": 2400,
     "timerSub": 45,
-    "deathSub": 45,
     "lifeThreshold": 1600,
     "lifeSub": 45
   },
@@ -178,7 +169,6 @@
     "lifeCount": 1,
     "timerFrames": 2400,
     "timerSub": 48,
-    "deathSub": 48,
     "lifeThreshold": 1600,
     "lifeSub": 48
   },
@@ -187,7 +177,6 @@
     "lifeCount": 2,
     "timerFrames": 2100,
     "timerSub": 37,
-    "deathSub": 37,
     "lifeSub": 37,
     "spell": true,
     "showSpellName": true
@@ -197,7 +186,6 @@
     "lifeCount": 1,
     "timerFrames": 2100,
     "timerSub": 39,
-    "deathSub": 39,
     "lifeSub": 39,
     "spell": true,
     "showSpellName": true
@@ -208,7 +196,6 @@
     "lifeCount": 0,
     "timerFrames": 2400,
     "timerSub": 60,
-    "deathSub": 60,
     "lifeThreshold": 1700,
     "lifeSub": 40,
     "spell": true,
@@ -238,7 +225,6 @@
     "lifeCount": 0,
     "timerFrames": 2400,
     "timerSub": 17,
-    "deathSub": 16,
     "lifeThreshold": 710,
     "lifeSub": 18,
     "canTakeDamage": true
@@ -259,7 +245,6 @@
     "lifeCount": 2,
     "timerFrames": 2700,
     "timerSub": 44,
-    "deathSub": 44,
     "lifeThreshold": 1400,
     "lifeSub": 44
   },
@@ -269,7 +254,6 @@
     "lifeCount": 1,
     "timerFrames": 2700,
     "timerSub": 46,
-    "deathSub": 46,
     "lifeThreshold": 1400,
     "lifeSub": 46
   },
@@ -279,7 +263,6 @@
     "lifeCount": 0,
     "timerFrames": 2700,
     "timerSub": 50,
-    "deathSub": 50,
     "lifeThreshold": 1700,
     "lifeSub": 50
   },
@@ -288,7 +271,6 @@
     "lifeCount": 2,
     "timerFrames": 1800,
     "timerSub": 34,
-    "deathSub": 34,
     "lifeSub": 34,
     "spell": true,
     "showSpellName": true
@@ -298,7 +280,6 @@
     "lifeCount": 1,
     "timerFrames": 1800,
     "timerSub": 41,
-    "deathSub": 41,
     "lifeSub": 41,
     "spell": true,
     "showSpellName": true
@@ -318,7 +299,6 @@
     "lifeCount": 0,
     "timerFrames": 1020,
     "timerSub": 13,
-    "deathSub": 12,
     "lifeThreshold": 1000,
     "lifeSub": 14
   },
@@ -337,7 +317,6 @@
     "lifeCount": 4,
     "timerFrames": 2700,
     "timerSub": 30,
-    "deathSub": 19,
     "lifeThreshold": 1200,
     "lifeSub": 30,
     "canTakeDamage": true
@@ -348,7 +327,6 @@
     "lifeCount": 3,
     "timerFrames": 2700,
     "timerSub": 32,
-    "deathSub": 23,
     "lifeThreshold": 1600,
     "lifeSub": 32,
     "canTakeDamage": true
@@ -359,7 +337,6 @@
     "lifeCount": 2,
     "timerFrames": 2700,
     "timerSub": 34,
-    "deathSub": 26,
     "lifeThreshold": 1600,
     "lifeSub": 34,
     "canTakeDamage": true
@@ -370,7 +347,6 @@
     "lifeCount": 1,
     "timerFrames": 3600,
     "timerSub": 38,
-    "deathSub": 43,
     "lifeThreshold": 1300,
     "lifeSub": 38,
     "canTakeDamage": true
@@ -380,7 +356,6 @@
     "lifeCount": 4,
     "timerFrames": 2400,
     "timerSub": 19,
-    "deathSub": 19,
     "lifeSub": 19,
     "spell": true,
     "showSpellName": true,
@@ -391,7 +366,6 @@
     "lifeCount": 3,
     "timerFrames": 2400,
     "timerSub": 23,
-    "deathSub": 23,
     "lifeSub": 23,
     "spell": true,
     "showSpellName": true,
@@ -402,7 +376,6 @@
     "lifeCount": 2,
     "timerFrames": 2400,
     "timerSub": 26,
-    "deathSub": 26,
     "lifeSub": 26,
     "spell": true,
     "showSpellName": true,
@@ -413,7 +386,6 @@
     "lifeCount": 1,
     "timerFrames": 1800,
     "timerSub": 43,
-    "deathSub": 43,
     "lifeSub": 43,
     "spell": true,
     "showSpellName": true,

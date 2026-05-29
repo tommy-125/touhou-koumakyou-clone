@@ -40,8 +40,7 @@ void SpawnMisdirectionDaggerVolley(EnemySubCtx& ctx, glm::vec2 pos) {
 }
 
 void RunMisdirection(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    const bool active = BeginSakuyaSpellAt(
-        enemy, ctx, t, StageUtil::ConfigId::BossPhase::Stage5Misdirection, {192.0f, 112.0f});
+    const bool active = BeginSakuyaSpellAt(enemy, ctx, t, {192.0f, 112.0f});
     if (t == 0) {
         enemy.m_DeathCallbackSub = SUB_SAKUYA_MIDBOSS_DEATH;
         enemy.m_LockedShotAngle  = (std::rand() & 1) ? 1.0f : 0.0f;
@@ -68,11 +67,6 @@ void RunMisdirection(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunMidbossMain(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartSakuyaPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage5MidbossMain);
-        enemy.m_BossMaxLife = std::max(1, enemy.m_Life);
-        ctx.SetTimeStopped(false);
-    }
     if (t < 30) return;
 
     const int  loopT = (t - 30) % 281;

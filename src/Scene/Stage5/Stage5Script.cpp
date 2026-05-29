@@ -14,16 +14,40 @@ using namespace Stage5Detail;
 }  // namespace
 
 Stage5Script::Stage5Script() {
-    RegisterBossPhases({
-        StageUtil::ConfigId::BossPhase::Stage5MidbossMain,
-        StageUtil::ConfigId::BossPhase::Stage5Misdirection,
-        StageUtil::ConfigId::BossPhase::Stage5SakuyaFirstNonspell,
-        StageUtil::ConfigId::BossPhase::Stage5ClockCorpse,
-        StageUtil::ConfigId::BossPhase::Stage5SakuyaSecondNonspell,
-        StageUtil::ConfigId::BossPhase::Stage5LunaClock,
-        StageUtil::ConfigId::BossPhase::Stage5SakuyaFinalNonspell,
-        StageUtil::ConfigId::BossPhase::Stage5ManipulatingDoll,
-    });
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage5MidbossMain,
+                               {SUB_SAKUYA_MIDBOSS_MAIN})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         enemy.m_BossMaxLife = enemy.m_Life > 1 ? enemy.m_Life : 1;
+                         ctx.SetTimeStopped(false);
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage5Misdirection,
+                               {SUB_SAKUYA_MISDIRECTION}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage5SakuyaFirstNonspell,
+                               {SUB_SAKUYA_FIRST_NONSPELL})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         ctx.SetTimeStopped(false);
+                         enemy.m_CanTakeDamage = true;
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage5ClockCorpse,
+                               {SUB_SAKUYA_CLOCK_CORPSE}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage5SakuyaSecondNonspell,
+                               {SUB_SAKUYA_SECOND_NONSPELL})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         ctx.SetTimeStopped(false);
+                         StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
+                         enemy.m_CanTakeDamage = true;
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage5LunaClock,
+                               {SUB_SAKUYA_LUNA_CLOCK}));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage5SakuyaFinalNonspell,
+                               {SUB_SAKUYA_FINAL_NONSPELL})
+                     .Start([](Enemy& enemy, EnemySubCtx& ctx) {
+                         ctx.SetTimeStopped(false);
+                         StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power12);
+                         enemy.m_CanTakeDamage = true;
+                     }));
+    AddBossPhase(BossPhaseSpec(StageUtil::ConfigId::BossPhase::Stage5ManipulatingDoll,
+                               {SUB_SAKUYA_FINAL_SPELL}));
 
     AddTimedPattern(
         {0, 2, 3, 4, 5}, InitStage5TopMaid,

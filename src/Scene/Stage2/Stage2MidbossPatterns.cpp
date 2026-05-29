@@ -86,8 +86,6 @@ void InitDaiyouseiSub(Enemy& enemy, EnemySubCtx& ctx) {
         case SUB_DAIYOUSEI_MAIN:
             StageUtil::InitBossEntry(enemy, ctx,
                                      StageUtil::LoadBossEntryConfig(StageUtil::ConfigId::BossEntry::Stage2Daiyousei));
-            StageUtil::StartBossPhase(enemy, ctx,
-                                      StageUtil::ConfigId::BossPhase::Stage2Daiyousei);
             break;
 
         default:

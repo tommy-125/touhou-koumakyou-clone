@@ -17,17 +17,6 @@ namespace ScriptUtil = EnemyScriptUtil;
 namespace StageUtil  = StageScriptUtil;
 using EnemyPatternUtil::AimAngle;
 using EnemyPatternUtil::SpawnRandomVarianceCircle;
-void StartCirnoPhase(Enemy& enemy, const EnemySubCtx& ctx,
-                     StageUtil::ConfigId::BossPhaseId phaseId) {
-    StageUtil::StartBossPhase(enemy, ctx, phaseId);
-}
-
-void StartSpellPhase(Enemy& enemy, const EnemySubCtx& ctx,
-                     StageUtil::ConfigId::BossPhaseId phaseId) {
-    StartCirnoPhase(enemy, ctx, phaseId);
-    ctx.StartLerpTo(enemy, 192.0f, 96.0f, 120);
-}
-
 void SpawnOneWayStackWithCurve(glm::vec2 pos, EnemySubCtx& ctx, EBulletType type,
                                EBulletColor color, int stacks, float speed1, float speed2,
                                float baseAngle, BulletCurve curve, bool rotateWithAngle) {
@@ -81,9 +70,6 @@ void RunCirnoEntry(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunCirnoFirstNonspellInit(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartCirnoPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage2CirnoFirstNonspell);
-    }
     if (t == 20) enemy.m_CanTakeDamage = true;
     if (t == 70) ctx.TransitionToSub(enemy, SUB_CIRNO_NONSPELL_ATTACK_A);
 }
@@ -129,7 +115,6 @@ void RunCirnoNonspellAttackB(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunIcicleFall(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) StartSpellPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage2IcicleFall);
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
 
@@ -161,10 +146,6 @@ void RunIcicleFall(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunCirnoSecondNonspellInit(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartCirnoPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage2CirnoSecondNonspell);
-        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
-    }
     if (t == 200) {
         enemy.m_CanTakeDamage = true;
         ctx.TransitionToSub(enemy, SUB_CIRNO_PREFREEZE_ATTACK_A);
@@ -203,10 +184,6 @@ void RunCirnoPrefreezeAttackB(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunPerfectFreeze(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        StartSpellPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage2PerfectFreeze);
-        ctx.anm.SetScript(enemy.m_Vm, Anm::STG2ENM2.offset + 131, Anm::STG2ENM2.offset);
-    }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
 
@@ -244,18 +221,6 @@ void RunPerfectFreeze(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunDiamondBlizzard(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        enemy.m_CanTakeDamage = false;
-        enemy.m_InSpellcard   = false;
-        enemy.m_ShowSpellName = false;
-        enemy.m_BossTitle     = "Cirno";
-        enemy.m_BossTimer     = 0;
-        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5Cancel);
-    }
-    if (t == 60) {
-        StartSpellPhase(enemy, ctx, StageUtil::ConfigId::BossPhase::Stage2DiamondBlizzard);
-        ctx.anm.SetScript(enemy.m_Vm, Anm::STG2ENM2.offset + 131, Anm::STG2ENM2.offset);
-    }
     if (t == 180) enemy.m_CanTakeDamage = true;
     if (t < 180) return;
 
