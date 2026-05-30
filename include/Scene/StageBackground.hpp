@@ -2,6 +2,7 @@
 #define SCENE_STAGE_BACKGROUND_HPP
 
 #include <memory>
+#include <vector>
 
 #include "Util/GameObject.hpp"
 #include "Util/Image.hpp"
@@ -26,7 +27,7 @@ class LongScrollStageBackground : public StageBackground {
     float m_FieldHeight;
     int   m_TotalFrames;
     std::shared_ptr<Util::Image>      m_Image;
-    std::shared_ptr<Util::GameObject> m_Obj;
+    std::vector<std::shared_ptr<Util::GameObject>> m_Objs;
 };
 
 #endif  // SCENE_STAGE_BACKGROUND_HPP
