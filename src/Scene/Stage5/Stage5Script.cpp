@@ -142,6 +142,7 @@ Stage5Script::Stage5Script() {
             ctx.SetTimeStopped(false);
             ctx.BulletCancelIntoPointItems();
             StageUtil::HideBossForExit(enemy);
+            enemy.m_BlocksTimeline = false;
         }
         if (t == 130) ctx.StartLerpTo(enemy, 192.0f, -64.0f, 60);
         if (t >= 190) enemy.m_Alive = false;

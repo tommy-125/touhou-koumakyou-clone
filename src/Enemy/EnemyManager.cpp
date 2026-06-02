@@ -275,7 +275,8 @@ void EnemyManager::RunTimeline() {
         const auto& e = m_Timeline[m_TimelineIdx];
         if (e.frame == m_TimelineFrame && !bossPresent) {
             float spawnX = e.randomX ? static_cast<float>(rand() % 353 + 16) : e.x;
-            Enemy* spawned = SpawnEnemy(e.subId, spawnX, e.y, e.life, e.score, e.mirrored, e.itemDrop);
+            Enemy* spawned =
+                SpawnEnemy(e.subId, spawnX, e.y, e.life, e.score, e.mirrored, e.itemDrop);
             if (spawned && spawned->m_IsBoss) bossPresent = true;
         }
         m_TimelineIdx++;
@@ -308,10 +309,6 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
         if (m_Script) m_Script->RunSub(enemy, ctx);
 
         if (!enemy.m_Alive) {
-            if (enemy.m_SpawnDeathEffectOnRemoval) {
-                SpawnDeathEffect(enemy);
-                enemy.m_SpawnDeathEffectOnRemoval = false;
-            }
             if (enemy.m_Vm.obj) {
                 m_Renderer.RemoveChild(enemy.m_Vm.obj);
                 enemy.m_Vm.obj = nullptr;
@@ -403,7 +400,6 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                 if (sub >= 0) {
                     TurnAllBulletsIntoPointItems();
                     SpawnDeathEffect(enemy);
-                    enemy.m_SpawnDeathEffectOnRemoval = true;
                     enemy.m_SubId      = sub;
                     enemy.m_FrameTimer = -1;
                 } else {

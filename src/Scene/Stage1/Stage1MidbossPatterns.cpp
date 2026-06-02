@@ -91,8 +91,8 @@ void RunRumiaMidbossSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
         case SUB_MIDBOSS_ESCAPE: {  // Mid-boss escape (timer callback from Sub8)
             if (t == 0) {
-                enemy.m_CanTakeDamage = false;
-                enemy.m_ShowSpellName = false;
+                StageUtil::HideBossForExit(enemy);
+                enemy.m_BlocksTimeline = false;
                 ctx.bullets.ClearAll();
                 ctx.lasers.ClearAll();
                 enemy.m_Speed = 0.0f;
@@ -110,8 +110,8 @@ void RunRumiaMidbossSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
 
         case SUB_MIDBOSS_DEATH: {  // Mid-boss death (death callback from Sub8)
             if (t == 0) {
-                enemy.m_CanTakeDamage = false;
-                enemy.m_ShowSpellName = false;
+                StageUtil::HideBossForExit(enemy);
+                enemy.m_BlocksTimeline = false;
                 ctx.bullets.ClearAll();
                 ctx.lasers.ClearAll();
                 enemy.m_Speed = 0.0f;

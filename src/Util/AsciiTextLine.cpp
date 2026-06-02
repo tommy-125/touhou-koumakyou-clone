@@ -29,14 +29,14 @@ void AsciiTextLine::EnsureCapacity(size_t count) {
 }
 
 void AsciiTextLine::SetText(const std::string& text, glm::vec2 pos, float scale,
-                            AsciiTextAlign align, const Color&) {
+                            AsciiTextAlign align, const Color&, float advanceScale) {
     EnsureCapacity(text.size());
     m_Text = text;
 
+    const float advance = ASCII_CHAR_ADVANCE * scale * advanceScale;
     const float width =
-        text.empty()
-            ? 0.0f
-            : (static_cast<float>(text.size() - 1) * ASCII_CHAR_ADVANCE + ASCII_CHAR_SIZE) * scale;
+        text.empty() ? 0.0f
+                     : static_cast<float>(text.size() - 1) * advance + ASCII_CHAR_SIZE * scale;
     float firstCenterX = pos.x + ASCII_CHAR_SIZE * scale * 0.5f;
     if (align == AsciiTextAlign::Center) {
         firstCenterX = pos.x - width * 0.5f + ASCII_CHAR_SIZE * scale * 0.5f;
@@ -44,7 +44,6 @@ void AsciiTextLine::SetText(const std::string& text, glm::vec2 pos, float scale,
         firstCenterX = pos.x - width + ASCII_CHAR_SIZE * scale * 0.5f;
     }
 
-    const float advance = ASCII_CHAR_ADVANCE * scale;
     for (size_t i = 0; i < m_Chars.size(); i++) {
         auto& obj = m_Chars[i];
         if (!obj) continue;
@@ -73,12 +72,12 @@ void AsciiTextLine::SetText(const std::string& text, glm::vec2 pos, float scale,
     }
 }
 
-void AsciiTextLine::SetLayout(glm::vec2 pos, float scale, AsciiTextAlign align) {
+void AsciiTextLine::SetLayout(glm::vec2 pos, float scale, AsciiTextAlign align,
+                              float advanceScale) {
+    const float advance = ASCII_CHAR_ADVANCE * scale * advanceScale;
     const float width =
-        m_Text.empty()
-            ? 0.0f
-            : (static_cast<float>(m_Text.size() - 1) * ASCII_CHAR_ADVANCE + ASCII_CHAR_SIZE) *
-                  scale;
+        m_Text.empty() ? 0.0f
+                       : static_cast<float>(m_Text.size() - 1) * advance + ASCII_CHAR_SIZE * scale;
     float firstCenterX = pos.x + ASCII_CHAR_SIZE * scale * 0.5f;
     if (align == AsciiTextAlign::Center) {
         firstCenterX = pos.x - width * 0.5f + ASCII_CHAR_SIZE * scale * 0.5f;
@@ -86,7 +85,6 @@ void AsciiTextLine::SetLayout(glm::vec2 pos, float scale, AsciiTextAlign align) 
         firstCenterX = pos.x - width + ASCII_CHAR_SIZE * scale * 0.5f;
     }
 
-    const float advance = ASCII_CHAR_ADVANCE * scale;
     for (size_t i = 0; i < m_Chars.size(); i++) {
         auto& obj = m_Chars[i];
         if (!obj) continue;

@@ -25,6 +25,7 @@ struct PlayableStageConfig {
     std::string stageNo;
     std::string stageName;
     std::string songName;
+    float stageNameAdvanceScale = 0.8f;
     int bossSkipFrame = -1;
     int midbossSkipFrame = -1;
     int totalFrames = -1;
@@ -68,10 +69,11 @@ class PlayableStage : public Scene {
    private:
     void SetupIntroAsciiLine(Util::AsciiTextLine& line, const std::string& text, glm::vec2 pos,
                              float scale, Util::AsciiTextAlign align,
-                             const Util::Color& color);
+                             const Util::Color& color, float advanceScale = 1.0f);
     void HandleDebugShortcuts();
     void StartBombClearWave(glm::vec2 origin);
     void UpdateBombClearWave();
+    void DropPlayerPowerOnDeath(glm::vec2 pos);
 
     StageMenu                   m_StageMenu;
     Util::Renderer              m_IntroRenderer;

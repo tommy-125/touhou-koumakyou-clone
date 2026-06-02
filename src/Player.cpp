@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <glm/glm.hpp>
 
 #include "BulletData.hpp"
@@ -15,6 +16,8 @@ static constexpr int   PLAYER_LASER_HOLD_FRAMES    = 2;
 static constexpr int   PLAYER_BOMB_INVUL_FRAMES    = 180;
 static constexpr int   PLAYER_BULLET_COLLISION_SCRIPT_OFFSET = 32;
 static constexpr int   DEBUG_POWER_STEP = 8;
+static constexpr int   DEATH_GLOW_SCRIPT = Anm::EFF00.offset + 12;
+static constexpr int   DEATH_PARTICLE_SCRIPT = Anm::EFF00.offset + 6;
 
 Player::Player(CharacterItem character, SpellCardItem spellCard)
     : m_Data(character == CharacterItem::Reimu ? &REIMU_DATA : &MARISA_DATA),
@@ -22,6 +25,7 @@ Player::Player(CharacterItem character, SpellCardItem spellCard)
     const Anm::Entry& entry = *m_Data->m_AnmEntry;
     // Load ANM
     m_Anm.LoadAnm(entry.folder, entry.txt, entry.offset);
+    m_EffectAnm.LoadAnm(Anm::EFF00.folder, Anm::EFF00.txt, Anm::EFF00.offset);
 
     // Set up body VM
     m_Vms.resize(3);
@@ -49,9 +53,52 @@ Player::Player(CharacterItem character, SpellCardItem spellCard)
 
 void Player::Die() {
     if (m_PlayerState != PlayerState::ALIVE) return;
+    SpawnDeathEffect();
     m_PlayerState     = PlayerState::DEAD;
     m_DeadTimer       = 0;
     m_FireBulletTimer = -1;
+}
+
+void Player::SpawnEffect(int scriptIdx, glm::vec2 pos, float zIndex, glm::vec2 scale) {
+    for (auto& effect : m_DeathEffects) {
+        if (effect.active) continue;
+
+        effect.active = true;
+        effect.vm     = Anm::Vm{};
+        m_EffectAnm.SetScript(effect.vm, scriptIdx, Anm::EFF00.offset);
+        effect.vm.pos    = pos;
+        effect.vm.zIndex = zIndex;
+        effect.vm.scale  = scale;
+        if (effect.vm.obj) m_Renderer.AddChild(effect.vm.obj);
+        return;
+    }
+}
+
+void Player::SpawnDeathEffect() {
+    SpawnEffect(DEATH_GLOW_SCRIPT, m_BodyPos, 1.18f);
+
+    for (int i = 0; i < 16; ++i) {
+        const glm::vec2 offset = {
+            (static_cast<float>(std::rand() % 2001) / 1000.0f - 1.0f) * 18.0f,
+            (static_cast<float>(std::rand() % 2001) / 1000.0f - 1.0f) * 18.0f,
+        };
+        SpawnEffect(DEATH_PARTICLE_SCRIPT, m_BodyPos + offset, 1.19f, {0.85f, 0.85f});
+    }
+}
+
+void Player::UpdateEffects() {
+    for (auto& effect : m_DeathEffects) {
+        if (!effect.active) continue;
+
+        m_EffectAnm.UpdateObjects(effect.vm);
+        if (effect.vm.scriptIdx >= 0) continue;
+
+        if (effect.vm.obj) {
+            m_Renderer.RemoveChild(effect.vm.obj);
+            effect.vm.obj = nullptr;
+        }
+        effect.active = false;
+    }
 }
 
 int Player::CalcDamageToEnemy(glm::vec2 enemyPos, glm::vec2 enemyHitboxSize) {
@@ -118,6 +165,7 @@ void Player::Update(GameManager& gm) {
     m_BombRequested = false;
     if (gm.timeStopped) {
         m_Anm.UpdateObjects(m_Vms);
+        UpdateEffects();
         m_Renderer.Update();
         return;
     }
@@ -159,6 +207,7 @@ void Player::Update(GameManager& gm) {
     UpdatePlayerBullets();
     // ── ANM + render ──────────────────────────────────────────────────────────
     m_Anm.UpdateObjects(m_Vms);
+    UpdateEffects();
 
     // Override visibility after ANM update
     bool bodyVisible = true;

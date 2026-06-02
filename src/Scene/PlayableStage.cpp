@@ -13,8 +13,11 @@ static constexpr float   INTRO_CENTER_X         = -96.0f;
 static constexpr float   INTRO_STAGE_NO_SCALE   = 1.0f;
 static constexpr float   INTRO_STAGE_NAME_SCALE = 0.9f;
 static constexpr float   INTRO_SONG_SCALE       = 0.62f;
+static constexpr float   INTRO_SONG_ADVANCE_SCALE       = 0.86f;
 static constexpr int     MAX_DEBUG_LIVES        = 8;
 static constexpr int     MIN_BOMBS_AFTER_DEATH  = 3;
+static constexpr int     POWER_LOSS_ON_DEATH    = 16;
+static constexpr int     DEATH_POWER_SMALL_DROPS = 5;
 static constexpr float   BOMB_CLEAR_WAVE_SPEED  = 28.0f;
 static constexpr float   BOMB_CLEAR_WAVE_WIDTH  = 72.0f;
 static constexpr float   BOMB_CLEAR_WAVE_RADIUS = 640.0f;
@@ -41,7 +44,6 @@ PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
       m_Player(character, spellCard) {
     m_IntroAnm.LoadAnm(Anm::ASCII.folder, Anm::ASCII.txt, Anm::ASCII.offset);
 
-    m_ItemManager.SetGameManager(&m_GameManager);
     m_EnemyManager.SetItemManager(&m_ItemManager);
     m_EnemyManager.SetTimeline(LoadTimelineFromJson(m_Config.timelinePath));
     m_EnemyManager.SetScript(std::move(script));
@@ -49,18 +51,19 @@ PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
     SetupIntroAsciiLine(m_IntroStageNoLine, m_Config.stageNo, {INTRO_CENTER_X, 42.0f},
                         INTRO_STAGE_NO_SCALE, Util::AsciiTextAlign::Center, INTRO_STAGE_YELLOW);
     SetupIntroAsciiLine(m_IntroStageNameLine, m_Config.stageName, {INTRO_CENTER_X, 16.0f},
-                        INTRO_STAGE_NAME_SCALE, Util::AsciiTextAlign::Center, INTRO_LIGHT_CYAN);
+                        INTRO_STAGE_NAME_SCALE, Util::AsciiTextAlign::Center, INTRO_LIGHT_CYAN,
+                        m_Config.stageNameAdvanceScale);
     SetupIntroAsciiLine(m_IntroSongLine, m_Config.songName, INTRO_SONG_POS, INTRO_SONG_SCALE,
-                        Util::AsciiTextAlign::Right, INTRO_LIGHT_CYAN);
+                        Util::AsciiTextAlign::Right, INTRO_LIGHT_CYAN, INTRO_SONG_ADVANCE_SCALE);
     if (m_Config.hasStageClear) m_ClearOverlay.Init();
     UpdateStageIntro();
 }
 
 void PlayableStage::SetupIntroAsciiLine(Util::AsciiTextLine& line, const std::string& text,
                                         glm::vec2 pos, float scale, Util::AsciiTextAlign align,
-                                        const Util::Color& color) {
+                                        const Util::Color& color, float advanceScale) {
     line.Configure(m_IntroRenderer, m_IntroAnm, 30.0f);
-    line.SetText(text, pos, scale, align, color);
+    line.SetText(text, pos, scale, align, color, advanceScale);
 }
 
 void PlayableStage::UpdateStageIntro() {
@@ -164,6 +167,14 @@ void PlayableStage::UpdateBombClearWave() {
     }
 }
 
+void PlayableStage::DropPlayerPowerOnDeath(glm::vec2 pos) {
+    m_GameManager.power = std::max(0, m_GameManager.power - POWER_LOSS_ON_DEATH);
+    m_ItemManager.SpawnItem(pos, ItemType::PowerBig, 2);
+    for (int i = 0; i < DEATH_POWER_SMALL_DROPS; ++i) {
+        m_ItemManager.SpawnItem(pos, ItemType::PowerSmall, 2);
+    }
+}
+
 void PlayableStage::Update() {
     if (Util::Input::IsKeyDown(Util::Keycode::ESCAPE)) {
         m_StageMenu.Toggle();
@@ -200,6 +211,9 @@ void PlayableStage::Update() {
 
     m_GameManager.bombActive = m_Player.IsBombActive();
     m_ItemManager.Update(m_Player.GetPos(), m_GameManager);
+    if (m_ItemManager.ConsumeFullPowerActivated()) {
+        m_EnemyManager.TurnAllBulletsIntoPointItems();
+    }
     m_EnemyManager.Update(m_Player.GetPos(), m_GameManager);
     m_Player.Update(m_GameManager);
     if (!m_GameManager.timeStopped) {
@@ -219,6 +233,7 @@ void PlayableStage::Update() {
 
     if (m_Player.IsVulnerable() &&
         m_EnemyManager.CheckPlayerHit(m_Player.GetPos(), {PLAYER_HITBOX_X, PLAYER_HITBOX_Y})) {
+        if (m_GameManager.livesRemaining > 0) DropPlayerPowerOnDeath(m_Player.GetPos());
         m_Player.Die();
         if (m_GameManager.bombsRemaining < MIN_BOMBS_AFTER_DEATH) {
             m_GameManager.bombsRemaining = MIN_BOMBS_AFTER_DEATH;
@@ -237,6 +252,7 @@ void PlayableStage::Update() {
     const BossHudState bossHud = m_EnemyManager.GetBossHudState();
     OnAfterGameplayFrame(bossHud);
 
+    m_ItemManager.RenderPickupLabels();
     m_Gui.Update(m_GameManager, bossHud, true);
     UpdateStageIntro();
     m_IntroRenderer.Update();

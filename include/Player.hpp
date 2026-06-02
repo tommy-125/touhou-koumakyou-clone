@@ -3,6 +3,7 @@
 
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
+#include <array>
 #include <vector>
 
 #include "Anm/AnmDefs.hpp"
@@ -136,6 +137,11 @@ struct PlayerBullet {
     int         m_AliveTimer;
 };
 
+struct PlayerEffect {
+    bool    active = false;
+    Anm::Vm vm;
+};
+
 constexpr float      INV_SQRT2   = 0.70711f;  // Inverse of SQRT(2)
 constexpr PlayerData REIMU_DATA  = {4.0f, 2.0f, 4.0f * INV_SQRT2, 2.0f * INV_SQRT2, &Anm::PLAYER00};
 constexpr PlayerData MARISA_DATA = {5.0f, 2.5f, 5.0f * INV_SQRT2, 2.5f * INV_SQRT2, &Anm::PLAYER01};
@@ -159,11 +165,17 @@ class Player {
     bool             IsBombActive() const { return m_BombTimer > 0; }
 
    private:
+    static constexpr int MAX_DEATH_EFFECTS = 32;
+
     void SetMoveState(MoveState newState);
     void SetMoveScript(PlayerMovementScript script);
     void HandlePlayerInput();
     void HandleMovement();
     void UpdateState();
+    void SpawnDeathEffect();
+    void SpawnEffect(int scriptIdx, glm::vec2 pos, float zIndex = 1.2f,
+                     glm::vec2 scale = {1.0f, 1.0f});
+    void UpdateEffects();
 
     void             UpdateFireBulletsTimer();
     void             SpawnBullets();
@@ -209,8 +221,10 @@ class Player {
     PlayerBullet m_Bullets[100];  // Object pool for bullets
 
     Anm::Manager m_Anm;
+    Anm::Manager m_EffectAnm;
 
     std::vector<Anm::Vm> m_Vms;
+    std::array<PlayerEffect, MAX_DEATH_EFFECTS> m_DeathEffects{};
 
     Anm::Vm* m_BodyVm = nullptr;
 

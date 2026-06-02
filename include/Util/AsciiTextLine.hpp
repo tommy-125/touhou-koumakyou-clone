@@ -24,8 +24,10 @@ class AsciiTextLine {
     void Configure(Renderer& renderer, const Anm::Manager& anm, float zIndex);
     void SetText(const std::string& text, glm::vec2 pos, float scale = 1.0f,
                  AsciiTextAlign align = AsciiTextAlign::Left,
-                 const Color&   color = Color::FromRGB(255, 255, 255));
-    void SetLayout(glm::vec2 pos, float scale = 1.0f, AsciiTextAlign align = AsciiTextAlign::Left);
+                 const Color&   color = Color::FromRGB(255, 255, 255),
+                 float advanceScale = 1.0f);
+    void SetLayout(glm::vec2 pos, float scale = 1.0f,
+                   AsciiTextAlign align = AsciiTextAlign::Left, float advanceScale = 1.0f);
     void SetVisible(bool visible);
     void SetAlpha(float alpha);
     void SetZIndex(float zIndex);

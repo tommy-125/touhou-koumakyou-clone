@@ -23,13 +23,13 @@ struct Enemy {
     int       m_Score      = 100;
 
     // State
-    bool m_Alive         = false;
-    int  m_SubId         = -1;
-    int  m_FrameTimer    = 0;
-    bool m_Mirrored      = false;
-    bool m_RotateWithAngle = false;
-    int  m_ItemDrop      = -1;
-    int  m_ItemDropCount = 1;
+    bool m_Alive                = false;
+    int  m_SubId                = -1;
+    int  m_FrameTimer           = 0;
+    bool m_Mirrored             = false;
+    bool m_RotateWithAngle      = false;
+    int  m_ItemDrop             = -1;
+    int  m_ItemDropCount        = 1;
     int  m_DeathEffectPrimary   = 670;
     int  m_DeathEffectSecondary = 678;
 
@@ -42,16 +42,15 @@ struct Enemy {
     int   m_ScriptCounter      = 0;
 
     // Boss
-    bool m_IsBoss           = false;
-    bool m_CanTakeDamage    = true;
-    bool m_InSpellcard      = false;  // damage /7 during spellcard (TH6 behavior)
-    int  m_BossTimer        = 0;
-    int  m_BossMaxLife      = 1;
-    int  m_BossLifeCount    = 0;
-    int  m_SpellcardBonus   = 0;
-    bool m_ShowSpellName    = false;
-    int  m_DeathCallbackSub = -1;
-    bool m_SpawnDeathEffectOnRemoval = false;
+    bool        m_IsBoss           = false;
+    bool        m_CanTakeDamage    = true;
+    bool        m_InSpellcard      = false;  // damage /7 during spellcard (TH6 behavior)
+    int         m_BossTimer        = 0;
+    int         m_BossMaxLife      = 1;
+    int         m_BossLifeCount    = 0;
+    int         m_SpellcardBonus   = 0;
+    bool        m_ShowSpellName    = false;
+    int         m_DeathCallbackSub = -1;
     std::string m_BossTitle;
 
     int m_AnmDefault   = -1;

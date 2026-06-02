@@ -132,10 +132,11 @@ void RunMeilingSupportFairy(Enemy& enemy, EnemySubCtx& ctx, int t) {
     }
 
     if (t == 950) {
-        enemy.m_Angle = ScriptUtil::RandFloat(0.7853982f, 2.3561945f);
-        enemy.m_Speed = 1.5f;
+        enemy.m_Angle        = ScriptUtil::RandFloat(-2.3561945f, -0.7853982f);
+        enemy.m_Speed        = 2.0f;
+        enemy.m_Acceleration = 0.0f;
     }
-    if (t >= 10000) enemy.m_Alive = false;
+    if (t >= 1130) enemy.m_Alive = false;
 }
 
 void RunMeilingSecondNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {

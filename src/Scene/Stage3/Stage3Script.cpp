@@ -43,9 +43,8 @@ Stage3Script::Stage3Script() {
     });
     AddTimedRunOnlyPattern(SUB_MEILING_MIDBOSS_ESCAPE, [](Enemy& enemy, EnemySubCtx& ctx, int t) {
         if (t == 0) {
-            enemy.m_CanTakeDamage = false;
-            enemy.m_ShowSpellName = false;
-            enemy.m_InSpellcard   = false;
+            StageUtil::HideBossForExit(enemy);
+            enemy.m_BlocksTimeline = false;
             ctx.BulletCancelIntoPointItems();
         }
         if (t == 130) ctx.StartLerpTo(enemy, 192.0f, -64.0f, 60);

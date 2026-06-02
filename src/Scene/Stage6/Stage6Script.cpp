@@ -110,6 +110,8 @@ Stage6Script::Stage6Script() {
         if (t == 0) {
             ctx.SetTimeStopped(false);
             ctx.BulletCancelIntoPointItems();
+            StageUtil::HideBossForExit(enemy);
+            enemy.m_BlocksTimeline = false;
             ctx.StartLerpTo(enemy, 192.0f, -64.0f, 60);
         }
         if (t >= 60) enemy.m_Alive = false;
