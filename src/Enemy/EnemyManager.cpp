@@ -410,11 +410,13 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                 enemy.m_TimerCallbackSub       = -1;
                 if (sub >= 0) {
                     TurnAllBulletsIntoPointItems();
+                    DespawnAllNonBossEnemies();
                     SpawnDeathEffect(enemy);
                     enemy.m_SubId      = sub;
                     enemy.m_FrameTimer = -1;
                 } else {
                     TurnAllBulletsIntoPointItems();
+                    DespawnAllNonBossEnemies();
                     totalScore += enemy.m_Score;
                     SpawnDeathEffect(enemy);
                     enemy.m_Alive = false;

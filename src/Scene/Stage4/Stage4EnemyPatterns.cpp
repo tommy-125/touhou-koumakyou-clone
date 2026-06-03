@@ -34,6 +34,9 @@ void InitStage4BurstFamiliar(Enemy& enemy, EnemySubCtx& ctx) {
     const StageUtil::EnemyInitConfig config =
         StageUtil::LoadEnemyInitConfig(StageUtil::ConfigId::EnemyInit::Stage4BurstFamiliar);
     StageUtil::InitEnemy(enemy, ctx, config);
+    enemy.m_CanTakeDamage = false;
+    enemy.m_HitboxSize    = {0.0f, 0.0f};
+    enemy.m_ItemDropCount = 0;
 }
 
 void InitStage4SmallFairyEnemy(Enemy& enemy, EnemySubCtx& ctx) {
