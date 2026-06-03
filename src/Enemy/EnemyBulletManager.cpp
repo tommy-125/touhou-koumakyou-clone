@@ -102,6 +102,20 @@ void ResetBulletForSpawn(EnemyBullet& bullet) {
     bullet.m_Vm.obj = obj;
 }
 
+bool CanFastSyncBulletAnm(const Anm::Vm& vm) {
+    return vm.scriptIdx >= 0 && vm.isStopped && vm.pendingInterrupt == 0 && !vm.posInterp &&
+           !vm.fadeInterp && !vm.scaleInterp && vm.angleVel == 0.0f &&
+           vm.scaleSpeed.x == 0.0f && vm.scaleSpeed.y == 0.0f;
+}
+
+void UpdateBulletAnm(Anm::Manager& anm, EnemyBullet& bullet) {
+    if (CanFastSyncBulletAnm(bullet.m_Vm)) {
+        anm.SyncObject(bullet.m_Vm, false);
+        return;
+    }
+    anm.UpdateObjects(bullet.m_Vm);
+}
+
 }  // namespace
 
 EnemyBulletManager::EnemyBulletManager() {
@@ -469,7 +483,7 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
             if (b.m_RotateWithAngle) {
                 b.m_Vm.rotation = Util::HALF_PI - b.m_Angle;
             }
-            m_Anm.UpdateObjects(b.m_Vm);
+            UpdateBulletAnm(m_Anm, b);
         }
         Render();
         return;
@@ -570,7 +584,7 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
             b.m_Vm.rotation = bounced ? Util::HALF_PI - b.m_Angle
                                       : Util::HALF_PI - std::atan2(dy, dx);
         }
-        m_Anm.UpdateObjects(b.m_Vm);
+        UpdateBulletAnm(m_Anm, b);
 
         if (!bounced && !Util::IsInGameBounds(b.m_Pos.x, b.m_Pos.y, 0, 0)) {
             b.m_Alive = false;

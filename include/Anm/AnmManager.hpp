@@ -38,6 +38,9 @@ class Manager {
     /** Run one frame of script for a VM. Call once per frame per object. */
     void ExecuteScript(Vm& vm);
 
+    /** Sync current VM state to its GameObject without executing script instructions. */
+    void SyncObject(Vm& vm, bool syncDrawable = true);
+
     /** Execute scripts and sync all VM states to their corresponding GameObjects. */
     void UpdateObjects(std::vector<Vm>& vms);
     void UpdateObjects(Vm& vm);

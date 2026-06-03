@@ -116,6 +116,7 @@ struct Vm {
 
     // Rendering
     std::shared_ptr<Util::GameObject> obj;
+    bool objectSynced = false;
 };
 
 }  // namespace Anm
