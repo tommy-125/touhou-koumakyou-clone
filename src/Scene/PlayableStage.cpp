@@ -19,6 +19,7 @@ static constexpr int     MAX_DEBUG_LIVES        = 8;
 static constexpr int     MIN_BOMBS_AFTER_DEATH  = 3;
 static constexpr int     POWER_LOSS_ON_DEATH    = 16;
 static constexpr int     DEATH_POWER_SMALL_DROPS = 5;
+static constexpr int     GAME_OVER_FULL_POWER_DROPS = 5;
 static constexpr float   BOMB_CLEAR_WAVE_SPEED  = 28.0f;
 static constexpr float   BOMB_CLEAR_WAVE_WIDTH  = 72.0f;
 static constexpr float   BOMB_CLEAR_WAVE_RADIUS = 640.0f;
@@ -175,6 +176,14 @@ void PlayableStage::UpdateBombClearWave() {
 }
 
 void PlayableStage::DropPlayerPowerOnDeath(glm::vec2 pos) {
+    if (m_GameManager.livesRemaining <= 0) {
+        m_GameManager.power = 0;
+        for (int i = 0; i < GAME_OVER_FULL_POWER_DROPS; ++i) {
+            m_ItemManager.SpawnItem(pos, ItemType::FullPower, 2);
+        }
+        return;
+    }
+
     m_GameManager.power = std::max(0, m_GameManager.power - POWER_LOSS_ON_DEATH);
     m_ItemManager.SpawnItem(pos, ItemType::PowerBig, 2);
     for (int i = 0; i < DEATH_POWER_SMALL_DROPS; ++i) {
@@ -240,7 +249,7 @@ void PlayableStage::Update() {
 
     if (m_Player.IsVulnerable() &&
         m_EnemyManager.CheckPlayerHit(m_Player.GetPos(), {PLAYER_HITBOX_X, PLAYER_HITBOX_Y})) {
-        if (m_GameManager.livesRemaining > 0) DropPlayerPowerOnDeath(m_Player.GetPos());
+        DropPlayerPowerOnDeath(m_Player.GetPos());
         m_Player.Die();
         if (m_GameManager.bombsRemaining < MIN_BOMBS_AFTER_DEATH) {
             m_GameManager.bombsRemaining = MIN_BOMBS_AFTER_DEATH;

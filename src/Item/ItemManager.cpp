@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <memory>
 #include <string>
 
 #include "Anm/AnmDefs.hpp"
@@ -31,9 +32,22 @@ static constexpr int   POWER_ITEM_SCORE[POWER_ITEM_SCORE_COUNT] = {
     7000, 8000, 9000, 10000, 11000, 12000, 51200,
 };
 
+namespace {
+void ResetItemForSpawn(Item& item) {
+    auto obj = item.m_Vm.obj;
+    item = Item{};
+    item.m_Vm.obj = obj;
+}
+}  // namespace
+
 ItemManager::ItemManager() {
     m_Anm.LoadAnm(Anm::ETAMA3.folder, Anm::ETAMA3.txt, Anm::ETAMA3.offset);
     m_AsciiAnm.LoadAnm(Anm::ASCII.folder, Anm::ASCII.txt, Anm::ASCII.offset);
+
+    for (auto& item : m_Items) {
+        item.m_Vm.obj =
+            std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
+    }
 
     for (auto& label : m_PickupLabels) {
         label.line.Configure(m_LabelRenderer, m_AsciiAnm, PICKUP_LABEL_Z);
@@ -87,7 +101,7 @@ void ItemManager::SpawnItem(glm::vec2 pos, ItemType type, int state) {
 
         if (!m_Items[idx].m_Alive) {
             Item& item   = m_Items[idx];
-            item         = Item{};
+            ResetItemForSpawn(item);
             item.m_Alive = true;
             item.m_Pos   = pos;
             item.m_Vel   = {0.0f, ITEM_VEL_INIT_Y};
@@ -231,7 +245,6 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
             item.m_Alive = false;
             if (item.m_Vm.obj) {
                 m_Renderer.RemoveChild(item.m_Vm.obj);
-                item.m_Vm.obj = nullptr;
             }
             continue;
         }
@@ -241,7 +254,6 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
             item.m_Alive = false;
             if (item.m_Vm.obj) {
                 m_Renderer.RemoveChild(item.m_Vm.obj);
-                item.m_Vm.obj = nullptr;
             }
         }
     }

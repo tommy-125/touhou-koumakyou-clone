@@ -11,6 +11,11 @@
 
 static constexpr const char WHITE_PNG[] = GA_RESOURCE_DIR "/white.png";
 
+static std::shared_ptr<Util::Image> SharedLaserImage() {
+    static std::shared_ptr<Util::Image> image = std::make_shared<Util::Image>(WHITE_PNG);
+    return image;
+}
+
 static void RemoveLaserObjects(EnemyLaser& l, Util::Renderer& renderer) {
     if (l.m_Obj) {
         renderer.RemoveChild(l.m_Obj);
@@ -122,7 +127,7 @@ void EnemyLaserManager::SpawnAimed(glm::vec2 pos, glm::vec2 playerPos, float len
     float angle = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x);
     InitLaser(l, pos, angle, length, maxWidth, startTime, duration, endTime, hitboxStart,
               hitboxEnd, 0.0f, speed, -1, 0.0f);
-    l->m_Img = std::make_shared<Util::Image>(WHITE_PNG);
+    l->m_Img = SharedLaserImage();
     l->m_Obj = std::make_shared<Util::GameObject>(l->m_Img, 3.0f);
     l->m_CoreObj = std::make_shared<Util::GameObject>(l->m_Img, 3.1f);
     l->m_Obj->SetVisible(false);
@@ -140,7 +145,7 @@ void EnemyLaserManager::SpawnAtAngle(glm::vec2 pos, float angle, float length, f
     RemoveLaserObjects(*l, m_Renderer);
     InitLaser(l, pos, angle, length, maxWidth, startTime, duration, endTime, hitboxStart,
               hitboxEnd, angularVelocity, speed, angularVelocityFrames, startOffset);
-    l->m_Img = std::make_shared<Util::Image>(WHITE_PNG);
+    l->m_Img = SharedLaserImage();
     l->m_Obj = std::make_shared<Util::GameObject>(l->m_Img, 3.0f);
     l->m_CoreObj = std::make_shared<Util::GameObject>(l->m_Img, 3.1f);
     l->m_Obj->SetVisible(false);

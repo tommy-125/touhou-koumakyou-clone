@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <memory>
 
 #include "Audio/AudioManager.hpp"
 #include "GameManager.hpp"
@@ -32,6 +33,10 @@ constexpr int   EFF_DEATH_ANM_682          = Anm::EFF00.offset + 11;
 
 EnemyManager::EnemyManager() {
     m_EffectAnm.LoadAnm(Anm::EFF00.folder, Anm::EFF00.txt, Anm::EFF00.offset);
+    for (auto& effect : m_Effects) {
+        effect.vm.obj =
+            std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
+    }
 }
 
 void EnemyManager::TurnAllBulletsIntoPointItems() {
@@ -354,6 +359,7 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
     int totalScore = 0;
     for (auto& enemy : m_Enemies) {
         if (!enemy.m_Alive) continue;
+        if (!enemy.m_IsBoss && !enemy.m_CanTakeDamage) continue;
 
         int dmg = player.CalcDamageToEnemy(enemy.m_Pos, enemy.m_HitboxSize);
         if (dmg <= 0) continue;
@@ -474,8 +480,10 @@ void EnemyManager::SpawnEffect(int scriptIdx, const glm::vec2& pos, float zIndex
     for (auto& effect : m_Effects) {
         if (effect.active) continue;
 
+        auto obj = effect.vm.obj;
+        effect = EffectInstance{};
         effect.active = true;
-        effect.vm     = Anm::Vm{};
+        effect.vm.obj = obj;
         m_EffectAnm.SetScript(effect.vm, scriptIdx, Anm::EFF00.offset);
         effect.vm.pos    = pos;
         effect.vm.zIndex = zIndex;
@@ -535,7 +543,6 @@ void EnemyManager::UpdateEffects() {
 
         if (effect.vm.obj) {
             m_Renderer.RemoveChild(effect.vm.obj);
-            effect.vm.obj = nullptr;
         }
         effect.active = false;
     }

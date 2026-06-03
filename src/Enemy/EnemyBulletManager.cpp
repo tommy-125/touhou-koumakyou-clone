@@ -96,11 +96,20 @@ bool AutoRotatesWithAngle(EBulletType type) {
            type == EBulletType::Dagger;
 }
 
+void ResetBulletForSpawn(EnemyBullet& bullet) {
+    auto obj = bullet.m_Vm.obj;
+    bullet = EnemyBullet{};
+    bullet.m_Vm.obj = obj;
+}
+
 }  // namespace
 
 EnemyBulletManager::EnemyBulletManager() {
     m_Anm.LoadAnm(Anm::ETAMA3.folder, Anm::ETAMA3.txt, Anm::ETAMA3.offset);
     m_Anm.LoadAnm(Anm::ETAMA4.folder, Anm::ETAMA4.txt, Anm::ETAMA4.offset);
+    for (auto& bullet : m_Bullets) {
+        bullet.m_Vm.obj = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
+    }
 }
 
 EnemyBullet* EnemyBulletManager::AllocBullet() {
@@ -115,7 +124,6 @@ EnemyBullet* EnemyBulletManager::AllocBullet() {
     EnemyBullet* b = &m_Bullets[m_NextIdx];
     if (b->m_Vm.obj) {
         m_Renderer.RemoveChild(b->m_Vm.obj);
-        b->m_Vm.obj = nullptr;
     }
     m_NextIdx = (m_NextIdx + 1) % MAX_BULLETS;
     return b;
@@ -140,7 +148,7 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
         if (i & 1) delta = -delta;
 
         EnemyBullet* b       = AllocBullet();
-        *b                   = EnemyBullet{};
+        ResetBulletForSpawn(*b);
         b->m_Alive           = true;
         b->m_Pos             = pos;
         b->m_Type            = type;
@@ -192,7 +200,7 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
 
     for (int i = 0; i < count; i++) {
         EnemyBullet* b         = AllocBullet();
-        *b                     = EnemyBullet{};
+        ResetBulletForSpawn(*b);
         b->m_Alive             = true;
         b->m_Pos               = pos;
         b->m_Type              = type;
@@ -237,7 +245,7 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
 
     for (int i = 0; i < count; i++) {
         EnemyBullet* b = AllocBullet();
-        *b             = EnemyBullet{};
+        ResetBulletForSpawn(*b);
         b->m_Alive     = true;
         b->m_Pos       = pos;
         b->m_Type      = type;
@@ -359,7 +367,7 @@ int EnemyBulletManager::Stage6CreateSeedsFromLargeBullets() {
         }
 
         EnemyBullet* b = AllocBullet();
-        *b             = EnemyBullet{};
+        ResetBulletForSpawn(*b);
         b->m_Alive     = true;
         b->m_Pos       = source.m_Pos;
         b->m_Type      = EBulletType::Ball;
@@ -415,7 +423,6 @@ void EnemyBulletManager::ClearAll() {
         b.m_Alive = false;
         if (b.m_Vm.obj) {
             m_Renderer.RemoveChild(b.m_Vm.obj);
-            b.m_Vm.obj = nullptr;
         }
     }
 }
@@ -428,7 +435,6 @@ void EnemyBulletManager::TurnAllBulletsIntoPointItems(ItemManager& items) {
         b.m_Alive = false;
         if (b.m_Vm.obj) {
             m_Renderer.RemoveChild(b.m_Vm.obj);
-            b.m_Vm.obj = nullptr;
         }
     }
 }
@@ -451,7 +457,6 @@ void EnemyBulletManager::TurnBulletsIntoPointItemsInRadiusRange(ItemManager& ite
         b.m_Alive = false;
         if (b.m_Vm.obj) {
             m_Renderer.RemoveChild(b.m_Vm.obj);
-            b.m_Vm.obj = nullptr;
         }
     }
 }
@@ -571,7 +576,6 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
             b.m_Alive = false;
             if (b.m_Vm.obj) {
                 m_Renderer.RemoveChild(b.m_Vm.obj);
-                b.m_Vm.obj = nullptr;
             }
         }
     }
