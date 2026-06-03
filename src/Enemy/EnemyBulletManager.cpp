@@ -91,7 +91,9 @@ glm::vec2 BulletHitboxSize(EBulletType type) {
 }
 
 bool AutoRotatesWithAngle(EBulletType type) {
-    return type == EBulletType::Rice;
+    return type == EBulletType::Rice || type == EBulletType::Kunai ||
+           type == EBulletType::Shard || type == EBulletType::Fireball ||
+           type == EBulletType::Dagger;
 }
 
 }  // namespace
