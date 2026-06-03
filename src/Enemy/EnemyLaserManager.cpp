@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "Audio/AudioManager.hpp"
 #include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
 
@@ -128,6 +129,7 @@ void EnemyLaserManager::SpawnAimed(glm::vec2 pos, glm::vec2 playerPos, float len
     l->m_CoreObj->SetVisible(false);
     m_Renderer.AddChild(l->m_Obj);
     m_Renderer.AddChild(l->m_CoreObj);
+    AudioManager::Instance().Play(SoundEffect::Laser, 4);
 }
 
 void EnemyLaserManager::SpawnAtAngle(glm::vec2 pos, float angle, float length, float maxWidth,
@@ -145,6 +147,7 @@ void EnemyLaserManager::SpawnAtAngle(glm::vec2 pos, float angle, float length, f
     l->m_CoreObj->SetVisible(false);
     m_Renderer.AddChild(l->m_Obj);
     m_Renderer.AddChild(l->m_CoreObj);
+    AudioManager::Instance().Play(SoundEffect::Laser, 4);
 }
 
 void EnemyLaserManager::Update() {

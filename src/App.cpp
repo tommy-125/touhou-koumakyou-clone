@@ -1,5 +1,6 @@
 #include "App.hpp"
 
+#include "Audio/AudioManager.hpp"
 #include "Scene/Loading.hpp"
 #include "Util/Input.hpp"
 #include "Util/Logger.hpp"
@@ -10,6 +11,8 @@ void App::Start() {
 }
 
 void App::Update() {
+    AudioManager::Instance().Tick();
+
     if (Util::Input::IfExit()) {
         m_Done = true;
         return;
@@ -27,6 +30,8 @@ void App::Update() {
             m_Done = true;
         }
     }
+
+    AudioManager::Instance().Flush();
 }
 
 void App::End() {

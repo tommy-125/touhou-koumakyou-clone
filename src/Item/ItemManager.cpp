@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Anm/AnmDefs.hpp"
+#include "Audio/AudioManager.hpp"
 #include "GameManager.hpp"
 #include "Util/Math.hpp"
 
@@ -163,6 +164,7 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                     if (oldPower < 128 && gm.power >= 128) {
                         m_FullPowerActivated = true;
                         SpawnPickupLabel(item.m_Pos, "MAX POWER");
+                        AudioManager::Instance().Play(SoundEffect::PowerUp);
                     } else {
                         SpawnPickupLabel(item.m_Pos, std::to_string(itemScore));
                     }
@@ -183,6 +185,7 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                     if (oldPower < 128 && gm.power >= 128) {
                         m_FullPowerActivated = true;
                         SpawnPickupLabel(item.m_Pos, "MAX POWER");
+                        AudioManager::Instance().Play(SoundEffect::PowerUp);
                     } else {
                         SpawnPickupLabel(item.m_Pos, std::to_string(itemScore));
                     }
@@ -213,14 +216,17 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                         gm.power              = 128;
                         m_FullPowerActivated = true;
                         SpawnPickupLabel(item.m_Pos, "MAX POWER");
+                        AudioManager::Instance().Play(SoundEffect::PowerUp);
                     }
                     gm.score += 1000;
                     SpawnPickupLabel(item.m_Pos, "1000");
                     break;
                 case ItemType::Life:
                     gm.livesRemaining = std::min(MAX_LIVES, gm.livesRemaining + 1);
+                    AudioManager::Instance().Play(SoundEffect::Extend);
                     break;
             }
+            AudioManager::Instance().Play(SoundEffect::ItemPickup);
             if (gm.score > gm.highScore) gm.highScore = gm.score;
             item.m_Alive = false;
             if (item.m_Vm.obj) {

@@ -25,6 +25,8 @@ StageConfig ParseStageConfig(const nlohmann::json& json) {
     config.playable.stageNo               = json.at("stageNo").get<std::string>();
     config.playable.stageName             = json.at("stageName").get<std::string>();
     config.playable.songName              = json.at("songName").get<std::string>();
+    config.playable.stageBgmPath          = json.at("stageBgmPath").get<std::string>();
+    config.playable.bossBgmPath           = json.at("bossBgmPath").get<std::string>();
     config.playable.stageNameAdvanceScale =
         json.value("stageNameAdvanceScale", config.playable.stageNameAdvanceScale);
     config.playable.bossSkipFrame         = json.value("bossSkipFrame", -1);

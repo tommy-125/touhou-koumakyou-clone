@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 
+#include "Audio/AudioManager.hpp"
 #include "Item/ItemManager.hpp"
 #include "Util/Math.hpp"
 
@@ -121,6 +122,7 @@ EnemyBullet* EnemyBulletManager::AllocBullet() {
 void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBulletType type,
                                        EBulletColor color, int count, float speed, float aimOffset,
                                        float spread, bool useDecay, bool rotateWithAngle) {
+    AudioManager::Instance().Play(SoundEffect::EnemyShoot, 1);
     int scriptIdx = BulletScriptIdx(type);
     int sprOffset = BulletSpriteOffset(type, color);
 
@@ -180,6 +182,7 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
                                           int accelerationFrames, BulletCurve curve,
                                           bool rotateWithAngle, float angularVelocity,
                                           int angularVelocityFrames) {
+    AudioManager::Instance().Play(SoundEffect::EnemyShoot, 1);
     int   scriptIdx = BulletScriptIdx(type);
     int   sprOffset = BulletSpriteOffset(type, color);
     float aimAngle  = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x) + aimOffset;
@@ -225,6 +228,7 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
                                      float spawnMoveScale, BulletCurve curve,
                                      bool bounceTopAndSides, int bounceMax, float bounceSpeed,
                                      float angularVelocity, int angularVelocityFrames) {
+    AudioManager::Instance().Play(SoundEffect::EnemyShoot, 1);
     int   scriptIdx = BulletScriptIdx(type);
     int   sprOffset = BulletSpriteOffset(type, color);
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;

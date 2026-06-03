@@ -90,6 +90,7 @@ struct CharacterPowerBulletData {  // Bullet data for one bullet
     BulletType m_BulletType;
     int        m_SpriteOffset;  // Base sprite offset for the ANM entry
     int        m_ScriptIdx;     // Global script index for this bullet
+    bool       m_PlayShootSound = false;
 };
 
 struct CharacterPowerData {  // Record bullet data depending on power level

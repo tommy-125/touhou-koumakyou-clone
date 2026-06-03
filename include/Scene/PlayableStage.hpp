@@ -25,6 +25,8 @@ struct PlayableStageConfig {
     std::string stageNo;
     std::string stageName;
     std::string songName;
+    std::string stageBgmPath;
+    std::string bossBgmPath;
     float stageNameAdvanceScale = 0.8f;
     int bossSkipFrame = -1;
     int midbossSkipFrame = -1;
@@ -86,6 +88,7 @@ class PlayableStage : public Scene {
     bool                              m_ReturnToTitle = false;
     bool                              m_GameOver      = false;
     bool                              m_FinalBossWasSeen = false;
+    bool                              m_BossMusicStarted = false;
     bool                              m_BombClearWaveActive = false;
     glm::vec2                         m_BombClearWaveOrigin = {};
     int                               m_BombClearWaveTimer  = 0;

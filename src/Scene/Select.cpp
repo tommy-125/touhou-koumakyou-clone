@@ -4,6 +4,7 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
+#include "Audio/AudioManager.hpp"
 #include "Scene/Stage1/Stage1.hpp"
 #include "Scene/Stage2/Stage2.hpp"
 #include "Scene/Stage3/Stage3.hpp"
@@ -149,6 +150,7 @@ bool Select::HandleDebugStageShortcut() {
 
     for (const auto& shortcut : shortcuts) {
         if (Util::Input::IsKeyDown(shortcut.key)) {
+            AudioManager::Instance().Play(SoundEffect::MenuConfirm);
             m_DebugStartStage = shortcut.stage;
             m_Done            = true;
             return true;
@@ -159,15 +161,19 @@ bool Select::HandleDebugStageShortcut() {
 
 void Select::UpdateDifficultySelect() {
     if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
+        AudioManager::Instance().Play(SoundEffect::MenuMove);
         m_SelectedDifficultyItemIdx =
             (m_SelectedDifficultyItemIdx - 1 + SELECT_DIFFICULTY_COUNT) % SELECT_DIFFICULTY_COUNT;
     } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
+        AudioManager::Instance().Play(SoundEffect::MenuMove);
         m_SelectedDifficultyItemIdx =
             (m_SelectedDifficultyItemIdx + 1) % SELECT_DIFFICULTY_COUNT;
     } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
+        AudioManager::Instance().Play(SoundEffect::MenuConfirm);
         m_CurrentState = SelectState::Character;
         HandleInterruptEvent(SelectEvent::EnterCharaSelect);
     } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
+        AudioManager::Instance().Play(SoundEffect::MenuBack);
         HandleInterruptEvent(SelectEvent::ReturnTitle);
         m_EnterSelectBlackMask.Fade(30, 1.0f);
         m_Quitting = true;
@@ -177,16 +183,20 @@ void Select::UpdateDifficultySelect() {
 
 void Select::UpdateCharacterSelect() {
     if (Util::Input::IsKeyDown(Util::Keycode::LEFT)) {
+        AudioManager::Instance().Play(SoundEffect::MenuMove);
         m_SelectedCharacterItemIdx =
             (m_SelectedCharacterItemIdx - 1 + SELECT_CHARACTER_COUNT) % SELECT_CHARACTER_COUNT;
         HandleInterruptEvent(SelectEvent::SwapCharaItemLeft);
     } else if (Util::Input::IsKeyDown(Util::Keycode::RIGHT)) {
+        AudioManager::Instance().Play(SoundEffect::MenuMove);
         m_SelectedCharacterItemIdx = (m_SelectedCharacterItemIdx + 1) % SELECT_CHARACTER_COUNT;
         HandleInterruptEvent(SelectEvent::SwapCharaItemRight);
     } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
+        AudioManager::Instance().Play(SoundEffect::MenuConfirm);
         m_CurrentState = SelectState::SpellCard;
         HandleInterruptEvent(SelectEvent::EnterSpellCardSelect);
     } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
+        AudioManager::Instance().Play(SoundEffect::MenuBack);
         m_CurrentState = SelectState::Difficulty;
         HandleInterruptEvent(SelectEvent::ReturnDifficultySelect);
     }
@@ -195,13 +205,17 @@ void Select::UpdateCharacterSelect() {
 
 void Select::UpdateSpellCardSelect() {
     if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
+        AudioManager::Instance().Play(SoundEffect::MenuMove);
         m_SelectedSpellCardItemIdx =
             (m_SelectedSpellCardItemIdx - 1 + SELECT_SPELLCARD_COUNT) % SELECT_SPELLCARD_COUNT;
     } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
+        AudioManager::Instance().Play(SoundEffect::MenuMove);
         m_SelectedSpellCardItemIdx = (m_SelectedSpellCardItemIdx + 1) % SELECT_SPELLCARD_COUNT;
     } else if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
+        AudioManager::Instance().Play(SoundEffect::MenuConfirm);
         m_Quitting = true;
     } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
+        AudioManager::Instance().Play(SoundEffect::MenuBack);
         m_CurrentState = SelectState::Character;
         HandleInterruptEvent(SelectEvent::ReturnCharaSelect);
     }

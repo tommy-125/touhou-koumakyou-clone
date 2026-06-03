@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "Audio/AudioManager.hpp"
+
 namespace BossPhaseUtil {
 
 void StartPhase(Enemy& enemy, const EnemySubCtx& ctx, const PhaseConfig& config) {
@@ -26,6 +28,9 @@ void StartPhase(Enemy& enemy, const EnemySubCtx& ctx, const PhaseConfig& config)
 
     if (config.cancelBullets) {
         ctx.BulletCancelIntoPointItems();
+    }
+    if (config.spell) {
+        AudioManager::Instance().Play(SoundEffect::SpellStart);
     }
 }
 

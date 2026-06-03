@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "Anm/AnmDefs.hpp"
+#include "Audio/AudioManager.hpp"
 #include "Scene/TimelineLoader.hpp"
 #include "Util/Input.hpp"
 
@@ -42,6 +43,7 @@ PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
       m_Config(std::move(config)),
       m_GameManager(gameManager),
       m_Player(character, spellCard) {
+    AudioManager::Instance().PlayMusic(m_Config.stageBgmPath, 500);
     m_IntroAnm.LoadAnm(Anm::ASCII.folder, Anm::ASCII.txt, Anm::ASCII.offset);
 
     m_EnemyManager.SetItemManager(&m_ItemManager);
@@ -119,6 +121,11 @@ bool PlayableStage::HandleStageOverlay() {
 }
 
 void PlayableStage::OnAfterGameplayFrame(const BossHudState& bossHud) {
+    if (!m_BossMusicStarted && bossHud.visible && m_Config.bossSkipFrame >= 0 &&
+        m_EnemyManager.GetTimelineFrame() >= m_Config.bossSkipFrame) {
+        AudioManager::Instance().PlayMusic(m_Config.bossBgmPath, 500);
+        m_BossMusicStarted = true;
+    }
     UpdateFinalBossClearFlow(bossHud);
 }
 

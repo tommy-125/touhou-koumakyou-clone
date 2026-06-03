@@ -1,6 +1,7 @@
 #include "Scene/StageMenu.hpp"
 
 #include "Anm/AnmDefs.hpp"
+#include "Audio/AudioManager.hpp"
 #include "Util/Input.hpp"
 
 namespace {
@@ -62,6 +63,7 @@ void StageMenu::Close() {
 
 void StageMenu::Toggle() {
     if (m_State == State::Closed) {
+        AudioManager::Instance().Play(SoundEffect::MenuBack);
         OpenPauseMenu();
     } else {
         HideScripts(0, 3);
@@ -77,10 +79,12 @@ void StageMenu::UpdateInput() {
 
         if (Util::Input::IsKeyDown(Util::Keycode::UP) ||
             Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
+            AudioManager::Instance().Play(SoundEffect::MenuMove);
             m_MenuIndex = 1 - m_MenuIndex;
         }
 
         if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
+            AudioManager::Instance().Play(SoundEffect::MenuConfirm);
             if (m_MenuIndex == 0) {
                 HideScripts(0, 3);
                 m_State = State::ClosingResume;
@@ -101,10 +105,12 @@ void StageMenu::UpdateInput() {
 
         if (Util::Input::IsKeyDown(Util::Keycode::UP) ||
             Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
+            AudioManager::Instance().Play(SoundEffect::MenuMove);
             m_ConfirmIndex = 1 - m_ConfirmIndex;
         }
 
         if (Util::Input::IsKeyDown(Util::Keycode::Z)) {
+            AudioManager::Instance().Play(SoundEffect::MenuConfirm);
             if (m_ConfirmIndex == 0) {
                 HideScripts(3, 3);
                 m_State = State::ClosingQuit;

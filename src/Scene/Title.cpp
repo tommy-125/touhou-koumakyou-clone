@@ -2,12 +2,14 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Anm/AnmManager.hpp"
+#include "Audio/AudioManager.hpp"
 #include "Scene/Select.hpp"
 #include "Util/BlackMask.hpp"
 #include "Util/Image.hpp"
 #include "Util/Input.hpp"
 
 Title::Title() : m_MainMenuBlackMask(0.5f, 0.0f), m_LeaveMainMenuBlackMask(2.0f, 0.0f) {
+    AudioManager::Instance().PlayMusic("th06c/th06c_BGM/th06_01.wav", 500);
     // Background
     auto bgImage =
         std::make_shared<Util::Image>(GA_RESOURCE_DIR "/th06c/th06c_TL_output/no_anm/title00.jpg");
@@ -60,6 +62,7 @@ void Title::Update() {
         case TitleState::Title:
             if (Util::Input::IsKeyDown(Util::Keycode::Z) ||
                 Util::Input::IsKeyDown(Util::Keycode::X)) {
+                AudioManager::Instance().Play(SoundEffect::MenuConfirm);
                 m_CurrentState = TitleState::MainMenu;
                 for (auto& vm : m_Vms) {
                     m_Anm.SendInterrupt(vm, TITLE_INTERRUPT_ENTER_MAINMENU);
@@ -69,6 +72,7 @@ void Title::Update() {
             break;
         case TitleState::MainMenu: {
             if (Util::Input::IsKeyDown(Util::Keycode::UP)) {
+                AudioManager::Instance().Play(SoundEffect::MenuMove);
                 m_SelectedMenuItemIdx =
                     (m_SelectedMenuItemIdx - 1 + TITLE_MENU_COUNT) %
                     TITLE_MENU_COUNT;  // add TITLE_MENU_COUNT before mod to avoid negative
@@ -79,6 +83,7 @@ void Title::Update() {
                 }
 
             } else if (Util::Input::IsKeyDown(Util::Keycode::DOWN)) {
+                AudioManager::Instance().Play(SoundEffect::MenuMove);
                 m_SelectedMenuItemIdx =
                     (m_SelectedMenuItemIdx + 1) % TITLE_MENU_COUNT;  // wrap around
                 if (static_cast<TitleMenuItem>(m_SelectedMenuItemIdx) ==
@@ -86,6 +91,7 @@ void Title::Update() {
                     m_SelectedMenuItemIdx = (m_SelectedMenuItemIdx + 1) % TITLE_MENU_COUNT;
                 }
             } else if (Util::Input::IsKeyDown(Util::Keycode::X)) {
+                AudioManager::Instance().Play(SoundEffect::MenuBack);
                 m_SelectedMenuItemIdx = static_cast<int>(TitleMenuItem::Quit);
             }
             m_SelectedMenuItem = static_cast<TitleMenuItem>(m_SelectedMenuItemIdx);
@@ -158,6 +164,7 @@ std::unique_ptr<Scene> Title::NextScene() {
 }
 
 void Title::LeaveMainMenu(bool quit) {
+    AudioManager::Instance().Play(SoundEffect::MenuConfirm);
     for (auto& vm : m_Vms) {
         m_Anm.SendInterrupt(vm, TITLE_INTERRUPT_LEAVE_MAINMENU);
     }

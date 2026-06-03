@@ -5,6 +5,7 @@
 #include <string>
 #include <utility>
 
+#include "Audio/AudioManager.hpp"
 #include "GameManager.hpp"
 #include "Item/ItemManager.hpp"
 #include "Player.hpp"
@@ -353,10 +354,11 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
     int totalScore = 0;
     for (auto& enemy : m_Enemies) {
         if (!enemy.m_Alive) continue;
-        if (!enemy.m_CanTakeDamage) continue;
 
         int dmg = player.CalcDamageToEnemy(enemy.m_Pos, enemy.m_HitboxSize);
         if (dmg <= 0) continue;
+        // Invulnerable bosses still collide with player shots; only damage/score are gated.
+        if (!enemy.m_CanTakeDamage) continue;
 
         // TH6: damage capped at 70/frame, hit score = (dmg/5)*10 on capped value,
         // spellcard divides damage by 7 (min 1).
@@ -366,6 +368,9 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
             dmg = (dmg > 7) ? dmg / 7 : 1;
         }
         enemy.m_Life -= dmg;
+        if (enemy.m_IsBoss) {
+            AudioManager::Instance().Play(SoundEffect::BossDamage);
+        }
 
         // Boss overshoot guard: if a single hit crosses below a pending life callback
         // threshold, clamp to threshold and trigger the callback instead of death. Prevents
@@ -505,6 +510,7 @@ int EnemyManager::GetDeathSecondaryScript(int deathAnm2) const {
 }
 
 void EnemyManager::SpawnDeathEffect(const Enemy& enemy) {
+    AudioManager::Instance().Play(SoundEffect::EnemyDeath);
     const glm::vec2 pos = enemy.m_Pos;
     const int       primaryScript = GetDeathPrimaryScript(enemy.m_DeathEffectPrimary);
     const int       secondaryScript = GetDeathSecondaryScript(enemy.m_DeathEffectSecondary);

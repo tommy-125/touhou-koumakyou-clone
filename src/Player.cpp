@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "BulletData.hpp"
+#include "Audio/AudioManager.hpp"
 #include "GameManager.hpp"
 #include "Util/Input.hpp"
 #include "Util/Math.hpp"
@@ -53,6 +54,7 @@ Player::Player(CharacterItem character, SpellCardItem spellCard)
 
 void Player::Die() {
     if (m_PlayerState != PlayerState::ALIVE) return;
+    AudioManager::Instance().Play(SoundEffect::PlayerDeath);
     SpawnDeathEffect();
     m_PlayerState     = PlayerState::DEAD;
     m_DeadTimer       = 0;
@@ -344,6 +346,7 @@ bool Player::TryUseBomb(GameManager& gm) {
 
     --gm.bombsRemaining;
     m_BombTimer = PLAYER_BOMB_INVUL_FRAMES;
+    AudioManager::Instance().Play(SoundEffect::Bomb);
     return true;
 }
 
@@ -425,6 +428,9 @@ FireBulletResult Player::FireSingleBullet(PlayerBullet* bullet, int bulletIdx,
             bullet->m_LaserOffset          = bulletData->m_SpawnOffset;
             bullet->m_LaserSpawnPositionIdx = bulletData->m_SpawnPositionIdx;
             bullet->m_AliveTimer           = PLAYER_LASER_HOLD_FRAMES;
+            if (bulletData->m_PlayShootSound) {
+                AudioManager::Instance().Play(SoundEffect::PlayerShoot);
+            }
             return bulletIdx + 1 >= powerData->m_NumBullets ? FireBulletResult::FIRED_AND_LAST
                                                             : FireBulletResult::FIRED;
         }
@@ -446,6 +452,9 @@ FireBulletResult Player::FireSingleBullet(PlayerBullet* bullet, int bulletIdx,
         bullet->m_BulletType = bulletData->m_BulletType;
         bullet->m_Velocity   = {bullet->m_Speed * cos(bullet->m_Angle),
                                 bullet->m_Speed * sin(bullet->m_Angle)};
+        if (bulletData->m_PlayShootSound) {
+            AudioManager::Instance().Play(SoundEffect::PlayerShoot);
+        }
         return bulletIdx + 1 >= powerData->m_NumBullets ? FireBulletResult::FIRED_AND_LAST
                                                         : FireBulletResult::FIRED;
     }
