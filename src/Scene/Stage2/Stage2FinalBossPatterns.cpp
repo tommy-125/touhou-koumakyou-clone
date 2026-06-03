@@ -85,10 +85,14 @@ void RunCirnoNonspellAttackA(Enemy& enemy, EnemySubCtx& ctx, int t) {
         if (local <= 10 && local % 2 == 0) {
             const int   fanIdx = local / 2;
             const float spread = 0.05609987f + static_cast<float>(cycle) * 0.049087387f;
-            ctx.bullets.SpawnFanAimed(
-                ScriptUtil::ShootPos(enemy, CIRNO_SHOOT_OFFSET), ctx.playerPos, EBulletType::Shard,
-                EBulletColor::Blue, fanIdx + 1, 5.0f - static_cast<float>(fanIdx) * 0.5f,
-                0.0f, spread, false, true);
+            const glm::vec2 shootPos = ScriptUtil::ShootPos(enemy, CIRNO_SHOOT_OFFSET);
+            if (local == 0) enemy.m_LockedShotAngle = AimAngle(shootPos, ctx.playerPos);
+            const glm::vec2 target =
+                shootPos + glm::vec2{std::cos(enemy.m_LockedShotAngle),
+                                      std::sin(enemy.m_LockedShotAngle)};
+            ctx.bullets.SpawnFanAimed(shootPos, target, EBulletType::Shard, EBulletColor::Blue,
+                                      fanIdx + 1, 5.0f - static_cast<float>(fanIdx) * 0.5f, 0.0f,
+                                      spread, false, true);
         }
     }
     if (t == 251) ctx.TransitionToSub(enemy, SUB_CIRNO_NONSPELL_ATTACK_B);
