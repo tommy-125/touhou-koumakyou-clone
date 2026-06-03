@@ -70,6 +70,7 @@ void RunCirnoEntry(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunCirnoFirstNonspellInit(Enemy& enemy, EnemySubCtx& ctx, int t) {
+    if (t == 0) enemy.m_ScriptCounter = 0;
     if (t == 20) enemy.m_CanTakeDamage = true;
     if (t == 70) ctx.TransitionToSub(enemy, SUB_CIRNO_NONSPELL_ATTACK_A);
 }
@@ -94,24 +95,34 @@ void RunCirnoNonspellAttackA(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunCirnoNonspellAttackB(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    const int loopT = t % 100;
-    if (loopT == 20 && t < 300) {
-        ScriptUtil::StartRandomMove(enemy, ctx, 3.0f, 60);
-        ctx.bullets.SpawnCircleAimed(ScriptUtil::ShootPos(enemy, CIRNO_SHOOT_OFFSET),
-                                     ctx.playerPos, EBulletType::RingBall, EBulletColor::Blue, 16,
-                                     2.0f);
+    const int delayScale  = enemy.m_ScriptCounter;
+    const int cycleLength = 100 + delayScale * 11;
+    const int endTime     = 1 + cycleLength * 3;
+
+    for (int cycle = 0; cycle < 3; ++cycle) {
+        const int cycleStart = 1 + cycle * cycleLength;
+        if (t == cycleStart + 20) {
+            ScriptUtil::StartRandomMove(enemy, ctx, 3.0f, 60);
+            ctx.bullets.SpawnCircleAimed(ScriptUtil::ShootPos(enemy, CIRNO_SHOOT_OFFSET),
+                                         ctx.playerPos, EBulletType::RingBall,
+                                         EBulletColor::Blue, 16, 2.0f);
+        }
+        if (t == cycleStart + 40 + delayScale * 3) {
+            ctx.bullets.SpawnCircleAimed(ScriptUtil::ShootPos(enemy, CIRNO_SHOOT_OFFSET),
+                                         ctx.playerPos, EBulletType::Shard, EBulletColor::White,
+                                         32, 3.0f, 0.0f, false, 0.0f, {}, true);
+        }
+        if (t == cycleStart + 60 + delayScale * 6) {
+            ctx.bullets.SpawnCircleAimed(ScriptUtil::ShootPos(enemy, CIRNO_SHOOT_OFFSET),
+                                         ctx.playerPos, EBulletType::RingBall,
+                                         EBulletColor::Blue, 14, 2.0f);
+        }
     }
-    if (loopT == 40 && t < 300) {
-        ctx.bullets.SpawnCircleAimed(ScriptUtil::ShootPos(enemy, CIRNO_SHOOT_OFFSET),
-                                     ctx.playerPos, EBulletType::Shard, EBulletColor::White, 24,
-                                     3.0f, 0.0f, false, 0.0f, {}, true);
+
+    if (t == endTime) {
+        ++enemy.m_ScriptCounter;
+        ctx.TransitionToSub(enemy, SUB_CIRNO_NONSPELL_ATTACK_A);
     }
-    if (loopT == 60 && t < 300) {
-        ctx.bullets.SpawnCircleAimed(ScriptUtil::ShootPos(enemy, CIRNO_SHOOT_OFFSET),
-                                     ctx.playerPos, EBulletType::RingBall, EBulletColor::Blue, 14,
-                                     3.0f);
-    }
-    if (t == 300) ctx.TransitionToSub(enemy, SUB_CIRNO_NONSPELL_ATTACK_A);
 }
 
 void RunIcicleFall(Enemy& enemy, EnemySubCtx& ctx, int t) {
