@@ -136,9 +136,6 @@ EnemyBullet* EnemyBulletManager::AllocBullet() {
     }
     // Pool full: overwrite oldest
     EnemyBullet* b = &m_Bullets[m_NextIdx];
-    if (b->m_Vm.obj) {
-        m_Renderer.RemoveChild(b->m_Vm.obj);
-    }
     m_NextIdx = (m_NextIdx + 1) % MAX_BULLETS;
     return b;
 }
@@ -174,9 +171,6 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
         b->m_RotateWithAngle = rotateWithAngle || AutoRotatesWithAngle(type);
 
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
-        if (b->m_Vm.obj) {
-            m_Renderer.AddChild(b->m_Vm.obj);
-        }
     }
 }
 
@@ -238,9 +232,6 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
         b->m_DirChangeStartupSpeedScale = curve.startupSpeedScale;
         b->m_RotateWithAngle   = rotateWithAngle || AutoRotatesWithAngle(type);
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
-        if (b->m_Vm.obj) {
-            m_Renderer.AddChild(b->m_Vm.obj);
-        }
     }
 }
 
@@ -290,9 +281,6 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
         b->m_BounceSpeed       = bounceSpeed >= 0.0f ? bounceSpeed : speed;
         b->m_RotateWithAngle    = rotateWithAngle || AutoRotatesWithAngle(type);
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
-        if (b->m_Vm.obj) {
-            m_Renderer.AddChild(b->m_Vm.obj);
-        }
     }
 }
 
@@ -393,9 +381,6 @@ int EnemyBulletManager::Stage6CreateSeedsFromLargeBullets() {
         b->m_RotateWithAngle = true;
         m_Anm.SetScript(b->m_Vm, BulletScriptIdx(b->m_Type),
                         BulletSpriteOffset(b->m_Type, b->m_Color));
-        if (b->m_Vm.obj) {
-            m_Renderer.AddChild(b->m_Vm.obj);
-        }
         ++created;
     }
     return created;
@@ -435,9 +420,6 @@ void EnemyBulletManager::ClearAll() {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
         b.m_Alive = false;
-        if (b.m_Vm.obj) {
-            m_Renderer.RemoveChild(b.m_Vm.obj);
-        }
     }
 }
 
@@ -447,9 +429,6 @@ void EnemyBulletManager::TurnAllBulletsIntoPointItems(ItemManager& items) {
 
         items.SpawnItem(b.m_Pos, ItemType::PointBullet, 1);
         b.m_Alive = false;
-        if (b.m_Vm.obj) {
-            m_Renderer.RemoveChild(b.m_Vm.obj);
-        }
     }
 }
 
@@ -469,9 +448,6 @@ void EnemyBulletManager::TurnBulletsIntoPointItemsInRadiusRange(ItemManager& ite
 
         items.SpawnItem(b.m_Pos, ItemType::PointBullet, 1);
         b.m_Alive = false;
-        if (b.m_Vm.obj) {
-            m_Renderer.RemoveChild(b.m_Vm.obj);
-        }
     }
 }
 
@@ -588,17 +564,19 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
 
         if (!bounced && !Util::IsInGameBounds(b.m_Pos.x, b.m_Pos.y, 0, 0)) {
             b.m_Alive = false;
-            if (b.m_Vm.obj) {
-                m_Renderer.RemoveChild(b.m_Vm.obj);
-            }
         }
     }
 
-    m_Renderer.Update();
+    Render();
 }
 
 void EnemyBulletManager::Render() {
-    m_Renderer.Update();
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive) continue;
+        if (b.m_Vm.obj) {
+            b.m_Vm.obj->Draw();
+        }
+    }
 }
 
 void EnemyBulletManager::RedirectTimeStopBullets(glm::vec2 playerPos, int maxBullets) {
