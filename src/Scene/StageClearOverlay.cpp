@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include "Anm/AnmDefs.hpp"
+#include "Audio/AudioManager.hpp"
 #include "Util/Color.hpp"
 #include "Util/Input.hpp"
 
@@ -48,6 +49,12 @@ static float ClearImageAlpha(int timer) {
     return 0.0f;
 }
 
+void PlayExtends(int count) {
+    for (int i = 0; i < count; ++i) {
+        AudioManager::Instance().Play(SoundEffect::Extend);
+    }
+}
+
 }  // namespace
 
 void StageClearOverlay::Init() {
@@ -79,10 +86,7 @@ void StageClearOverlay::Start(GameManager& gm, int stageBonus) {
     m_GameManager = &gm;
     m_StageBonus  = stageBonus;
     m_ClearScore  = (stageBonus + powerBonus + grazeBonus) * gm.pointItems;
-    gm.score += m_ClearScore;
-    if (gm.score > gm.highScore) {
-        gm.highScore = gm.score;
-    }
+    PlayExtends(gm.AddScore(m_ClearScore));
 
     m_Started   = true;
     m_TextShown = false;

@@ -38,6 +38,13 @@ void ResetItemForSpawn(Item& item) {
     item = Item{};
     item.m_Vm.obj = obj;
 }
+
+void AddScoreWithExtend(GameManager& gm, int points) {
+    const int extendCount = gm.AddScore(points);
+    for (int i = 0; i < extendCount; ++i) {
+        AudioManager::Instance().Play(SoundEffect::Extend);
+    }
+}
 }  // namespace
 
 ItemManager::ItemManager() {
@@ -174,7 +181,7 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                         m_PowerItemScoreIndex = 0;
                         gm.power              = std::min(128, gm.power + 1);
                     }
-                    gm.score += itemScore;
+                    AddScoreWithExtend(gm, itemScore);
                     if (oldPower < 128 && gm.power >= 128) {
                         m_FullPowerActivated = true;
                         SpawnPickupLabel(item.m_Pos, "MAX POWER");
@@ -195,7 +202,7 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                         m_PowerItemScoreIndex = 0;
                         gm.power              = std::min(128, gm.power + 8);
                     }
-                    gm.score += itemScore;
+                    AddScoreWithExtend(gm, itemScore);
                     if (oldPower < 128 && gm.power >= 128) {
                         m_FullPowerActivated = true;
                         SpawnPickupLabel(item.m_Pos, "MAX POWER");
@@ -211,7 +218,7 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                         (fieldY < 128.0f)
                               ? 100000
                               : std::max(0, static_cast<int>(60000.0f - (fieldY - 128.0f) * 100.0f));
-                    gm.score += pts;
+                    AddScoreWithExtend(gm, pts);
                     gm.pointItems += 1;
                     SpawnPickupLabel(item.m_Pos, std::to_string(pts));
                     break;
@@ -219,7 +226,7 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                 case ItemType::PointBullet: {
                     int pts = (gm.graze / 3) * 10 + 500;
                     if (pts < 100) pts = 100;
-                    gm.score += pts;
+                    AddScoreWithExtend(gm, pts);
                     break;
                 }
                 case ItemType::Bomb:
@@ -232,7 +239,7 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                         SpawnPickupLabel(item.m_Pos, "MAX POWER");
                         AudioManager::Instance().Play(SoundEffect::PowerUp);
                     }
-                    gm.score += 1000;
+                    AddScoreWithExtend(gm, 1000);
                     SpawnPickupLabel(item.m_Pos, "1000");
                     break;
                 case ItemType::Life:
@@ -241,7 +248,6 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                     break;
             }
             AudioManager::Instance().Play(SoundEffect::ItemPickup);
-            if (gm.score > gm.highScore) gm.highScore = gm.score;
             item.m_Alive = false;
             if (item.m_Vm.obj) {
                 m_Renderer.RemoveChild(item.m_Vm.obj);

@@ -31,6 +31,13 @@ static float IntroAlpha(int frame) {
     return 0.0f;
 }
 
+void AddScoreWithExtend(GameManager& gm, int points) {
+    const int extendCount = gm.AddScore(points);
+    for (int i = 0; i < extendCount; ++i) {
+        AudioManager::Instance().Play(SoundEffect::Extend);
+    }
+}
+
 }  // namespace
 
 PlayableStage::PlayableStage(CharacterItem character, SpellCardItem spellCard,
@@ -225,18 +232,14 @@ void PlayableStage::Update() {
             if (!m_GameManager.bombActive) {
                 m_GameManager.graze = std::min(999999, m_GameManager.graze + grazeCount);
             }
-            m_GameManager.score += grazeCount * 500;
-            if (m_GameManager.score > m_GameManager.highScore)
-                m_GameManager.highScore = m_GameManager.score;
+            AddScoreWithExtend(m_GameManager, grazeCount * 500);
         }
     }
 
     int scoreGained =
         m_GameManager.timeStopped ? 0 : m_EnemyManager.ApplyPlayerBulletDamage(m_Player);
     if (scoreGained > 0) {
-        m_GameManager.score += scoreGained;
-        if (m_GameManager.score > m_GameManager.highScore)
-            m_GameManager.highScore = m_GameManager.score;
+        AddScoreWithExtend(m_GameManager, scoreGained);
     }
 
     if (m_Player.IsVulnerable() &&

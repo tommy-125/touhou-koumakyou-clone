@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 
+#include "GameManager.hpp"
 #include "Item/ItemManager.hpp"
 
 namespace EnemyScriptUtil {
@@ -38,7 +39,14 @@ void DisableBossPoses(Enemy& enemy) {
 }
 
 void DropPowerItems(Enemy& enemy, EnemySubCtx& ctx, int count) {
-    for (int i = 0; i < count; i++) ctx.items.SpawnItem(enemy.m_Pos, ItemType::PowerSmall);
+    const bool fullPower = ctx.gameManager && ctx.gameManager->power >= 128;
+    for (int i = 0; i < count; i++) {
+        const glm::vec2 dropPos =
+            enemy.m_Pos + glm::vec2{RandFloat(-72.0f, 72.0f), RandFloat(-72.0f, 72.0f)};
+        const ItemType item =
+            fullPower ? ItemType::Point : (i == 0 ? ItemType::PowerBig : ItemType::PowerSmall);
+        ctx.items.SpawnItem(dropPos, item);
+    }
 }
 
 void StartRandomMove(Enemy& enemy, const EnemySubCtx& ctx, float speed, int frames) {

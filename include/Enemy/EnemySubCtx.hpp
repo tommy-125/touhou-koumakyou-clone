@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 struct Enemy;
+struct GameManager;
 class EnemyBulletManager;
 class EnemyLaserManager;
 class ItemManager;
@@ -21,6 +22,7 @@ struct EnemySubCtx {
     EnemyLaserManager&  lasers;
     ItemManager&        items;
     Util::Renderer&     renderer;
+    GameManager*        gameManager = nullptr;
     glm::vec2           playerPos;
     bool                bombActive = false;
     std::function<Enemy*(int, float, float, int, int, bool, int)> spawnEnemy;
