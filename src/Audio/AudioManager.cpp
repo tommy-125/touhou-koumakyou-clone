@@ -24,6 +24,7 @@ constexpr SoundConfig SOUND_CONFIGS[] = {
     {"th06c/th06c_IN/extend.wav", -100},    {"th06c/th06c_IN/powerup.wav", -1000},
     {"th06c/th06c_IN/damage00.wav", -1100}, {"th06c/th06c_IN/cat00.wav", -900},
     {"th06c/th06c_IN/lazer00.wav", -900},   {"th06c/th06c_IN/tan00.wav", -1700},
+    {"th06c/th06c_IN/graze.wav", -1000},
 };
 
 struct MusicLoopPoints {

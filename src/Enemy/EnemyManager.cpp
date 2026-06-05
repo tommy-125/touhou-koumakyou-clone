@@ -555,6 +555,11 @@ bool EnemyManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSiz
            m_LaserManager.CheckPlayerHit(playerPos, playerHitboxSize);
 }
 
+int EnemyManager::ApplyGraze(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {
+    return m_BulletManager.ApplyGraze(playerPos, playerHitboxSize) +
+           m_LaserManager.ApplyGraze(playerPos, playerHitboxSize);
+}
+
 void EnemyManager::ClearAllBullets() {
     SetTimeStopped(false);
     m_BulletManager.ClearAll();

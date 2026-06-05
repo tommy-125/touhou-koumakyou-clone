@@ -63,6 +63,7 @@ struct EnemyBullet {
     int       m_DecayTimer   = 0;
     bool      m_FrozenByPerfectFreeze = false;
     bool      m_TimeStopRedirected = false;
+    bool      m_Grazed = false;
     // TH06 auto-rotate style for angle-aware bullets.
     bool m_RotateWithAngle = false;
     // Direction change (ECL flag 0x40 / ins_82): every m_DirChangeInterval frames,
@@ -139,6 +140,7 @@ class EnemyBulletManager {
     void Update(glm::vec2 playerPos);
     void Render();
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
+    int  ApplyGraze(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
     void TurnAllBulletsIntoPointItems(ItemManager& items);
     void TurnBulletsIntoPointItemsInRadiusRange(ItemManager& items, glm::vec2 center,

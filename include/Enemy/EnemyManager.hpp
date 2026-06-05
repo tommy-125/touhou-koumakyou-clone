@@ -40,6 +40,7 @@ class EnemyManager {
     void         Update(const glm::vec2& playerPos, GameManager& gm);
     void         Render();
     int          ApplyPlayerBulletDamage(Player& player);
+    int          ApplyGraze(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     bool         CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void         ClearAllBullets();
     void         TurnAllBulletsIntoPointItems();

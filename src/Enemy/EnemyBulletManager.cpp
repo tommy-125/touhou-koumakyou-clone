@@ -108,6 +108,12 @@ bool CanFastSyncBulletAnm(const Anm::Vm& vm) {
            vm.scaleSpeed.x == 0.0f && vm.scaleSpeed.y == 0.0f;
 }
 
+bool IntersectsAabb(glm::vec2 aCenter, glm::vec2 aSize, glm::vec2 bCenter, glm::vec2 bRadius) {
+    const float dx = std::abs(aCenter.x - bCenter.x);
+    const float dy = std::abs(aCenter.y - bCenter.y);
+    return dx < aSize.x * 0.5f + bRadius.x && dy < aSize.y * 0.5f + bRadius.y;
+}
+
 void UpdateBulletAnm(Anm::Manager& anm, EnemyBullet& bullet) {
     if (CanFastSyncBulletAnm(bullet.m_Vm)) {
         anm.SyncObject(bullet.m_Vm, false);
@@ -306,15 +312,35 @@ bool EnemyBulletManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHit
 
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
-        float dx = std::abs(b.m_Pos.x - playerPos.x);
-        float dy = std::abs(b.m_Pos.y - playerPos.y);
         // bullet m_HitboxSize is full width (SetVecCorners), player hitbox is already a radius.
-        if (dx < b.m_HitboxSize.x * 0.5f + playerHitboxSize.x &&
-            dy < b.m_HitboxSize.y * 0.5f + playerHitboxSize.y) {
+        if (IntersectsAabb(b.m_Pos, b.m_HitboxSize, playerPos, playerHitboxSize)) {
             return true;
         }
     }
     return false;
+}
+
+int EnemyBulletManager::ApplyGraze(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {
+    if (m_TimeStopped) return 0;
+
+    static constexpr float GRAZE_MARGIN = 20.0f;
+
+    int grazed = 0;
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive || b.m_Grazed) continue;
+
+        const glm::vec2 grazeSize = b.m_HitboxSize + glm::vec2{GRAZE_MARGIN * 2.0f};
+        if (!IntersectsAabb(b.m_Pos, grazeSize, playerPos, playerHitboxSize)) continue;
+
+        b.m_Grazed = true;
+        ++grazed;
+    }
+
+    if (grazed > 0) {
+        AudioManager::Instance().Play(SoundEffect::Graze);
+    }
+
+    return grazed;
 }
 
 void EnemyBulletManager::FreezeAllBulletsAsWhite() {

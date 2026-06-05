@@ -239,6 +239,21 @@ void PlayableStage::Update() {
         UpdateBombClearWave();
     }
 
+    const bool canGraze =
+        m_Player.GetState() != PlayerState::DEAD && m_Player.GetState() != PlayerState::SPAWNING;
+    if (canGraze) {
+        const int grazeCount =
+            m_EnemyManager.ApplyGraze(m_Player.GetPos(), {PLAYER_HITBOX_X, PLAYER_HITBOX_Y});
+        if (grazeCount > 0) {
+            if (!m_GameManager.bombActive) {
+                m_GameManager.graze = std::min(999999, m_GameManager.graze + grazeCount);
+            }
+            m_GameManager.score += grazeCount * 500;
+            if (m_GameManager.score > m_GameManager.highScore)
+                m_GameManager.highScore = m_GameManager.score;
+        }
+    }
+
     int scoreGained =
         m_GameManager.timeStopped ? 0 : m_EnemyManager.ApplyPlayerBulletDamage(m_Player);
     if (scoreGained > 0) {

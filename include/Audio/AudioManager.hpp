@@ -24,6 +24,7 @@ enum class SoundEffect {
     SpellStart,
     Laser,
     EnemyShoot,
+    Graze,
     Count,
 };
 

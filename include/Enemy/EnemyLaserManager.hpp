@@ -20,6 +20,7 @@ class EnemyLaserManager {
     void Update();
     void Render();
     bool CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
+    int  ApplyGraze(glm::vec2 playerPos, glm::vec2 playerHitboxSize);
     void ClearAll();
     void TurnAllLasersIntoPointItems(ItemManager& items);
     void TurnLasersIntoPointItemsInRadiusRange(ItemManager& items, glm::vec2 center,

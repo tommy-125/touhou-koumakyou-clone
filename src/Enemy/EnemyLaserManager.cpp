@@ -85,6 +85,38 @@ static bool LaserSegmentIntersectsRadiusRange(const EnemyLaser& l, glm::vec2 cen
            db.x * db.x + db.y * db.y >= inner * inner;
 }
 
+static bool LaserHitboxActive(const EnemyLaser& l) {
+    if (!l.m_Alive) return false;
+    if (l.m_Timer < l.m_HitboxStart) return false;
+    const int hitboxEndFrame = l.m_StartTime + l.m_Duration + l.m_EndTime - l.m_HitboxEnd;
+    if (l.m_Timer >= hitboxEndFrame) return false;
+    return l.m_CurWidth >= 2.0f;
+}
+
+static bool LaserIntersectsPlayer(const EnemyLaser& l, glm::vec2 playerPos,
+                                  glm::vec2 playerHitboxSize, float widthMargin) {
+    const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_StartOffset + l.m_Offset;
+    const float visibleLength =
+        std::max(0.0f, std::min(l.m_Length, std::max(0.0f, endOffset)) - l.m_StartOffset);
+    const float startOffset =
+        l.m_Speed == 0.0f ? l.m_StartOffset : std::max(l.m_StartOffset, endOffset - l.m_Length);
+    const glm::vec2 origin = {
+        l.m_Pos.x + std::cos(l.m_Angle) * startOffset,
+        l.m_Pos.y + std::sin(l.m_Angle) * startOffset,
+    };
+
+    const float dx   = playerPos.x - origin.x;
+    const float dy   = playerPos.y - origin.y;
+    const float cosA = std::cos(-l.m_Angle);
+    const float sinA = std::sin(-l.m_Angle);
+    const float lx   = dx * cosA - dy * sinA;
+    const float ly   = dx * sinA + dy * cosA;
+    const float hw   = visibleLength * 0.5f + playerHitboxSize.x;
+    const float hh   = (l.m_CurWidth + widthMargin * 2.0f) * 0.5f + playerHitboxSize.y;
+
+    return std::abs(lx - visibleLength * 0.5f) < hw && std::abs(ly) < hh;
+}
+
 EnemyLaser* EnemyLaserManager::AllocLaser() {
     for (auto& l : m_Lasers) {
         if (!l.m_Alive) return &l;
@@ -188,6 +220,12 @@ void EnemyLaserManager::Update() {
         }
         l.m_CoreWidth = std::max(2.0f, l.m_CurWidth * 0.45f);
 
+        const int attackSoundFrame = std::max(l.m_HitboxStart, 2);
+        if (!l.m_AttackSoundPlayed && l.m_Timer >= attackSoundFrame && LaserHitboxActive(l)) {
+            AudioManager::Instance().Play(SoundEffect::Laser, 4);
+            l.m_AttackSoundPlayed = true;
+        }
+
         if (l.m_AngularVelocityFrames < 0 || l.m_Timer <= l.m_AngularVelocityFrames) {
             l.m_Angle += l.m_AngularVelocity;
         }
@@ -244,34 +282,33 @@ bool EnemyLaserManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitb
     if (m_TimeStopped) return false;
 
     for (auto& l : m_Lasers) {
-        if (!l.m_Alive) continue;
-        // Hitbox active window
-        if (l.m_Timer < l.m_HitboxStart) continue;
-        const int hitboxEndFrame = l.m_StartTime + l.m_Duration + l.m_EndTime - l.m_HitboxEnd;
-        if (l.m_Timer >= hitboxEndFrame) continue;
-        if (l.m_CurWidth < 2.0f) continue;
-
-        // OBB point test: rotate player pos into laser local space
-        const float endOffset = l.m_Speed == 0.0f ? l.m_Length : l.m_StartOffset + l.m_Offset;
-        const float visibleLength =
-            std::max(0.0f, std::min(l.m_Length, std::max(0.0f, endOffset)) - l.m_StartOffset);
-        const float startOffset =
-            l.m_Speed == 0.0f ? l.m_StartOffset : std::max(l.m_StartOffset, endOffset - l.m_Length);
-        const glm::vec2 origin = {
-            l.m_Pos.x + std::cos(l.m_Angle) * startOffset,
-            l.m_Pos.y + std::sin(l.m_Angle) * startOffset,
-        };
-        float dx   = playerPos.x - origin.x;
-        float dy   = playerPos.y - origin.y;
-        float cosA = std::cos(-l.m_Angle);
-        float sinA = std::sin(-l.m_Angle);
-        float lx   = dx * cosA - dy * sinA;
-        float ly   = dx * sinA + dy * cosA;
-        float hw   = visibleLength * 0.5f + playerHitboxSize.x;
-        float hh   = l.m_CurWidth * 0.5f + playerHitboxSize.y;
-        if (std::abs(lx - visibleLength * 0.5f) < hw && std::abs(ly) < hh) return true;
+        if (!LaserHitboxActive(l)) continue;
+        if (LaserIntersectsPlayer(l, playerPos, playerHitboxSize, 0.0f)) return true;
     }
     return false;
+}
+
+int EnemyLaserManager::ApplyGraze(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {
+    if (m_TimeStopped) return 0;
+
+    static constexpr int   LASER_GRAZE_INTERVAL = 12;
+    static constexpr float LASER_GRAZE_MARGIN   = 48.0f;
+
+    int grazed = 0;
+    for (auto& l : m_Lasers) {
+        if (!LaserHitboxActive(l)) continue;
+        if ((l.m_Timer % LASER_GRAZE_INTERVAL) != 0) continue;
+        if (LaserIntersectsPlayer(l, playerPos, playerHitboxSize, 0.0f)) continue;
+        if (!LaserIntersectsPlayer(l, playerPos, playerHitboxSize, LASER_GRAZE_MARGIN)) continue;
+
+        ++grazed;
+    }
+
+    if (grazed > 0) {
+        AudioManager::Instance().Play(SoundEffect::Graze);
+    }
+
+    return grazed;
 }
 
 void EnemyLaserManager::ClearAll() {

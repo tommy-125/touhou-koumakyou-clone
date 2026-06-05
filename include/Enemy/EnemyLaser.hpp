@@ -29,6 +29,7 @@ struct EnemyLaser {
     int   m_AngularVelocityFrames = -1;
     int   m_Timer           = 0;
     bool  m_Alive           = false;
+    bool  m_AttackSoundPlayed = false;
 
     std::shared_ptr<Util::GameObject> m_Obj;
     std::shared_ptr<Util::GameObject> m_CoreObj;
