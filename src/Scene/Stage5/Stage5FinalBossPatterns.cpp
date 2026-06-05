@@ -219,7 +219,7 @@ void RunLunaClock(Enemy& enemy, EnemySubCtx& ctx, int t) {
         SpawnTimeStopKnifeField(enemy, ctx, (loopT - 194) / 9);
     }
     if (loopT >= 254 && loopT < 284 && (loopT - 254) % 5 == 0) {
-        ctx.RedirectTimeStopBullets();
+        ctx.RedirectTimeStopBullets(6);
     }
     if (loopT == 289) {
         ctx.SetTimeStopped(false);

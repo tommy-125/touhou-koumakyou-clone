@@ -39,7 +39,7 @@ constexpr int SUB_SAKUYA_LUNA_CLOCK      = 46;
 constexpr int SUB_SAKUYA_FINAL_SPELL     = 50;
 constexpr int SUB_SAKUYA_DEATH           = 51;
 
-constexpr float SAKUYA_FINAL_RANK_SPEED = 0.25f;
+constexpr float SAKUYA_FINAL_RANK_SPEED = 0.0f;
 
 void SetSakuyaBossPoses(Enemy& enemy);
 void InitSakuyaHelper(Enemy& enemy);

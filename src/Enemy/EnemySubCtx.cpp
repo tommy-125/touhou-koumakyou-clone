@@ -29,8 +29,8 @@ void EnemySubCtx::SetTimeStopped(bool stopped) const {
     if (setTimeStopped) setTimeStopped(stopped);
 }
 
-void EnemySubCtx::RedirectTimeStopBullets() const {
-    if (redirectTimeStopBullets) redirectTimeStopBullets();
+void EnemySubCtx::RedirectTimeStopBullets(int maxBullets) const {
+    if (redirectTimeStopBullets) redirectTimeStopBullets(maxBullets);
 }
 
 void EnemySubCtx::BulletCancelIntoPointItems() const {

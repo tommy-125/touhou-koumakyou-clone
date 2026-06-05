@@ -20,9 +20,6 @@ static constexpr int     MIN_BOMBS_AFTER_DEATH  = 3;
 static constexpr int     POWER_LOSS_ON_DEATH    = 16;
 static constexpr int     DEATH_POWER_SMALL_DROPS = 5;
 static constexpr int     GAME_OVER_FULL_POWER_DROPS = 5;
-static constexpr float   BOMB_CLEAR_WAVE_SPEED  = 28.0f;
-static constexpr float   BOMB_CLEAR_WAVE_WIDTH  = 72.0f;
-static constexpr float   BOMB_CLEAR_WAVE_RADIUS = 640.0f;
 static const glm::vec2   INTRO_SONG_POS         = {64.0f, -204.0f};
 static const Util::Color INTRO_STAGE_YELLOW     = Util::Color::FromRGB(255, 255, 64);
 static const Util::Color INTRO_LIGHT_CYAN       = Util::Color::FromRGB(224, 255, 255);
@@ -154,27 +151,6 @@ void PlayableStage::HandleDebugShortcuts() {
     }
 }
 
-void PlayableStage::StartBombClearWave(glm::vec2 origin) {
-    m_BombClearWaveActive = true;
-    m_BombClearWaveOrigin = origin;
-    m_BombClearWaveTimer  = 0;
-}
-
-void PlayableStage::UpdateBombClearWave() {
-    if (!m_BombClearWaveActive) return;
-
-    const float outerRadius =
-        static_cast<float>(m_BombClearWaveTimer + 1) * BOMB_CLEAR_WAVE_SPEED;
-    const float innerRadius = std::max(0.0f, outerRadius - BOMB_CLEAR_WAVE_WIDTH);
-    m_EnemyManager.TurnBulletsIntoPointItemsInRadiusRange(m_BombClearWaveOrigin, innerRadius,
-                                                          outerRadius);
-
-    ++m_BombClearWaveTimer;
-    if (outerRadius >= BOMB_CLEAR_WAVE_RADIUS) {
-        m_BombClearWaveActive = false;
-    }
-}
-
 void PlayableStage::DropPlayerPowerOnDeath(glm::vec2 pos) {
     if (m_GameManager.livesRemaining <= 0) {
         m_GameManager.power = 0;
@@ -235,8 +211,9 @@ void PlayableStage::Update() {
     if (!m_GameManager.timeStopped) {
         const bool usedBomb      = m_Player.TryUseBomb(m_GameManager);
         m_GameManager.bombActive = usedBomb || m_Player.IsBombActive();
-        if (usedBomb) StartBombClearWave(m_Player.GetPos());
-        UpdateBombClearWave();
+        if (m_GameManager.bombActive) {
+            m_EnemyManager.TurnAllBulletsIntoPointItems();
+        }
     }
 
     const bool canGraze =

@@ -73,8 +73,6 @@ class PlayableStage : public Scene {
                              float scale, Util::AsciiTextAlign align,
                              const Util::Color& color, float advanceScale = 1.0f);
     void HandleDebugShortcuts();
-    void StartBombClearWave(glm::vec2 origin);
-    void UpdateBombClearWave();
     void DropPlayerPowerOnDeath(glm::vec2 pos);
 
     StageMenu                   m_StageMenu;
@@ -89,9 +87,6 @@ class PlayableStage : public Scene {
     bool                              m_GameOver      = false;
     bool                              m_FinalBossWasSeen = false;
     bool                              m_BossMusicStarted = false;
-    bool                              m_BombClearWaveActive = false;
-    glm::vec2                         m_BombClearWaveOrigin = {};
-    int                               m_BombClearWaveTimer  = 0;
     int                               m_FinalBossClearDelay = -1;
 };
 

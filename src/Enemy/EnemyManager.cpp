@@ -83,7 +83,7 @@ EnemySubCtx EnemyManager::MakeCtx() {
         },
         [this]() { KillAllNonBossEnemies(); },
         [this](bool stopped) { SetTimeStopped(stopped); },
-        [this]() { m_BulletManager.RedirectTimeStopBullets(m_PlayerPos, 14); }};
+        [this](int maxBullets) { m_BulletManager.RedirectTimeStopBullets(m_PlayerPos, maxBullets); }};
 }
 
 void EnemyManager::SetTimeStopped(bool stopped) {
@@ -357,8 +357,11 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
         if (!enemy.m_CanTakeDamage) continue;
 
         // TH6: damage capped at 70/frame, hit score = (dmg/5)*10 on capped value,
-        // spellcard divides damage by 7 (min 1).
-        if (dmg > 70) dmg = 70;
+        // spellcard divides damage by 7 (min 1). Bomb boosts player shots for its duration.
+        const bool bombBoost = player.IsBombActive();
+        const int  damageCap = bombBoost ? 210 : 70;
+        if (bombBoost) dmg *= 3;
+        if (dmg > damageCap) dmg = damageCap;
         totalScore += (dmg / 5) * 10;
         if (enemy.m_InSpellcard) {
             dmg = (dmg > 7) ? dmg / 7 : 1;
