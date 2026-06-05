@@ -11,6 +11,8 @@ class ItemManager;
 
 class EnemyLaserManager {
    public:
+    EnemyLaserManager();
+
     void SpawnAimed(glm::vec2 pos, glm::vec2 playerPos, float length, float maxWidth, int startTime,
                     int duration, int endTime, int hitboxStart, int hitboxEnd, float speed = 0.0f);
     void SpawnAtAngle(glm::vec2 pos, float angle, float length, float maxWidth, int startTime,

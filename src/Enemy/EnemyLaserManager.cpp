@@ -16,16 +16,13 @@ static std::shared_ptr<Util::Image> SharedLaserImage() {
     return image;
 }
 
-static void RemoveLaserObjects(EnemyLaser& l, Util::Renderer& renderer) {
+static void RemoveLaserObjects(EnemyLaser& l, Util::Renderer&) {
     if (l.m_Obj) {
-        renderer.RemoveChild(l.m_Obj);
-        l.m_Obj = nullptr;
+        l.m_Obj->SetVisible(false);
     }
     if (l.m_CoreObj) {
-        renderer.RemoveChild(l.m_CoreObj);
-        l.m_CoreObj = nullptr;
+        l.m_CoreObj->SetVisible(false);
     }
-    l.m_Img = nullptr;
 }
 
 static bool LaserSegmentOverlapsGameBounds(glm::vec2 pos, float angle, float startOffset,
@@ -127,11 +124,29 @@ EnemyLaser* EnemyLaserManager::AllocLaser() {
     return l;
 }
 
+EnemyLaserManager::EnemyLaserManager() {
+    auto image = SharedLaserImage();
+    for (auto& l : m_Lasers) {
+        l.m_Img     = image;
+        l.m_Obj     = std::make_shared<Util::GameObject>(image, 3.0f);
+        l.m_CoreObj = std::make_shared<Util::GameObject>(image, 3.1f);
+        l.m_Obj->SetVisible(false);
+        l.m_CoreObj->SetVisible(false);
+    }
+}
+
 static void InitLaser(EnemyLaser* l, glm::vec2 pos, float angle, float length, float maxWidth,
                       int startTime, int duration, int endTime, int hitboxStart, int hitboxEnd,
                       float angularVelocity, float speed, int angularVelocityFrames,
                       float startOffset) {
+    auto image = l->m_Img;
+    auto obj = l->m_Obj;
+    auto coreObj = l->m_CoreObj;
+
     *l                   = EnemyLaser{};
+    l->m_Img             = image;
+    l->m_Obj             = obj;
+    l->m_CoreObj         = coreObj;
     l->m_Alive           = true;
     l->m_Pos             = pos;
     l->m_Angle           = angle;
@@ -159,13 +174,8 @@ void EnemyLaserManager::SpawnAimed(glm::vec2 pos, glm::vec2 playerPos, float len
     float angle = std::atan2(playerPos.y - pos.y, playerPos.x - pos.x);
     InitLaser(l, pos, angle, length, maxWidth, startTime, duration, endTime, hitboxStart,
               hitboxEnd, 0.0f, speed, -1, 0.0f);
-    l->m_Img = SharedLaserImage();
-    l->m_Obj = std::make_shared<Util::GameObject>(l->m_Img, 3.0f);
-    l->m_CoreObj = std::make_shared<Util::GameObject>(l->m_Img, 3.1f);
     l->m_Obj->SetVisible(false);
     l->m_CoreObj->SetVisible(false);
-    m_Renderer.AddChild(l->m_Obj);
-    m_Renderer.AddChild(l->m_CoreObj);
     AudioManager::Instance().Play(SoundEffect::Laser, 4);
 }
 
@@ -177,13 +187,8 @@ void EnemyLaserManager::SpawnAtAngle(glm::vec2 pos, float angle, float length, f
     RemoveLaserObjects(*l, m_Renderer);
     InitLaser(l, pos, angle, length, maxWidth, startTime, duration, endTime, hitboxStart,
               hitboxEnd, angularVelocity, speed, angularVelocityFrames, startOffset);
-    l->m_Img = SharedLaserImage();
-    l->m_Obj = std::make_shared<Util::GameObject>(l->m_Img, 3.0f);
-    l->m_CoreObj = std::make_shared<Util::GameObject>(l->m_Img, 3.1f);
     l->m_Obj->SetVisible(false);
     l->m_CoreObj->SetVisible(false);
-    m_Renderer.AddChild(l->m_Obj);
-    m_Renderer.AddChild(l->m_CoreObj);
     AudioManager::Instance().Play(SoundEffect::Laser, 4);
 }
 
@@ -271,11 +276,15 @@ void EnemyLaserManager::Update() {
                                                     l.m_CoreWidth / 4.0f};
         }
     }
-    m_Renderer.Update();
+    Render();
 }
 
 void EnemyLaserManager::Render() {
-    m_Renderer.Update();
+    for (auto& l : m_Lasers) {
+        if (!l.m_Alive) continue;
+        if (l.m_Obj) l.m_Obj->Draw();
+        if (l.m_CoreObj) l.m_CoreObj->Draw();
+    }
 }
 
 bool EnemyLaserManager::CheckPlayerHit(glm::vec2 playerPos, glm::vec2 playerHitboxSize) {

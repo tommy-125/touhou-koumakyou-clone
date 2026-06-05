@@ -1,6 +1,7 @@
 #include "Enemy/EnemyManager.hpp"
 
 #include <cstdlib>
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -33,6 +34,10 @@ constexpr int   EFF_DEATH_ANM_682          = Anm::EFF00.offset + 11;
 
 EnemyManager::EnemyManager() {
     m_EffectAnm.LoadAnm(Anm::EFF00.folder, Anm::EFF00.txt, Anm::EFF00.offset);
+    for (auto& enemy : m_Enemies) {
+        enemy.m_Vm.obj =
+            std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
+    }
     for (auto& effect : m_Effects) {
         effect.vm.obj =
             std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
@@ -106,10 +111,6 @@ void EnemyManager::KillAllNonBossEnemies() {
         }
 
         enemy.m_Alive = false;
-        if (enemy.m_Vm.obj) {
-            m_Renderer.RemoveChild(enemy.m_Vm.obj);
-            enemy.m_Vm.obj = nullptr;
-        }
     }
 }
 
@@ -118,10 +119,6 @@ void EnemyManager::DespawnAllNonBossEnemies() {
         if (!enemy.m_Alive || enemy.m_IsBoss) continue;
 
         enemy.m_Alive = false;
-        if (enemy.m_Vm.obj) {
-            m_Renderer.RemoveChild(enemy.m_Vm.obj);
-            enemy.m_Vm.obj = nullptr;
-        }
     }
 }
 
@@ -168,7 +165,9 @@ Enemy* EnemyManager::SpawnEnemy(int subId, float x, float y, int life, int score
     for (auto& enemy : m_Enemies) {
         if (enemy.m_Alive) continue;
 
+        auto obj           = enemy.m_Vm.obj;
         enemy              = Enemy{};
+        enemy.m_Vm.obj     = obj;
         enemy.m_Alive      = true;
         enemy.m_SubId      = subId;
         enemy.m_Pos        = Util::GameFieldToScreen(x, y);
@@ -186,9 +185,6 @@ Enemy* EnemyManager::SpawnEnemy(int subId, float x, float y, int life, int score
             enemy.m_ItemDrop = itemDrop;
         }
 
-        if (enemy.m_Vm.obj) {
-            m_Renderer.AddChild(enemy.m_Vm.obj);
-        }
         return &enemy;
     }
     return nullptr;
@@ -315,10 +311,6 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
         if (m_Script) m_Script->RunSub(enemy, ctx);
 
         if (!enemy.m_Alive) {
-            if (enemy.m_Vm.obj) {
-                m_Renderer.RemoveChild(enemy.m_Vm.obj);
-                enemy.m_Vm.obj = nullptr;
-            }
             continue;
         }
 
@@ -335,10 +327,6 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
         if (!enemy.m_IsBoss &&
             !Util::IsInGameBounds(enemy.m_Pos.x, enemy.m_Pos.y, 0, 0, -200, -200, 600, 700)) {
             enemy.m_Alive = false;
-            if (enemy.m_Vm.obj) {
-                m_Renderer.RemoveChild(enemy.m_Vm.obj);
-                enemy.m_Vm.obj = nullptr;
-            }
         }
     }
 
@@ -346,6 +334,7 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
     m_LaserManager.Update();
     UpdateEffects();
     m_Renderer.Update();
+    DrawEnemies();
     m_Frame++;
 }
 
@@ -353,6 +342,7 @@ void EnemyManager::Render() {
     m_BulletManager.Render();
     m_LaserManager.Render();
     m_Renderer.Update();
+    DrawEnemies();
 }
 
 int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
@@ -420,10 +410,6 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                     totalScore += enemy.m_Score;
                     SpawnDeathEffect(enemy);
                     enemy.m_Alive = false;
-                    if (enemy.m_Vm.obj) {
-                        m_Renderer.RemoveChild(enemy.m_Vm.obj);
-                        enemy.m_Vm.obj = nullptr;
-                    }
                 }
             } else {
                 totalScore += enemy.m_Score;
@@ -459,18 +445,10 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                         m_Script->RunSub(enemy, ctx);
                     }
                     if (enemy.m_Alive) enemy.m_FrameTimer = 1;
-                    if (!enemy.m_Alive && enemy.m_Vm.obj) {
-                        m_Renderer.RemoveChild(enemy.m_Vm.obj);
-                        enemy.m_Vm.obj = nullptr;
-                    }
                     continue;
                 }
 
                 enemy.m_Alive = false;
-                if (enemy.m_Vm.obj) {
-                    m_Renderer.RemoveChild(enemy.m_Vm.obj);
-                    enemy.m_Vm.obj = nullptr;
-                }
             }
         }
     }
@@ -536,6 +514,23 @@ void EnemyManager::SpawnDeathEffect(const Enemy& enemy) {
     }
 }
 
+void EnemyManager::DrawEnemies() {
+    std::array<Enemy*, MAX_ENEMIES> drawList{};
+    size_t count = 0;
+    for (auto& enemy : m_Enemies) {
+        if (!enemy.m_Alive || !enemy.m_Vm.obj) continue;
+        drawList[count++] = &enemy;
+    }
+
+    std::sort(drawList.begin(), drawList.begin() + count, [](const Enemy* a, const Enemy* b) {
+        return a->m_Vm.obj->GetZIndex() < b->m_Vm.obj->GetZIndex();
+    });
+
+    for (size_t i = 0; i < count; ++i) {
+        drawList[i]->m_Vm.obj->Draw();
+    }
+}
+
 void EnemyManager::UpdateEffects() {
     for (auto& effect : m_Effects) {
         if (!effect.active) continue;
@@ -592,10 +587,6 @@ void EnemyManager::SkipToFrame(int frame) {
     for (auto& e : m_Enemies) {
         if (!e.m_Alive) continue;
         e.m_Alive = false;
-        if (e.m_Vm.obj) {
-            m_Renderer.RemoveChild(e.m_Vm.obj);
-            e.m_Vm.obj = nullptr;
-        }
     }
     m_BulletManager.ClearAll();
     m_LaserManager.ClearAll();

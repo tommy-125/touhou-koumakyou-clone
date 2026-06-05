@@ -70,6 +70,7 @@ class EnemyManager {
     void        SpawnDeathEffect(const Enemy& enemy);
     void        SpawnEffect(int scriptIdx, const glm::vec2& pos, float zIndex = 0.8f,
                             const glm::vec2& scale = {1.0f, 1.0f});
+    void        DrawEnemies();
     int         GetDeathPrimaryScript(int deathAnm1) const;
     int         GetDeathSecondaryScript(int deathAnm2) const;
     void        UpdateEffects();

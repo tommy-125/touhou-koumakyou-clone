@@ -100,10 +100,6 @@ void RunRumiaMidbossSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
             }
             if (t == 60) {
                 enemy.m_Alive = false;
-                if (enemy.m_Vm.obj) {
-                    ctx.renderer.RemoveChild(enemy.m_Vm.obj);
-                    enemy.m_Vm.obj = nullptr;
-                }
             }
             break;
         }
@@ -120,10 +116,6 @@ void RunRumiaMidbossSub(Enemy& enemy, EnemySubCtx& ctx, int t) {
             if (t == 40) ctx.StartLerpTo(enemy, 192.0f, -64.0f, 120);
             if (t == 160) {
                 enemy.m_Alive = false;
-                if (enemy.m_Vm.obj) {
-                    ctx.renderer.RemoveChild(enemy.m_Vm.obj);
-                    enemy.m_Vm.obj = nullptr;
-                }
             }
             break;
         }
