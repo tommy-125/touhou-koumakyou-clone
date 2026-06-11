@@ -91,7 +91,6 @@ void RunPatchouliFirstNonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
         const bool sub33 = (cycle % 2) == 0;
         SpawnPatchouliLaserSet(enemy, ctx, sub33 ? 0.006829549f : -0.006829549f, 90, false);
     }
-    SpawnPatchouliLaserPointBullets(ctx, cycle, loopT);
     if (loopT == 180) ScriptUtil::StartRandomMove(enemy, ctx, 2.5f, 90);
     if (loopT >= 180 && loopT < 360 && (loopT - 180) % 40 == 0) {
         SpawnAimedCircleLinearStack(ctx, ShootPos(enemy), EBulletType::Ball, EBulletColor::Red,
