@@ -6,11 +6,6 @@
 #include "Anm/AnmManager.hpp"
 #include "Audio/AudioManager.hpp"
 #include "Scene/Stage1/Stage1.hpp"
-#include "Scene/Stage2/Stage2.hpp"
-#include "Scene/Stage3/Stage3.hpp"
-#include "Scene/Stage4/Stage4.hpp"
-#include "Scene/Stage5/Stage5.hpp"
-#include "Scene/Stage6/Stage6.hpp"
 #include "Scene/Title.hpp"
 #include "Util/Image.hpp"
 #include "Util/Input.hpp"
@@ -112,8 +107,6 @@ Select::Select() : m_EnterSelectBlackMask(2.0f, 1.0f) {
 void Select::Update() {
     m_EnterSelectBlackMask.Update();
 
-    if (HandleDebugStageShortcut()) return;
-
     switch (m_CurrentState) {
         case SelectState::Difficulty:
             UpdateDifficultySelect();
@@ -134,29 +127,6 @@ void Select::Update() {
     UpdateSpellCardItemAlpha();
 
     m_Renderer.Update();
-}
-
-bool Select::HandleDebugStageShortcut() {
-    const struct {
-        Util::Keycode key;
-        int           stage;
-    } shortcuts[] = {
-        {Util::Keycode::NUM_2, 2},
-        {Util::Keycode::NUM_3, 3},
-        {Util::Keycode::NUM_4, 4},
-        {Util::Keycode::NUM_5, 5},
-        {Util::Keycode::NUM_6, 6},
-    };
-
-    for (const auto& shortcut : shortcuts) {
-        if (Util::Input::IsKeyDown(shortcut.key)) {
-            AudioManager::Instance().Play(SoundEffect::MenuConfirm);
-            m_DebugStartStage = shortcut.stage;
-            m_Done            = true;
-            return true;
-        }
-    }
-    return false;
 }
 
 void Select::UpdateDifficultySelect() {
@@ -247,29 +217,8 @@ void Select::UpdateSpellCardItemAlpha() {
     }
 }
 
-std::unique_ptr<Scene> Select::CreateDebugStageScene() {
-    switch (m_DebugStartStage) {
-        case 2:
-            return std::make_unique<Stage2>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
-        case 3:
-            return std::make_unique<Stage3>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
-        case 4:
-            return std::make_unique<Stage4>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
-        case 5:
-            return std::make_unique<Stage5>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
-        case 6:
-            return std::make_unique<Stage6>(m_SelectedCharacterItem, m_SelectedSpellCardItem);
-        default:
-            return nullptr;
-    }
-}
-
 std::unique_ptr<Scene> Select::NextScene() {
     if (m_Done) {
-        if (auto debugStage = CreateDebugStageScene()) {
-            return debugStage;
-        }
-
         switch (m_CurrentState) {
             case SelectState::Difficulty:
                 return std::make_unique<Title>();  // go back to title

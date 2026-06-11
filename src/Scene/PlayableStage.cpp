@@ -7,6 +7,12 @@
 
 #include "Anm/AnmDefs.hpp"
 #include "Audio/AudioManager.hpp"
+#include "Scene/Stage1/Stage1.hpp"
+#include "Scene/Stage2/Stage2.hpp"
+#include "Scene/Stage3/Stage3.hpp"
+#include "Scene/Stage4/Stage4.hpp"
+#include "Scene/Stage5/Stage5.hpp"
+#include "Scene/Stage6/Stage6.hpp"
 #include "Scene/TimelineLoader.hpp"
 #include "Util/Input.hpp"
 
@@ -16,7 +22,6 @@ static constexpr float   INTRO_STAGE_NO_SCALE   = 1.0f;
 static constexpr float   INTRO_STAGE_NAME_SCALE = 0.9f;
 static constexpr float   INTRO_SONG_SCALE       = 0.62f;
 static constexpr float   INTRO_SONG_ADVANCE_SCALE       = 0.86f;
-static constexpr int     MAX_DEBUG_LIVES        = 8;
 static constexpr int     MIN_BOMBS_AFTER_DEATH  = 3;
 static constexpr int     POWER_LOSS_ON_DEATH    = 16;
 static constexpr int     DEATH_POWER_SMALL_DROPS = 5;
@@ -152,27 +157,38 @@ void PlayableStage::OnAfterGameplayFrame(const BossHudState& bossHud) {
     UpdateFinalBossClearFlow(bossHud);
 }
 
-void PlayableStage::HandleDebugShortcuts() {
-    if (m_StageMenu.IsOpen()) return;
+void PlayableStage::JumpToFrame(int frame) {
+    if (frame < 0) return;
 
-    const bool shiftHeld = Util::Input::IsKeyPressed(Util::Keycode::LSHIFT) ||
-                           Util::Input::IsKeyPressed(Util::Keycode::RSHIFT);
-    const bool plusPressed = Util::Input::IsKeyDown(Util::Keycode::EQUALS) ||
-                             Util::Input::IsKeyDown(Util::Keycode::KP_PLUS);
-    if (shiftHeld && Util::Input::IsKeyPressed(Util::Keycode::L) && plusPressed &&
-        m_GameManager.livesRemaining < MAX_DEBUG_LIVES) {
-        ++m_GameManager.livesRemaining;
-    }
+    m_StageFrame = frame;
+    m_EnemyManager.SkipToFrame(frame);
+    m_CheatMenu.Close();
+}
 
-    const int bossSkipFrame = BossSkipFrame();
-    if (bossSkipFrame >= 0 && Util::Input::IsKeyDown(Util::Keycode::P)) {
-        m_StageFrame = bossSkipFrame;
-        m_EnemyManager.SkipToFrame(bossSkipFrame);
-    }
+void PlayableStage::JumpToStage(int stage) {
+    if (stage < 1 || stage > 6) return;
 
-    if (m_Config.midbossSkipFrame >= 0 && Util::Input::IsKeyDown(Util::Keycode::O)) {
-        m_StageFrame = m_Config.midbossSkipFrame;
-        m_EnemyManager.SkipToFrame(m_Config.midbossSkipFrame);
+    m_CheatStageTarget = stage;
+    m_CheatMenu.Close();
+    m_Done = true;
+}
+
+std::unique_ptr<Scene> PlayableStage::CreateCheatStageScene() {
+    switch (m_CheatStageTarget) {
+        case 1:
+            return std::make_unique<Stage1>(m_Character, m_SpellCard, m_GameManager);
+        case 2:
+            return std::make_unique<Stage2>(m_Character, m_SpellCard, m_GameManager);
+        case 3:
+            return std::make_unique<Stage3>(m_Character, m_SpellCard, m_GameManager);
+        case 4:
+            return std::make_unique<Stage4>(m_Character, m_SpellCard, m_GameManager);
+        case 5:
+            return std::make_unique<Stage5>(m_Character, m_SpellCard, m_GameManager);
+        case 6:
+            return std::make_unique<Stage6>(m_Character, m_SpellCard, m_GameManager);
+        default:
+            return nullptr;
     }
 }
 
@@ -208,8 +224,29 @@ void PlayableStage::ApplyCheatAction(CheatMenu::Action action) {
             m_GameManager.bombsRemaining =
                 std::min(MAX_CHEAT_BOMBS, m_GameManager.bombsRemaining + 1);
             break;
-        case CheatMenu::Action::ClearBullets:
-            m_EnemyManager.ClearAllBullets();
+        case CheatMenu::Action::JumpToMidboss:
+            JumpToFrame(m_Config.midbossSkipFrame);
+            break;
+        case CheatMenu::Action::JumpToFinalBoss:
+            JumpToFrame(BossSkipFrame());
+            break;
+        case CheatMenu::Action::JumpToStage1:
+            JumpToStage(1);
+            break;
+        case CheatMenu::Action::JumpToStage2:
+            JumpToStage(2);
+            break;
+        case CheatMenu::Action::JumpToStage3:
+            JumpToStage(3);
+            break;
+        case CheatMenu::Action::JumpToStage4:
+            JumpToStage(4);
+            break;
+        case CheatMenu::Action::JumpToStage5:
+            JumpToStage(5);
+            break;
+        case CheatMenu::Action::JumpToStage6:
+            JumpToStage(6);
             break;
         case CheatMenu::Action::ToggleInvincible:
             m_CheatInvincible = !m_CheatInvincible;
@@ -269,8 +306,6 @@ void PlayableStage::Update() {
         m_Done          = true;
         return;
     }
-
-    HandleDebugShortcuts();
 
     if (m_StageMenu.IsOpen()) {
         UpdateBackground();

@@ -15,13 +15,14 @@ const StageConfig& Stage1Config() {
 
 }  // namespace
 
-Stage1::Stage1(CharacterItem character, SpellCardItem spellCard)
-    : PlayableStage(character, spellCard, {}, Stage1Config().playable,
+Stage1::Stage1(CharacterItem character, SpellCardItem spellCard, GameManager gameManager)
+    : PlayableStage(character, spellCard, gameManager, Stage1Config().playable,
                     std::make_unique<Stage1Script>()) {
     SetBackground(CreateStageBackground(m_Renderer, Stage1Config()));
 }
 
 std::unique_ptr<Scene> Stage1::NextScene() {
+    if (auto cheatStage = CreateCheatStageScene()) return cheatStage;
     if (ShouldReturnToTitle() || WasGameOver()) return std::make_unique<Title>();
     return std::make_unique<Stage2>(m_Character, m_SpellCard, m_GameManager);
 }

@@ -22,6 +22,7 @@ Stage2::Stage2(CharacterItem character, SpellCardItem spellCard, GameManager gam
 }
 
 std::unique_ptr<Scene> Stage2::NextScene() {
+    if (auto cheatStage = CreateCheatStageScene()) return cheatStage;
     if (ShouldReturnToTitle() || WasGameOver() || !StageClearStarted()) {
         return std::make_unique<Title>();
     }

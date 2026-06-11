@@ -16,7 +16,6 @@ static constexpr float PLAYER_LASER_GROWTH_RATE    = 24.0f;
 static constexpr int   PLAYER_LASER_HOLD_FRAMES    = 2;
 static constexpr int   PLAYER_BOMB_INVUL_FRAMES    = 180;
 static constexpr int   PLAYER_BULLET_COLLISION_SCRIPT_OFFSET = 32;
-static constexpr int   DEBUG_POWER_STEP = 8;
 static constexpr int   DEATH_GLOW_SCRIPT = Anm::EFF00.offset + 12;
 static constexpr int   DEATH_PARTICLE_SCRIPT = Anm::EFF00.offset + 6;
 
@@ -311,18 +310,6 @@ void Player::HandlePlayerInput() {
     if (m_PlayerState == PlayerState::DEAD || m_PlayerState == PlayerState::SPAWNING) return;
     HandleMovement();
     m_IsFocus = Util::Input::IsKeyPressed(Util::Keycode::LSHIFT) ? true : false;
-
-    const bool shiftHeld = Util::Input::IsKeyPressed(Util::Keycode::LSHIFT) ||
-                           Util::Input::IsKeyPressed(Util::Keycode::RSHIFT);
-    const bool lifeDebugShortcutHeld = shiftHeld && Util::Input::IsKeyPressed(Util::Keycode::L);
-    if (!lifeDebugShortcutHeld && (Util::Input::IsKeyDown(Util::Keycode::EQUALS) ||
-                                   Util::Input::IsKeyDown(Util::Keycode::KP_PLUS))) {
-        m_Power = std::min(128, m_Power + DEBUG_POWER_STEP);
-    }
-    if (Util::Input::IsKeyDown(Util::Keycode::MINUS) ||
-        Util::Input::IsKeyDown(Util::Keycode::KP_MINUS)) {
-        m_Power = std::max(0, m_Power - DEBUG_POWER_STEP);
-    }
 
     if (Util::Input::IsKeyPressed(Util::Keycode::Z)) {
         // Initzialize bullet firing timer

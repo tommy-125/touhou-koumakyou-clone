@@ -21,5 +21,6 @@ Stage6::Stage6(CharacterItem character, SpellCardItem spellCard, GameManager gam
 }
 
 std::unique_ptr<Scene> Stage6::NextScene() {
+    if (auto cheatStage = CreateCheatStageScene()) return cheatStage;
     return std::make_unique<Title>();
 }

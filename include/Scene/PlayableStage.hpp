@@ -57,6 +57,7 @@ class PlayableStage : public Scene {
     bool ShouldReturnToTitle() const { return m_ReturnToTitle; }
     bool WasGameOver() const { return m_GameOver; }
     bool StageClearStarted() const { return m_ClearOverlay.HasStarted(); }
+    std::unique_ptr<Scene> CreateCheatStageScene();
 
     CharacterItem m_Character;
     SpellCardItem m_SpellCard;
@@ -76,7 +77,8 @@ class PlayableStage : public Scene {
     void UpdateCheatCode();
     void UpdateCheatMenuFrame();
     void ApplyCheatAction(CheatMenu::Action action);
-    void HandleDebugShortcuts();
+    void JumpToFrame(int frame);
+    void JumpToStage(int stage);
     void DropPlayerPowerOnDeath(glm::vec2 pos);
 
     StageMenu                   m_StageMenu;
@@ -94,6 +96,7 @@ class PlayableStage : public Scene {
     bool                              m_BossMusicStarted = false;
     int                               m_FinalBossClearDelay = -1;
     int                               m_CheatCodeIndex = 0;
+    int                               m_CheatStageTarget = 0;
     bool                              m_CheatInvincible = false;
 };
 

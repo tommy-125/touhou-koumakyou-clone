@@ -15,11 +15,18 @@ class CheatMenu {
         FullPower,
         AddLife,
         AddBomb,
-        ClearBullets,
+        JumpToMidboss,
+        JumpToFinalBoss,
+        JumpToStage1,
+        JumpToStage2,
+        JumpToStage3,
+        JumpToStage4,
+        JumpToStage5,
+        JumpToStage6,
         ToggleInvincible,
     };
 
-    static constexpr int OPTION_COUNT = 5;
+    static constexpr int OPTION_COUNT = 12;
 
     CheatMenu();
 

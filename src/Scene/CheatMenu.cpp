@@ -17,7 +17,9 @@ static constexpr float CHEAT_MENU_TITLE_SCALE        = 0.9f;
 static constexpr float CHEAT_MENU_OPTION_SCALE       = 0.75f;
 
 constexpr const char* CHEAT_MENU_OPTIONS[CheatMenu::OPTION_COUNT] = {
-    "FULL POWER", "ADD LIFE", "ADD BOMB", "CLEAR BULLETS", "",
+    "FULL POWER", "ADD LIFE", "ADD BOMB", "JUMP MIDBOSS",
+    "JUMP FINAL BOSS", "JUMP STAGE 1", "JUMP STAGE 2", "JUMP STAGE 3",
+    "JUMP STAGE 4", "JUMP STAGE 5", "JUMP STAGE 6", "",
 };
 
 CheatMenu::Action ActionForIndex(int index) {
@@ -29,8 +31,22 @@ CheatMenu::Action ActionForIndex(int index) {
         case 2:
             return CheatMenu::Action::AddBomb;
         case 3:
-            return CheatMenu::Action::ClearBullets;
+            return CheatMenu::Action::JumpToMidboss;
         case 4:
+            return CheatMenu::Action::JumpToFinalBoss;
+        case 5:
+            return CheatMenu::Action::JumpToStage1;
+        case 6:
+            return CheatMenu::Action::JumpToStage2;
+        case 7:
+            return CheatMenu::Action::JumpToStage3;
+        case 8:
+            return CheatMenu::Action::JumpToStage4;
+        case 9:
+            return CheatMenu::Action::JumpToStage5;
+        case 10:
+            return CheatMenu::Action::JumpToStage6;
+        case 11:
             return CheatMenu::Action::ToggleInvincible;
         default:
             return CheatMenu::Action::None;
@@ -77,7 +93,7 @@ void CheatMenu::RefreshText() {
     for (int i = 0; i < OPTION_COUNT; ++i) {
         const std::string prefix = i == m_SelectedIndex ? "> " : "  ";
         const std::string optionText =
-            i == 4 ? (m_InvincibleEnabled ? "INVINCIBLE ON" : "INVINCIBLE OFF")
+            i == OPTION_COUNT - 1 ? (m_InvincibleEnabled ? "INVINCIBLE ON" : "INVINCIBLE OFF")
                    : CHEAT_MENU_OPTIONS[i];
         m_Lines[i + 1].SetText(
             prefix + optionText,
