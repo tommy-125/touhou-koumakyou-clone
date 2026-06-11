@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "Audio/AudioManager.hpp"
 #include "Scene/StageScriptUtil.hpp"
 #include "Scene/Title.hpp"
 #include "Util/Image.hpp"
@@ -15,17 +16,30 @@ Loading::Loading() {
 }
 
 void Loading::Update() {
-    if (!m_ValidatedConfigs) {
-        StageScriptUtil::ValidateAllConfigs();
-        m_ValidatedConfigs = true;
-    }
-
     m_Renderer.Update();
+    RunNextLoadStep();
+}
 
-    // TODO: Wait for actual resource loading to complete before setting m_Done = true
-    m_Done = true;
+void Loading::RunNextLoadStep() {
+    switch (m_LoadStep) {
+        case LoadStep::ValidateConfigs:
+            StageScriptUtil::ValidateAllConfigs();
+            m_LoadStep = LoadStep::WarmAudio;
+            break;
+        case LoadStep::WarmAudio:
+            AudioManager::Instance();
+            m_LoadStep = LoadStep::CreateNextScene;
+            break;
+        case LoadStep::CreateNextScene:
+            m_NextScene = std::make_unique<Title>();
+            m_LoadStep  = LoadStep::Done;
+            m_Done      = true;
+            break;
+        case LoadStep::Done:
+            break;
+    }
 }
 
 std::unique_ptr<Scene> Loading::NextScene() {
-    return std::make_unique<Title>();
+    return std::move(m_NextScene);
 }
