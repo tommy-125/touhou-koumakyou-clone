@@ -17,7 +17,7 @@ static constexpr float CHEAT_MENU_TITLE_SCALE        = 0.9f;
 static constexpr float CHEAT_MENU_OPTION_SCALE       = 0.75f;
 
 constexpr const char* CHEAT_MENU_OPTIONS[CheatMenu::OPTION_COUNT] = {
-    "FULL POWER", "ADD LIFE", "ADD BOMB", "CLEAR BULLETS", "SKIP MIDBOSS", "SKIP BOSS",
+    "FULL POWER", "ADD LIFE", "ADD BOMB", "CLEAR BULLETS", "",
 };
 
 CheatMenu::Action ActionForIndex(int index) {
@@ -31,9 +31,7 @@ CheatMenu::Action ActionForIndex(int index) {
         case 3:
             return CheatMenu::Action::ClearBullets;
         case 4:
-            return CheatMenu::Action::SkipMidboss;
-        case 5:
-            return CheatMenu::Action::SkipBoss;
+            return CheatMenu::Action::ToggleInvincible;
         default:
             return CheatMenu::Action::None;
     }
@@ -78,8 +76,11 @@ void CheatMenu::RefreshText() {
 
     for (int i = 0; i < OPTION_COUNT; ++i) {
         const std::string prefix = i == m_SelectedIndex ? "> " : "  ";
+        const std::string optionText =
+            i == 4 ? (m_InvincibleEnabled ? "INVINCIBLE ON" : "INVINCIBLE OFF")
+                   : CHEAT_MENU_OPTIONS[i];
         m_Lines[i + 1].SetText(
-            prefix + CHEAT_MENU_OPTIONS[i],
+            prefix + optionText,
             {CHEAT_MENU_OPTION_X, CHEAT_MENU_FIRST_OPTION_Y - CHEAT_MENU_OPTION_STEP_Y * i},
             CHEAT_MENU_OPTION_SCALE, Util::AsciiTextAlign::Left);
         m_Lines[i + 1].SetAlpha(i == m_SelectedIndex ? 1.0f : 0.55f);
@@ -118,4 +119,11 @@ CheatMenu::Action CheatMenu::Update() {
 
 void CheatMenu::Render() {
     m_Renderer.Update();
+}
+
+void CheatMenu::SetInvincibleEnabled(bool enabled) {
+    if (m_InvincibleEnabled == enabled) return;
+
+    m_InvincibleEnabled = enabled;
+    if (m_Open) RefreshText();
 }

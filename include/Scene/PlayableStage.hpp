@@ -94,6 +94,7 @@ class PlayableStage : public Scene {
     bool                              m_BossMusicStarted = false;
     int                               m_FinalBossClearDelay = -1;
     int                               m_CheatCodeIndex = 0;
+    bool                              m_CheatInvincible = false;
 };
 
 #endif  // SCENE_PLAYABLE_STAGE_HPP

@@ -16,11 +16,10 @@ class CheatMenu {
         AddLife,
         AddBomb,
         ClearBullets,
-        SkipMidboss,
-        SkipBoss,
+        ToggleInvincible,
     };
 
-    static constexpr int OPTION_COUNT = 6;
+    static constexpr int OPTION_COUNT = 5;
 
     CheatMenu();
 
@@ -28,6 +27,7 @@ class CheatMenu {
     void   Close();
     Action Update();
     void   Render();
+    void   SetInvincibleEnabled(bool enabled);
     bool   IsOpen() const { return m_Open; }
 
    private:
@@ -40,6 +40,7 @@ class CheatMenu {
     Util::BlackMask                             m_Mask = Util::BlackMask(45.0f, 0.0f);
     std::array<Util::AsciiTextLine, LINE_COUNT> m_Lines{};
     bool                                        m_Open          = false;
+    bool                                        m_InvincibleEnabled = false;
     int                                         m_SelectedIndex = 0;
     int                                         m_FramesOpen    = 0;
 };

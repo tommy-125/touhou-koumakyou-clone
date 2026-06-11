@@ -211,17 +211,11 @@ void PlayableStage::ApplyCheatAction(CheatMenu::Action action) {
         case CheatMenu::Action::ClearBullets:
             m_EnemyManager.ClearAllBullets();
             break;
-        case CheatMenu::Action::SkipMidboss:
-            if (m_Config.midbossSkipFrame >= 0) {
-                m_StageFrame = m_Config.midbossSkipFrame;
-                m_EnemyManager.SkipToFrame(m_Config.midbossSkipFrame);
-            }
-            break;
-        case CheatMenu::Action::SkipBoss:
-            if (m_Config.bossSkipFrame >= 0) {
-                m_StageFrame = m_Config.bossSkipFrame;
-                m_EnemyManager.SkipToFrame(m_Config.bossSkipFrame);
-            }
+        case CheatMenu::Action::ToggleInvincible:
+            m_CheatInvincible = !m_CheatInvincible;
+            m_CheatMenu.SetInvincibleEnabled(m_CheatInvincible);
+            AudioManager::Instance().Play(m_CheatInvincible ? SoundEffect::MenuConfirm
+                                                            : SoundEffect::MenuBack);
             break;
         case CheatMenu::Action::None:
             break;
@@ -332,7 +326,7 @@ void PlayableStage::Update() {
         AddScoreWithExtend(m_GameManager, scoreGained);
     }
 
-    if (m_Player.IsVulnerable() &&
+    if (!m_CheatInvincible && m_Player.IsVulnerable() &&
         m_EnemyManager.CheckPlayerHit(m_Player.GetPos(), {PLAYER_HITBOX_X, PLAYER_HITBOX_Y})) {
         DropPlayerPowerOnDeath(m_Player.GetPos());
         m_Player.Die();
