@@ -10,6 +10,7 @@
 #include "Gui.hpp"
 #include "Item/ItemManager.hpp"
 #include "Player.hpp"
+#include "Scene/CheatMenu.hpp"
 #include "Scene/IStageScript.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/StageBackground.hpp"
@@ -72,10 +73,14 @@ class PlayableStage : public Scene {
     void SetupIntroAsciiLine(Util::AsciiTextLine& line, const std::string& text, glm::vec2 pos,
                              float scale, Util::AsciiTextAlign align,
                              const Util::Color& color, float advanceScale = 1.0f);
+    void UpdateCheatCode();
+    void UpdateCheatMenuFrame();
+    void ApplyCheatAction(CheatMenu::Action action);
     void HandleDebugShortcuts();
     void DropPlayerPowerOnDeath(glm::vec2 pos);
 
     StageMenu                   m_StageMenu;
+    CheatMenu                   m_CheatMenu;
     Util::Renderer              m_IntroRenderer;
     Anm::Manager                m_IntroAnm;
     Util::AsciiTextLine         m_IntroStageNoLine;
@@ -88,6 +93,7 @@ class PlayableStage : public Scene {
     bool                              m_FinalBossWasSeen = false;
     bool                              m_BossMusicStarted = false;
     int                               m_FinalBossClearDelay = -1;
+    int                               m_CheatCodeIndex = 0;
 };
 
 #endif  // SCENE_PLAYABLE_STAGE_HPP

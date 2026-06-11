@@ -1,6 +1,7 @@
 #include "Scene/PlayableStage.hpp"
 
 #include <algorithm>
+#include <array>
 #include <memory>
 #include <utility>
 
@@ -20,9 +21,15 @@ static constexpr int     MIN_BOMBS_AFTER_DEATH  = 3;
 static constexpr int     POWER_LOSS_ON_DEATH    = 16;
 static constexpr int     DEATH_POWER_SMALL_DROPS = 5;
 static constexpr int     GAME_OVER_FULL_POWER_DROPS = 5;
+static constexpr int     MAX_CHEAT_BOMBS        = 8;
 static const glm::vec2   INTRO_SONG_POS         = {64.0f, -204.0f};
 static const Util::Color INTRO_STAGE_YELLOW     = Util::Color::FromRGB(255, 255, 64);
 static const Util::Color INTRO_LIGHT_CYAN       = Util::Color::FromRGB(224, 255, 255);
+static constexpr std::array<Util::Keycode, 10> CHEAT_CODE = {
+    Util::Keycode::UP,   Util::Keycode::UP,    Util::Keycode::DOWN, Util::Keycode::DOWN,
+    Util::Keycode::LEFT, Util::Keycode::RIGHT, Util::Keycode::LEFT, Util::Keycode::RIGHT,
+    Util::Keycode::B,    Util::Keycode::A,
+};
 
 static float IntroAlpha(int frame) {
     if (frame < 30) return static_cast<float>(frame) / 30.0f;
@@ -36,6 +43,17 @@ void AddScoreWithExtend(GameManager& gm, int points) {
     for (int i = 0; i < extendCount; ++i) {
         AudioManager::Instance().Play(SoundEffect::Extend);
     }
+}
+
+bool ReadCheatCodeKey(Util::Keycode& key) {
+    for (Util::Keycode candidate : {Util::Keycode::UP, Util::Keycode::DOWN, Util::Keycode::LEFT,
+                                    Util::Keycode::RIGHT, Util::Keycode::B, Util::Keycode::A}) {
+        if (Util::Input::IsKeyDown(candidate)) {
+            key = candidate;
+            return true;
+        }
+    }
+    return false;
 }
 
 }  // namespace
@@ -158,6 +176,72 @@ void PlayableStage::HandleDebugShortcuts() {
     }
 }
 
+void PlayableStage::UpdateCheatCode() {
+    if (m_StageMenu.IsOpen() || m_CheatMenu.IsOpen()) return;
+
+    Util::Keycode key = Util::Keycode::UNKNOWN;
+    if (!ReadCheatCodeKey(key)) return;
+
+    if (key == CHEAT_CODE[m_CheatCodeIndex]) {
+        ++m_CheatCodeIndex;
+        if (m_CheatCodeIndex >= static_cast<int>(CHEAT_CODE.size())) {
+            m_CheatCodeIndex = 0;
+            m_CheatMenu.Open();
+            AudioManager::Instance().Play(SoundEffect::MenuConfirm);
+        }
+        return;
+    }
+
+    m_CheatCodeIndex = key == CHEAT_CODE[0] ? 1 : 0;
+}
+
+void PlayableStage::ApplyCheatAction(CheatMenu::Action action) {
+    switch (action) {
+        case CheatMenu::Action::FullPower:
+            m_GameManager.power = 128;
+            break;
+        case CheatMenu::Action::AddLife:
+            m_GameManager.livesRemaining =
+                std::min(GameManager::MAX_LIVES, m_GameManager.livesRemaining + 1);
+            break;
+        case CheatMenu::Action::AddBomb:
+            m_GameManager.bombsRemaining =
+                std::min(MAX_CHEAT_BOMBS, m_GameManager.bombsRemaining + 1);
+            break;
+        case CheatMenu::Action::ClearBullets:
+            m_EnemyManager.ClearAllBullets();
+            break;
+        case CheatMenu::Action::SkipMidboss:
+            if (m_Config.midbossSkipFrame >= 0) {
+                m_StageFrame = m_Config.midbossSkipFrame;
+                m_EnemyManager.SkipToFrame(m_Config.midbossSkipFrame);
+            }
+            break;
+        case CheatMenu::Action::SkipBoss:
+            if (m_Config.bossSkipFrame >= 0) {
+                m_StageFrame = m_Config.bossSkipFrame;
+                m_EnemyManager.SkipToFrame(m_Config.bossSkipFrame);
+            }
+            break;
+        case CheatMenu::Action::None:
+            break;
+    }
+}
+
+void PlayableStage::UpdateCheatMenuFrame() {
+    ApplyCheatAction(m_CheatMenu.Update());
+    UpdateBackground();
+    m_Renderer.Update();
+    m_ItemManager.Render();
+    m_EnemyManager.Render();
+    m_Player.Render();
+    m_Gui.Update(m_GameManager, m_EnemyManager.GetBossHudState(), false);
+    m_CheatMenu.Render();
+    UpdateStageIntro();
+    m_IntroRenderer.Update();
+    OnMenuFrame();
+}
+
 void PlayableStage::DropPlayerPowerOnDeath(glm::vec2 pos) {
     if (m_GameManager.livesRemaining <= 0) {
         m_GameManager.power = 0;
@@ -175,6 +259,12 @@ void PlayableStage::DropPlayerPowerOnDeath(glm::vec2 pos) {
 }
 
 void PlayableStage::Update() {
+    UpdateCheatCode();
+    if (m_CheatMenu.IsOpen()) {
+        UpdateCheatMenuFrame();
+        return;
+    }
+
     if (Util::Input::IsKeyDown(Util::Keycode::ESCAPE)) {
         m_StageMenu.Toggle();
     }
