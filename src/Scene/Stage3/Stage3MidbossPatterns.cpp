@@ -53,6 +53,8 @@ void RunMeilingMidbossSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
         enemy.m_CanTakeDamage          = false;
         enemy.m_ShowSpellName          = true;
         enemy.m_InSpellcard            = true;
+        enemy.m_SpellcardBonus         = 0;
+        enemy.m_SpellcardCaptureFailed = false;
         enemy.m_BossTitle              = "Flower Sign \"Gorgeous Sweet Flower\"";
         enemy.m_BossTimer              = 0;
         enemy.m_TimerCallbackThreshold = 1200;

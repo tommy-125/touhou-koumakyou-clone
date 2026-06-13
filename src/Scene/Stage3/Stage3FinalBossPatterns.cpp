@@ -234,6 +234,8 @@ void RunGorgeousTyphoonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
         enemy.m_CanTakeDamage          = false;
         enemy.m_InSpellcard            = true;
         enemy.m_ShowSpellName          = true;
+        enemy.m_SpellcardBonus         = 0;
+        enemy.m_SpellcardCaptureFailed = false;
         enemy.m_BossTitle              = "Extreme Color Typhoon";
         enemy.m_BossTimer              = 0;
         enemy.m_TimerCallbackThreshold = 2160;
