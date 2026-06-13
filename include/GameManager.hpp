@@ -19,6 +19,8 @@ struct GameManager {
     int power          = 0;  // 0..128
     int graze          = 0;
     int pointItems     = 0;
+    int stageGraze      = 0;
+    int stagePointItems = 0;
     int scoreExtendIdx = 0;
     bool timeStopped   = false;
     bool bombActive    = false;
@@ -42,6 +44,11 @@ struct GameManager {
             ++scoreExtendIdx;
         }
         return extendCount;
+    }
+
+    void ResetStageStats() {
+        stageGraze      = 0;
+        stagePointItems = 0;
     }
 };
 

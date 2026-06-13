@@ -261,14 +261,15 @@ void Gui::Update(const GameManager& gm, const BossHudState& bossHud, bool tick) 
         }
     }
 
-    if (m_LastGraze != gm.graze) {
-        m_LastGraze = gm.graze;
-        SetDigitField(m_GrazeDigits, m_Anm, Anm::ASCII.offset, std::to_string(gm.graze), false);
+    if (m_LastGraze != gm.stageGraze) {
+        m_LastGraze = gm.stageGraze;
+        SetDigitField(m_GrazeDigits, m_Anm, Anm::ASCII.offset, std::to_string(gm.stageGraze),
+                      false);
     }
 
-    if (m_LastPointItems != gm.pointItems) {
-        m_LastPointItems = gm.pointItems;
-        SetDigitField(m_PointDigits, m_Anm, Anm::ASCII.offset, std::to_string(gm.pointItems),
+    if (m_LastPointItems != gm.stagePointItems) {
+        m_LastPointItems = gm.stagePointItems;
+        SetDigitField(m_PointDigits, m_Anm, Anm::ASCII.offset, std::to_string(gm.stagePointItems),
                       false);
     }
 

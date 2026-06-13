@@ -219,12 +219,13 @@ void ItemManager::Update(glm::vec2 playerPos, GameManager& gm) {
                               ? 100000
                               : std::max(0, static_cast<int>(60000.0f - (fieldY - 128.0f) * 100.0f));
                     AddScoreWithExtend(gm, pts);
+                    gm.stagePointItems += 1;
                     gm.pointItems += 1;
                     SpawnPickupLabel(item.m_Pos, std::to_string(pts));
                     break;
                 }
                 case ItemType::PointBullet: {
-                    int pts = (gm.graze / 3) * 10 + 500;
+                    int pts = (gm.stageGraze / 3) * 10 + 500;
                     if (pts < 100) pts = 100;
                     AddScoreWithExtend(gm, pts);
                     break;
