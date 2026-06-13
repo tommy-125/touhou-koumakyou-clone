@@ -351,8 +351,7 @@ void PlayableStage::Update() {
             m_EnemyManager.ApplyGraze(m_Player.GetPos(), {PLAYER_HITBOX_X, PLAYER_HITBOX_Y});
         if (grazeCount > 0) {
             if (!m_GameManager.bombActive) {
-                m_GameManager.stageGraze = std::min(9999, m_GameManager.stageGraze + grazeCount);
-                m_GameManager.graze      = std::min(999999, m_GameManager.graze + grazeCount);
+                m_GameManager.AddGraze(grazeCount);
             }
             AddScoreWithExtend(m_GameManager, grazeCount * 500);
         }

@@ -29,6 +29,25 @@ static std::string FormatClearLine(const char* fmt, int value) {
     return buf;
 }
 
+struct ClearBonusBreakdown {
+    int stageBonus = 0;
+    int powerBonus = 0;
+    int grazeBonus = 0;
+    int pointItems = 0;
+    int total      = 0;
+};
+
+ClearBonusBreakdown BuildClearBonusBreakdown(const GameManager& gm, int stageBonus) {
+    ClearBonusBreakdown result;
+    result.stageBonus = stageBonus;
+    result.powerBonus = gm.power * 100;
+    result.grazeBonus = gm.stageGraze * 10;
+    result.pointItems = gm.stagePointItems;
+    const int clearBase = result.stageBonus + result.powerBonus + result.grazeBonus;
+    result.total        = clearBase * result.pointItems;
+    return result;
+}
+
 static float ClearTextAlpha(int timer) {
     if (timer < CLEAR_LOADING_FADE_IN) {
         return static_cast<float>(timer) / static_cast<float>(CLEAR_LOADING_FADE_IN);
@@ -80,12 +99,11 @@ void StageClearOverlay::Start(GameManager& gm, int stageBonus) {
     Init();
     if (m_Started) return;
 
-    const int powerBonus = gm.power * 100;
-    const int grazeBonus = gm.stageGraze * 10;
+    const auto clearBonus = BuildClearBonusBreakdown(gm, stageBonus);
 
     m_GameManager = &gm;
     m_StageBonus  = stageBonus;
-    m_ClearScore  = (stageBonus + powerBonus + grazeBonus) * gm.stagePointItems;
+    m_ClearScore  = clearBonus.total;
     PlayExtends(gm.AddScore(m_ClearScore));
 
     m_Started   = true;
@@ -105,17 +123,16 @@ void StageClearOverlay::SetLine(size_t idx, const std::string& text, float y, fl
 void StageClearOverlay::ShowText() {
     if (m_TextShown || !m_GameManager) return;
 
-    const int powerBonus = m_GameManager->power * 100;
-    const int grazeBonus = m_GameManager->stageGraze * 10;
+    const auto clearBonus = BuildClearBonusBreakdown(*m_GameManager, m_StageBonus);
 
     SetLine(0, "Stage Clear", 112.0f, CLEAR_TITLE_SCALE, CLEAR_SUNSHINE_YELLOW);
-    SetLine(1, FormatClearLine("Stage * 1000 = %5d", m_StageBonus), 80.0f, CLEAR_LINE_SCALE,
-            CLEAR_WHITE);
-    SetLine(2, FormatClearLine("Power *  100 = %5d", powerBonus), 64.0f, CLEAR_LINE_SCALE,
-            CLEAR_LAVENDER);
-    SetLine(3, FormatClearLine("Graze *   10 = %5d", grazeBonus), 48.0f, CLEAR_LINE_SCALE,
-            CLEAR_LIGHT_BLUE);
-    SetLine(4, FormatClearLine("    * Point Item %3d", m_GameManager->stagePointItems), 32.0f,
+    SetLine(1, FormatClearLine("Stage * 1000 = %5d", clearBonus.stageBonus), 80.0f,
+            CLEAR_LINE_SCALE, CLEAR_WHITE);
+    SetLine(2, FormatClearLine("Power *  100 = %5d", clearBonus.powerBonus), 64.0f,
+            CLEAR_LINE_SCALE, CLEAR_LAVENDER);
+    SetLine(3, FormatClearLine("Graze *   10 = %5d", clearBonus.grazeBonus), 48.0f,
+            CLEAR_LINE_SCALE, CLEAR_LIGHT_BLUE);
+    SetLine(4, FormatClearLine("    * Point Item %3d", clearBonus.pointItems), 32.0f,
             CLEAR_LINE_SCALE, CLEAR_LIGHT_RED);
     SetLine(5, "Normal Rank    * 1.0", 0.0f, CLEAR_LINE_SCALE, CLEAR_LIGHT_RED);
     SetLine(6, FormatClearLine("Total     = %8d", m_ClearScore), -16.0f, CLEAR_LINE_SCALE,

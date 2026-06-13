@@ -1,6 +1,7 @@
 #ifndef GAME_MANAGER_HPP
 #define GAME_MANAGER_HPP
 
+#include <algorithm>
 #include <array>
 
 struct GameManager {
@@ -49,6 +50,22 @@ struct GameManager {
     void ResetStageStats() {
         stageGraze      = 0;
         stagePointItems = 0;
+    }
+
+    void AddGraze(int count) {
+        if (count <= 0) return;
+
+        stageGraze = std::min(9999, stageGraze + count);
+        graze      = std::min(999999, graze + count);
+    }
+
+    void AddPointItem() {
+        ++stagePointItems;
+        ++pointItems;
+    }
+
+    int PointBulletScore() const {
+        return std::max(100, (stageGraze / 3) * 10 + 500);
     }
 };
 
