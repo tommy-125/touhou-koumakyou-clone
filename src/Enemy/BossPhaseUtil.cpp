@@ -11,15 +11,15 @@ void StartPhase(Enemy& enemy, const EnemySubCtx& ctx, const PhaseConfig& config)
     enemy.m_BossLifeCount          = config.lifeCount;
     enemy.m_BossTimer              = 0;
     enemy.m_TimerCallbackThreshold = config.timerFrames;
-    enemy.m_TimerCallbackSub =
-        config.timerSub >= 0 ? config.timerSub : config.deathSub;
-    enemy.m_LifeCallbackThreshold = config.lifeThreshold;
-    enemy.m_LifeCallbackSub       = config.lifeSub;
-    enemy.m_DeathCallbackSub      = config.deathSub;
-    enemy.m_InSpellcard           = config.spell;
-    enemy.m_ShowSpellName         = config.showSpellName;
-    enemy.m_SpellcardBonus        = config.spellBonus;
-    enemy.m_CanTakeDamage         = config.canTakeDamage;
+    enemy.m_TimerCallbackSub       = config.timerSub >= 0 ? config.timerSub : config.deathSub;
+    enemy.m_LifeCallbackThreshold  = config.lifeThreshold;
+    enemy.m_LifeCallbackSub        = config.lifeSub;
+    enemy.m_DeathCallbackSub       = config.deathSub;
+    enemy.m_InSpellcard            = config.spell;
+    enemy.m_ShowSpellName          = config.showSpellName;
+    enemy.m_SpellcardBonus         = config.spellBonus;
+    enemy.m_SpellcardCaptureFailed = false;
+    enemy.m_CanTakeDamage          = config.canTakeDamage;
 
     if (config.life >= 0) {
         enemy.m_Life        = config.life;

@@ -1,5 +1,6 @@
 #include "Enemy/EnemyBulletManager.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 
@@ -69,43 +70,42 @@ int BulletSpriteOffset(EBulletType type, EBulletColor color) {
 
 glm::vec2 BulletHitboxSize(EBulletType type) {
     switch (type) {
-    case EBulletType::Pellet:
-    case EBulletType::Rice:
-    case EBulletType::Shard:
-        return {4.0f, 4.0f};
-    case EBulletType::Kunai:
-        return {5.0f, 5.0f};
-    case EBulletType::RingBall:
-    case EBulletType::Ball:
-        return {6.0f, 6.0f};
-    case EBulletType::BigBall:
-        return {16.0f, 16.0f};
-    case EBulletType::Fireball:
-        return {11.0f, 11.0f};
-    case EBulletType::Dagger:
-        return {9.0f, 9.0f};
-    case EBulletType::Bubble:
-        return {32.0f, 32.0f};
+        case EBulletType::Pellet:
+        case EBulletType::Rice:
+        case EBulletType::Shard:
+            return {4.0f, 4.0f};
+        case EBulletType::Kunai:
+            return {5.0f, 5.0f};
+        case EBulletType::RingBall:
+        case EBulletType::Ball:
+            return {6.0f, 6.0f};
+        case EBulletType::BigBall:
+            return {16.0f, 16.0f};
+        case EBulletType::Fireball:
+            return {11.0f, 11.0f};
+        case EBulletType::Dagger:
+            return {9.0f, 9.0f};
+        case EBulletType::Bubble:
+            return {32.0f, 32.0f};
     }
     return {5.0f, 5.0f};
 }
 
 bool AutoRotatesWithAngle(EBulletType type) {
-    return type == EBulletType::Rice || type == EBulletType::Kunai ||
-           type == EBulletType::Shard || type == EBulletType::Fireball ||
-           type == EBulletType::Dagger;
+    return type == EBulletType::Rice || type == EBulletType::Kunai || type == EBulletType::Shard ||
+           type == EBulletType::Fireball || type == EBulletType::Dagger;
 }
 
 void ResetBulletForSpawn(EnemyBullet& bullet) {
-    auto obj = bullet.m_Vm.obj;
-    bullet = EnemyBullet{};
+    auto obj        = bullet.m_Vm.obj;
+    bullet          = EnemyBullet{};
     bullet.m_Vm.obj = obj;
 }
 
 bool CanFastSyncBulletAnm(const Anm::Vm& vm) {
     return vm.scriptIdx >= 0 && vm.isStopped && vm.pendingInterrupt == 0 && !vm.posInterp &&
-           !vm.fadeInterp && !vm.scaleInterp && vm.angleVel == 0.0f &&
-           vm.scaleSpeed.x == 0.0f && vm.scaleSpeed.y == 0.0f;
+           !vm.fadeInterp && !vm.scaleInterp && vm.angleVel == 0.0f && vm.scaleSpeed.x == 0.0f &&
+           vm.scaleSpeed.y == 0.0f;
 }
 
 bool IntersectsAabb(glm::vec2 aCenter, glm::vec2 aSize, glm::vec2 bCenter, glm::vec2 bRadius) {
@@ -142,7 +142,7 @@ EnemyBullet* EnemyBulletManager::AllocBullet() {
     }
     // Pool full: overwrite oldest
     EnemyBullet* b = &m_Bullets[m_NextIdx];
-    m_NextIdx = (m_NextIdx + 1) % MAX_BULLETS;
+    m_NextIdx      = (m_NextIdx + 1) % MAX_BULLETS;
     return b;
 }
 
@@ -164,7 +164,7 @@ void EnemyBulletManager::SpawnFanAimed(glm::vec2 pos, glm::vec2 playerPos, EBull
         if (!(count & 1)) delta += spread * 0.5f;
         if (i & 1) delta = -delta;
 
-        EnemyBullet* b       = AllocBullet();
+        EnemyBullet* b = AllocBullet();
         ResetBulletForSpawn(*b);
         b->m_Alive           = true;
         b->m_Pos             = pos;
@@ -213,30 +213,30 @@ void EnemyBulletManager::SpawnCircleAimed(glm::vec2 pos, glm::vec2 playerPos, EB
     float step      = 2.0f * Util::HALF_PI * 2.0f / count;
 
     for (int i = 0; i < count; i++) {
-        EnemyBullet* b         = AllocBullet();
+        EnemyBullet* b = AllocBullet();
         ResetBulletForSpawn(*b);
-        b->m_Alive             = true;
-        b->m_Pos               = pos;
-        b->m_Type              = type;
-        b->m_Color             = color;
-        b->m_Angle             = aimAngle + i * step;
-        b->m_Speed             = speed;
-        b->m_AngularVelocity   = angularVelocity;
-        b->m_AngularVelocityFrames = angularVelocityFrames;
-        b->m_HitboxSize        = BulletHitboxSize(type);
-        b->m_UseDecay          = useDecay;
-        b->m_Acceleration      = acceleration;
-        b->m_AccelerationFrames = accelerationFrames;
-        b->m_DirChangeInterval = curve.at;
-        b->m_DirChangeNumTimes = 0;
-        b->m_DirChangeMaxTimes = curve.times;
-        b->m_DirChangeAngle    = curve.angle;
-        b->m_DirChangeSpeed    = curve.speed;
-        b->m_DirChangeRelative = curve.relative;
-        b->m_DirChangeAimAtPlayer = curve.aimAtPlayer;
-        b->m_DirChangeStartupFrames = curve.startupFrames;
+        b->m_Alive                      = true;
+        b->m_Pos                        = pos;
+        b->m_Type                       = type;
+        b->m_Color                      = color;
+        b->m_Angle                      = aimAngle + i * step;
+        b->m_Speed                      = speed;
+        b->m_AngularVelocity            = angularVelocity;
+        b->m_AngularVelocityFrames      = angularVelocityFrames;
+        b->m_HitboxSize                 = BulletHitboxSize(type);
+        b->m_UseDecay                   = useDecay;
+        b->m_Acceleration               = acceleration;
+        b->m_AccelerationFrames         = accelerationFrames;
+        b->m_DirChangeInterval          = curve.at;
+        b->m_DirChangeNumTimes          = 0;
+        b->m_DirChangeMaxTimes          = curve.times;
+        b->m_DirChangeAngle             = curve.angle;
+        b->m_DirChangeSpeed             = curve.speed;
+        b->m_DirChangeRelative          = curve.relative;
+        b->m_DirChangeAimAtPlayer       = curve.aimAtPlayer;
+        b->m_DirChangeStartupFrames     = curve.startupFrames;
         b->m_DirChangeStartupSpeedScale = curve.startupSpeedScale;
-        b->m_RotateWithAngle   = rotateWithAngle || AutoRotatesWithAngle(type);
+        b->m_RotateWithAngle            = rotateWithAngle || AutoRotatesWithAngle(type);
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
     }
 }
@@ -257,35 +257,35 @@ void EnemyBulletManager::SpawnCircle(glm::vec2 pos, EBulletType type, EBulletCol
     for (int i = 0; i < count; i++) {
         EnemyBullet* b = AllocBullet();
         ResetBulletForSpawn(*b);
-        b->m_Alive     = true;
-        b->m_Pos       = pos;
-        b->m_Type      = type;
-        b->m_Color     = color;
-        b->m_Angle     = baseAngle + i * step;
-        b->m_Speed              = speed;
-        b->m_HitboxSize         = BulletHitboxSize(type);
-        b->m_UseDecay           = useDecay;
-        b->m_Acceleration       = acceleration;
-        b->m_AccelerationFrames = accelerationFrames;
-        b->m_VectorAcceleration = vectorAcceleration;
-        b->m_VectorAccelerationFrames = vectorAccelerationFrames;
-        b->m_SpawnMoveFrames    = spawnMoveFrames;
-        b->m_SpawnMoveScale     = spawnMoveScale;
-        b->m_AngularVelocity    = angularVelocity;
-        b->m_AngularVelocityFrames = angularVelocityFrames;
-        b->m_DirChangeInterval = curve.at;
-        b->m_DirChangeNumTimes = 0;
-        b->m_DirChangeMaxTimes = curve.times;
-        b->m_DirChangeAngle    = curve.angle;
-        b->m_DirChangeSpeed    = curve.speed;
-        b->m_DirChangeRelative = curve.relative;
-        b->m_DirChangeAimAtPlayer = curve.aimAtPlayer;
-        b->m_DirChangeStartupFrames = curve.startupFrames;
+        b->m_Alive                      = true;
+        b->m_Pos                        = pos;
+        b->m_Type                       = type;
+        b->m_Color                      = color;
+        b->m_Angle                      = baseAngle + i * step;
+        b->m_Speed                      = speed;
+        b->m_HitboxSize                 = BulletHitboxSize(type);
+        b->m_UseDecay                   = useDecay;
+        b->m_Acceleration               = acceleration;
+        b->m_AccelerationFrames         = accelerationFrames;
+        b->m_VectorAcceleration         = vectorAcceleration;
+        b->m_VectorAccelerationFrames   = vectorAccelerationFrames;
+        b->m_SpawnMoveFrames            = spawnMoveFrames;
+        b->m_SpawnMoveScale             = spawnMoveScale;
+        b->m_AngularVelocity            = angularVelocity;
+        b->m_AngularVelocityFrames      = angularVelocityFrames;
+        b->m_DirChangeInterval          = curve.at;
+        b->m_DirChangeNumTimes          = 0;
+        b->m_DirChangeMaxTimes          = curve.times;
+        b->m_DirChangeAngle             = curve.angle;
+        b->m_DirChangeSpeed             = curve.speed;
+        b->m_DirChangeRelative          = curve.relative;
+        b->m_DirChangeAimAtPlayer       = curve.aimAtPlayer;
+        b->m_DirChangeStartupFrames     = curve.startupFrames;
         b->m_DirChangeStartupSpeedScale = curve.startupSpeedScale;
-        b->m_BounceTopAndSides = bounceTopAndSides;
-        b->m_BounceMax         = bounceMax;
-        b->m_BounceSpeed       = bounceSpeed >= 0.0f ? bounceSpeed : speed;
-        b->m_RotateWithAngle    = rotateWithAngle || AutoRotatesWithAngle(type);
+        b->m_BounceTopAndSides          = bounceTopAndSides;
+        b->m_BounceMax                  = bounceMax;
+        b->m_BounceSpeed                = bounceSpeed >= 0.0f ? bounceSpeed : speed;
+        b->m_RotateWithAngle            = rotateWithAngle || AutoRotatesWithAngle(type);
         m_Anm.SetScript(b->m_Vm, scriptIdx, sprOffset);
     }
 }
@@ -294,16 +294,14 @@ void EnemyBulletManager::SpawnCircleStack(glm::vec2 pos, EBulletType type, EBull
                                           int count, int stacks, float speed1, float speed2,
                                           float baseAngle, bool useDecay, bool rotateWithAngle) {
     if (stacks <= 1) {
-        SpawnCircle(pos, type, color, count, speed1, baseAngle, useDecay, 0.0f, 0,
-                    rotateWithAngle);
+        SpawnCircle(pos, type, color, count, speed1, baseAngle, useDecay, 0.0f, 0, rotateWithAngle);
         return;
     }
 
     for (int s = 0; s < stacks; s++) {
-        float speed = speed1 - (speed1 - speed2) * static_cast<float>(s) /
-                                   static_cast<float>(stacks);
-        SpawnCircle(pos, type, color, count, speed, baseAngle, useDecay, 0.0f, 0,
-                    rotateWithAngle);
+        float speed =
+            speed1 - (speed1 - speed2) * static_cast<float>(s) / static_cast<float>(stacks);
+        SpawnCircle(pos, type, color, count, speed, baseAngle, useDecay, 0.0f, 0, rotateWithAngle);
     }
 }
 
@@ -347,23 +345,22 @@ void EnemyBulletManager::FreezeAllBulletsAsWhite() {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
 
-        b.m_Color                    = EBulletColor::White;
-        b.m_Speed                    = 0.0f;
-        b.m_AngularVelocity          = 0.0f;
-        b.m_AngularVelocityFrames    = 0;
-        b.m_Acceleration             = 0.0f;
-        b.m_AccelerationFrames       = 0;
-        b.m_UseDecay                 = false;
-        b.m_DirChangeInterval        = -1;
-        b.m_DirChangeNumTimes        = 0;
-        b.m_DirChangeMaxTimes        = 0;
-        b.m_DirChangeStartupFrames   = 0;
+        b.m_Color                      = EBulletColor::White;
+        b.m_Speed                      = 0.0f;
+        b.m_AngularVelocity            = 0.0f;
+        b.m_AngularVelocityFrames      = 0;
+        b.m_Acceleration               = 0.0f;
+        b.m_AccelerationFrames         = 0;
+        b.m_UseDecay                   = false;
+        b.m_DirChangeInterval          = -1;
+        b.m_DirChangeNumTimes          = 0;
+        b.m_DirChangeMaxTimes          = 0;
+        b.m_DirChangeStartupFrames     = 0;
         b.m_DirChangeStartupSpeedScale = 1.0f;
-        b.m_DecayTimer               = 0;
-        b.m_FrozenByPerfectFreeze    = true;
+        b.m_DecayTimer                 = 0;
+        b.m_FrozenByPerfectFreeze      = true;
 
-        m_Anm.SetScript(b.m_Vm, BulletScriptIdx(b.m_Type),
-                        BulletSpriteOffset(b.m_Type, b.m_Color));
+        m_Anm.SetScript(b.m_Vm, BulletScriptIdx(b.m_Type), BulletSpriteOffset(b.m_Type, b.m_Color));
     }
 }
 
@@ -372,15 +369,15 @@ void EnemyBulletManager::AccelerateFrozenBulletsRandom(float acceleration, int f
         if (!b.m_Alive) continue;
         if (!b.m_FrozenByPerfectFreeze) continue;
 
-        const float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
-        b.m_Angle              = r * 2.0f * Util::HALF_PI * 2.0f - Util::HALF_PI * 2.0f;
-        b.m_Speed              = 0.0f;
-        b.m_AngularVelocity    = 0.0f;
+        const float r             = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+        b.m_Angle                 = r * 2.0f * Util::HALF_PI * 2.0f - Util::HALF_PI * 2.0f;
+        b.m_Speed                 = 0.0f;
+        b.m_AngularVelocity       = 0.0f;
         b.m_AngularVelocityFrames = 0;
-        b.m_Acceleration       = acceleration;
-        b.m_AccelerationFrames = frames;
-        b.m_UseDecay           = false;
-        b.m_DecayTimer         = 0;
+        b.m_Acceleration          = acceleration;
+        b.m_AccelerationFrames    = frames;
+        b.m_UseDecay              = false;
+        b.m_DecayTimer            = 0;
         b.m_FrozenByPerfectFreeze = false;
     }
 }
@@ -396,12 +393,13 @@ int EnemyBulletManager::Stage6CreateSeedsFromLargeBullets() {
 
         EnemyBullet* b = AllocBullet();
         ResetBulletForSpawn(*b);
-        b->m_Alive     = true;
-        b->m_Pos       = source.m_Pos;
-        b->m_Type      = EBulletType::Ball;
-        b->m_Color     = EBulletColor::DarkRed;
-        b->m_Angle     = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) *
-                         2.0f * Util::HALF_PI * 2.0f - Util::HALF_PI * 2.0f;
+        b->m_Alive = true;
+        b->m_Pos   = source.m_Pos;
+        b->m_Type  = EBulletType::Ball;
+        b->m_Color = EBulletColor::DarkRed;
+        b->m_Angle = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 2.0f *
+                         Util::HALF_PI * 2.0f -
+                     Util::HALF_PI * 2.0f;
         b->m_Speed           = 0.0f;
         b->m_HitboxSize      = BulletHitboxSize(b->m_Type);
         b->m_RotateWithAngle = true;
@@ -425,19 +423,18 @@ void EnemyBulletManager::Stage6ReleaseStoppedSeeds(glm::vec2 origin, bool distan
         if (distancePattern) {
             const glm::vec2 delta    = origin - b.m_Pos;
             const float     distance = std::sqrt(delta.x * delta.x + delta.y * delta.y);
-            accelAngle = distance * Util::HALF_PI * 2.0f / 256.0f + sharedAngle;
+            accelAngle               = distance * Util::HALF_PI * 2.0f / 256.0f + sharedAngle;
         } else {
-            accelAngle = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) *
-                             2.0f * Util::HALF_PI * 2.0f -
+            accelAngle = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) * 2.0f *
+                             Util::HALF_PI * 2.0f -
                          Util::HALF_PI * 2.0f;
         }
 
-        b.m_Speed                    = 0.01f;
-        b.m_Color                    = EBulletColor::Red;
+        b.m_Speed = 0.01f;
+        b.m_Color = EBulletColor::Red;
         m_Anm.SetScript(b.m_Vm, BulletScriptIdx(b.m_Type), BulletSpriteOffset(b.m_Type, b.m_Color));
         b.m_VectorVelocity           = {0.0f, 0.0f};
-        b.m_VectorAcceleration       = {std::cos(accelAngle) * 0.01f,
-                                        std::sin(accelAngle) * 0.01f};
+        b.m_VectorAcceleration       = {std::cos(accelAngle) * 0.01f, std::sin(accelAngle) * 0.01f};
         b.m_VectorAccelerationFrames = 120;
     }
 }
@@ -458,9 +455,28 @@ void EnemyBulletManager::TurnAllBulletsIntoPointItems(ItemManager& items) {
     }
 }
 
+int EnemyBulletManager::DespawnBulletsForBonus(ItemManager* items, int maxBonusScore,
+                                               bool awardPointItems) {
+    int totalScore  = 0;
+    int bulletScore = 2000;
+
+    for (auto& b : m_Bullets) {
+        if (!b.m_Alive) continue;
+
+        if (awardPointItems && items) {
+            items->SpawnItem(b.m_Pos, ItemType::PointBullet, 1);
+        }
+
+        totalScore += bulletScore;
+        bulletScore = std::min(maxBonusScore, bulletScore + 10);
+        b.m_Alive   = false;
+    }
+
+    return totalScore;
+}
+
 void EnemyBulletManager::TurnBulletsIntoPointItemsInRadiusRange(ItemManager& items,
-                                                                glm::vec2 center,
-                                                                float innerRadius,
+                                                                glm::vec2 center, float innerRadius,
                                                                 float outerRadius) {
     const float inner2 = innerRadius * innerRadius;
     const float outer2 = outerRadius * outerRadius;
@@ -494,8 +510,8 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
     for (auto& b : m_Bullets) {
         if (!b.m_Alive) continue;
 
-        float effectiveSpeed = b.m_Speed;
-        const bool inSpawnMove = b.m_SpawnMoveFrames > 0;
+        float      effectiveSpeed = b.m_Speed;
+        const bool inSpawnMove    = b.m_SpawnMoveFrames > 0;
         if (inSpawnMove) {
             effectiveSpeed *= b.m_SpawnMoveScale;
             --b.m_SpawnMoveFrames;
@@ -522,15 +538,13 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
             if (b.m_DecayTimer < b.m_DirChangeStartupFrames) {
                 effectiveSpeed = b.m_Speed * b.m_DirChangeStartupSpeedScale;
             } else {
-                int nextTrigger =
-                    b.m_DirChangeStartupFrames +
-                    b.m_DirChangeInterval * (b.m_DirChangeNumTimes + 1);
+                int nextTrigger = b.m_DirChangeStartupFrames +
+                                  b.m_DirChangeInterval * (b.m_DirChangeNumTimes + 1);
                 if (b.m_DecayTimer >= nextTrigger) {
                     b.m_DirChangeNumTimes++;
                     if (b.m_DirChangeAimAtPlayer) {
-                        b.m_Angle =
-                            std::atan2(playerPos.y - b.m_Pos.y, playerPos.x - b.m_Pos.x) +
-                            b.m_DirChangeAngle;
+                        b.m_Angle = std::atan2(playerPos.y - b.m_Pos.y, playerPos.x - b.m_Pos.x) +
+                                    b.m_DirChangeAngle;
                     } else {
                         b.m_Angle = b.m_DirChangeRelative ? b.m_Angle + b.m_DirChangeAngle
                                                           : b.m_DirChangeAngle;
@@ -541,9 +555,9 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
                         b.m_DirChangeInterval = -1;
                     }
                 } else {
-                    int intervalStart = b.m_DirChangeInterval * b.m_DirChangeNumTimes;
-                    float localTime = static_cast<float>(b.m_DecayTimer - b.m_DirChangeStartupFrames -
-                                                         intervalStart);
+                    int   intervalStart = b.m_DirChangeInterval * b.m_DirChangeNumTimes;
+                    float localTime     = static_cast<float>(
+                        b.m_DecayTimer - b.m_DirChangeStartupFrames - intervalStart);
                     float interval = static_cast<float>(b.m_DirChangeInterval);
                     effectiveSpeed = b.m_Speed - (localTime * b.m_Speed) / interval;
                     if (effectiveSpeed < 0.0f) effectiveSpeed = 0.0f;
@@ -583,8 +597,8 @@ void EnemyBulletManager::Update(glm::vec2 playerPos) {
 
         b.m_Vm.pos = b.m_Pos;
         if (b.m_RotateWithAngle) {
-            b.m_Vm.rotation = bounced ? Util::HALF_PI - b.m_Angle
-                                      : Util::HALF_PI - std::atan2(dy, dx);
+            b.m_Vm.rotation =
+                bounced ? Util::HALF_PI - b.m_Angle : Util::HALF_PI - std::atan2(dy, dx);
         }
         UpdateBulletAnm(m_Anm, b);
 
@@ -620,10 +634,10 @@ void EnemyBulletManager::RedirectTimeStopBullets(glm::vec2 playerPos, int maxBul
         const float     dist2 = delta.x * delta.x + delta.y * delta.y;
         if (dist2 > 128.0f * 128.0f) {
             const float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
-            b.m_Angle = Util::HALF_PI * 0.5f + r * Util::HALF_PI * 1.5f;
+            b.m_Angle     = Util::HALF_PI * 0.5f + r * Util::HALF_PI * 1.5f;
         } else {
             const float r = static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
-            b.m_Angle = std::atan2(delta.y, delta.x) + Util::HALF_PI +
+            b.m_Angle     = std::atan2(delta.y, delta.x) + Util::HALF_PI +
                         (r * 2.0f - 1.0f) * Util::HALF_PI * 2.0f;
         }
         b.m_TimeStopRedirected = true;

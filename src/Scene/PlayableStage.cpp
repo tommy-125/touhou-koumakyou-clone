@@ -17,19 +17,19 @@
 #include "Util/Input.hpp"
 
 namespace {
-static constexpr float   INTRO_CENTER_X         = -96.0f;
-static constexpr float   INTRO_STAGE_NO_SCALE   = 1.0f;
-static constexpr float   INTRO_STAGE_NAME_SCALE = 0.9f;
-static constexpr float   INTRO_SONG_SCALE       = 0.62f;
-static constexpr float   INTRO_SONG_ADVANCE_SCALE       = 0.86f;
-static constexpr int     MIN_BOMBS_AFTER_DEATH  = 3;
-static constexpr int     POWER_LOSS_ON_DEATH    = 16;
-static constexpr int     DEATH_POWER_SMALL_DROPS = 5;
-static constexpr int     GAME_OVER_FULL_POWER_DROPS = 5;
-static constexpr int     MAX_CHEAT_BOMBS        = 8;
-static const glm::vec2   INTRO_SONG_POS         = {64.0f, -204.0f};
-static const Util::Color INTRO_STAGE_YELLOW     = Util::Color::FromRGB(255, 255, 64);
-static const Util::Color INTRO_LIGHT_CYAN       = Util::Color::FromRGB(224, 255, 255);
+static constexpr float   INTRO_CENTER_X                   = -96.0f;
+static constexpr float   INTRO_STAGE_NO_SCALE             = 1.0f;
+static constexpr float   INTRO_STAGE_NAME_SCALE           = 0.9f;
+static constexpr float   INTRO_SONG_SCALE                 = 0.62f;
+static constexpr float   INTRO_SONG_ADVANCE_SCALE         = 0.86f;
+static constexpr int     MIN_BOMBS_AFTER_DEATH            = 3;
+static constexpr int     POWER_LOSS_ON_DEATH              = 16;
+static constexpr int     DEATH_POWER_SMALL_DROPS          = 5;
+static constexpr int     GAME_OVER_FULL_POWER_DROPS       = 5;
+static constexpr int     MAX_CHEAT_BOMBS                  = 8;
+static const glm::vec2   INTRO_SONG_POS                   = {64.0f, -204.0f};
+static const Util::Color INTRO_STAGE_YELLOW               = Util::Color::FromRGB(255, 255, 64);
+static const Util::Color INTRO_LIGHT_CYAN                 = Util::Color::FromRGB(224, 255, 255);
 static constexpr std::array<Util::Keycode, 10> CHEAT_CODE = {
     Util::Keycode::UP,   Util::Keycode::UP,    Util::Keycode::DOWN, Util::Keycode::DOWN,
     Util::Keycode::LEFT, Util::Keycode::RIGHT, Util::Keycode::LEFT, Util::Keycode::RIGHT,
@@ -338,6 +338,7 @@ void PlayableStage::Update() {
         const bool usedBomb      = m_Player.TryUseBomb(m_GameManager);
         m_GameManager.bombActive = usedBomb || m_Player.IsBombActive();
         if (m_GameManager.bombActive) {
+            m_EnemyManager.FailActiveSpellcardCapture();
             m_EnemyManager.TurnAllBulletsIntoPointItems();
         }
     }
@@ -364,6 +365,7 @@ void PlayableStage::Update() {
     if (!m_CheatInvincible && m_Player.IsVulnerable() &&
         m_EnemyManager.CheckPlayerHit(m_Player.GetPos(), {PLAYER_HITBOX_X, PLAYER_HITBOX_Y})) {
         DropPlayerPowerOnDeath(m_Player.GetPos());
+        m_EnemyManager.FailActiveSpellcardCapture();
         m_Player.Die();
         if (m_GameManager.bombsRemaining < MIN_BOMBS_AFTER_DEATH) {
             m_GameManager.bombsRemaining = MIN_BOMBS_AFTER_DEATH;

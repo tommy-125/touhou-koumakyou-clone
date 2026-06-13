@@ -1,11 +1,11 @@
 #include "Enemy/EnemyManager.hpp"
 
-#include <cstdlib>
 #include <algorithm>
+#include <cstdlib>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include <memory>
 
 #include "Audio/AudioManager.hpp"
 #include "GameManager.hpp"
@@ -25,22 +25,30 @@ static constexpr ItemType RANDOM_ITEM_TABLE[32] = {
 };
 
 namespace {
-constexpr int   EFF_DEATH_ANM_669          = Anm::EFF00.offset + 0;
-constexpr int   EFF_DEATH_ANM_670          = Anm::EFF00.offset + 1;
-constexpr int   EFF_DEATH_ANM_671          = Anm::EFF00.offset + 2;
-constexpr int   EFF_DEATH_ANM_680          = Anm::EFF00.offset + 9;
-constexpr int   EFF_DEATH_ANM_682          = Anm::EFF00.offset + 11;
+constexpr int EFF_DEATH_ANM_669       = Anm::EFF00.offset + 0;
+constexpr int EFF_DEATH_ANM_670       = Anm::EFF00.offset + 1;
+constexpr int EFF_DEATH_ANM_671       = Anm::EFF00.offset + 2;
+constexpr int EFF_DEATH_ANM_680       = Anm::EFF00.offset + 9;
+constexpr int EFF_DEATH_ANM_682       = Anm::EFF00.offset + 11;
+constexpr int BULLET_CANCEL_MAX_BONUS = 12800;
+constexpr int DEFAULT_SPELLCARD_BONUS = 200000;
+
+int NormalizeSpellcardBonus(int bonus) {
+    if (bonus <= 0) return DEFAULT_SPELLCARD_BONUS;
+    // Some configs were authored as display-scale values (e.g. 2000000 for a
+    // 200000 TH06 base). Keep those compatible without changing the data file.
+    if (bonus >= 1000000) return bonus / 10;
+    return bonus;
+}
 }  // namespace
 
 EnemyManager::EnemyManager() {
     m_EffectAnm.LoadAnm(Anm::EFF00.folder, Anm::EFF00.txt, Anm::EFF00.offset);
     for (auto& enemy : m_Enemies) {
-        enemy.m_Vm.obj =
-            std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
+        enemy.m_Vm.obj = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
     }
     for (auto& effect : m_Effects) {
-        effect.vm.obj =
-            std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
+        effect.vm.obj = std::make_shared<Util::GameObject>(nullptr, 1.0f, glm::vec2{0, 0}, false);
     }
 }
 
@@ -65,6 +73,38 @@ void EnemyManager::TurnBulletsIntoPointItemsInRadiusRange(glm::vec2 center, floa
                                                          outerRadius);
 }
 
+void EnemyManager::FailActiveSpellcardCapture() {
+    for (auto& enemy : m_Enemies) {
+        if (!enemy.m_Alive || !enemy.m_IsBoss || !enemy.m_InSpellcard) continue;
+        enemy.m_SpellcardCaptureFailed = true;
+    }
+}
+
+int EnemyManager::AwardBulletCancelBonus(bool awardPointItems) {
+    SetTimeStopped(false);
+
+    const int bonus = m_BulletManager.DespawnBulletsForBonus(
+        awardPointItems ? m_Items : nullptr, BULLET_CANCEL_MAX_BONUS, awardPointItems);
+    if (awardPointItems && m_Items) {
+        m_LaserManager.TurnAllLasersIntoPointItems(*m_Items);
+    } else {
+        m_LaserManager.ClearAll();
+    }
+    return bonus;
+}
+
+int EnemyManager::AwardSpellcardCaptureBonus(const Enemy& enemy) const {
+    if (!enemy.m_InSpellcard || enemy.m_SpellcardCaptureFailed) return 0;
+
+    const int base             = NormalizeSpellcardBonus(enemy.m_SpellcardBonus);
+    int       secondsRemaining = 0;
+    if (enemy.m_TimerCallbackThreshold >= 0) {
+        const int framesLeft = std::max(0, enemy.m_TimerCallbackThreshold - enemy.m_BossTimer);
+        secondsRemaining     = (framesLeft + 59) / 60;
+    }
+    return base + base * secondsRemaining / 10;
+}
+
 void EnemyManager::SetScript(std::unique_ptr<IStageScript> script) {
     m_Script = std::move(script);
     if (m_Script) {
@@ -76,14 +116,22 @@ void EnemyManager::SetScript(std::unique_ptr<IStageScript> script) {
 
 EnemySubCtx EnemyManager::MakeCtx() {
     return EnemySubCtx{
-        m_Anm, m_BulletManager, m_LaserManager, *m_Items, m_Renderer, m_GameManager, m_PlayerPos,
+        m_Anm,
+        m_BulletManager,
+        m_LaserManager,
+        *m_Items,
+        m_Renderer,
+        m_GameManager,
+        m_PlayerPos,
         m_GameManager ? m_GameManager->bombActive : false,
         [this](int subId, float x, float y, int life, int score, bool mirrored, int itemDrop) {
             return SpawnEnemy(subId, x, y, life, score, mirrored, itemDrop);
         },
         [this]() { KillAllNonBossEnemies(); },
         [this](bool stopped) { SetTimeStopped(stopped); },
-        [this](int maxBullets) { m_BulletManager.RedirectTimeStopBullets(m_PlayerPos, maxBullets); }};
+        [this](int maxBullets) {
+            m_BulletManager.RedirectTimeStopBullets(m_PlayerPos, maxBullets);
+        }};
 }
 
 void EnemyManager::SetTimeStopped(bool stopped) {
@@ -242,8 +290,8 @@ void EnemyManager::UpdateBossPose(Enemy& enemy, float horizontalDelta) {
 }
 
 void EnemyManager::SetTimeline(std::vector<TimelineEntry> entries) {
-    m_Timeline    = std::move(entries);
-    m_TimelineIdx = 0;
+    m_Timeline      = std::move(entries);
+    m_TimelineIdx   = 0;
     m_TimelineFrame = 0;
     ValidateTimelineSubIds();
 }
@@ -255,8 +303,7 @@ void EnemyManager::ValidateTimelineSubIds() const {
         if (m_Script->HasSub(entry.subId)) continue;
 
         throw std::runtime_error("timeline frame " + std::to_string(entry.frame) +
-                                 " uses unhandled enemy subId: " +
-                                 std::to_string(entry.subId));
+                                 " uses unhandled enemy subId: " + std::to_string(entry.subId));
     }
 }
 
@@ -276,7 +323,7 @@ void EnemyManager::RunTimeline() {
            m_Timeline[m_TimelineIdx].frame <= m_TimelineFrame) {
         const auto& e = m_Timeline[m_TimelineIdx];
         if (e.frame == m_TimelineFrame && !bossPresent) {
-            float spawnX = e.randomX ? static_cast<float>(rand() % 353 + 16) : e.x;
+            float  spawnX = e.randomX ? static_cast<float>(rand() % 353 + 16) : e.x;
             Enemy* spawned =
                 SpawnEnemy(e.subId, spawnX, e.y, e.life, e.score, e.mirrored, e.itemDrop);
             if (spawned && spawned->m_IsBoss) bossPresent = true;
@@ -296,9 +343,9 @@ void EnemyManager::RunTimeline() {
 }
 
 void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
-    m_GameManager = &gm;
+    m_GameManager  = &gm;
     gm.timeStopped = m_TimeStopped;
-    m_PlayerPos = playerPos;
+    m_PlayerPos    = playerPos;
     RunTimeline();
 
     auto ctx = MakeCtx();
@@ -312,6 +359,10 @@ void EnemyManager::Update(const glm::vec2& playerPos, GameManager& gm) {
 
         if (!enemy.m_Alive) {
             continue;
+        }
+
+        if (gm.bombActive && enemy.m_IsBoss && enemy.m_InSpellcard) {
+            enemy.m_SpellcardCaptureFailed = true;
         }
 
         const float oldX = enemy.m_Pos.x;
@@ -376,6 +427,8 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
         // players from skipping spellcards with a burst hit.
         if (enemy.m_IsBoss && enemy.m_LifeCallbackThreshold >= 0 &&
             enemy.m_Life < enemy.m_LifeCallbackThreshold) {
+            totalScore += AwardBulletCancelBonus(enemy.m_InSpellcard);
+            totalScore += AwardSpellcardCaptureBonus(enemy);
             enemy.m_Life                   = enemy.m_LifeCallbackThreshold;
             int sub                        = enemy.m_LifeCallbackSub;
             enemy.m_LifeCallbackThreshold  = -1;
@@ -383,7 +436,6 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
             enemy.m_TimerCallbackThreshold = -1;
             enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
             enemy.m_CanTakeDamage          = false;
-            TurnAllBulletsIntoPointItems();
             DespawnAllNonBossEnemies();
             enemy.m_SubId      = sub;
             enemy.m_FrameTimer = -1;
@@ -392,23 +444,24 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
 
         if (enemy.m_Life <= 0) {
             if (enemy.m_IsBoss) {
-                enemy.m_Life             = 0;
-                enemy.m_CanTakeDamage    = false;
-                int sub                  = enemy.m_DeathCallbackSub >= 0
-                                               ? enemy.m_DeathCallbackSub
-                                               : enemy.m_LifeCallbackSub;
-                enemy.m_DeathCallbackSub = -1;
-                enemy.m_LifeCallbackSub  = -1;
+                enemy.m_Life          = 0;
+                enemy.m_CanTakeDamage = false;
+                int       sub         = enemy.m_DeathCallbackSub >= 0 ? enemy.m_DeathCallbackSub
+                                                                      : enemy.m_LifeCallbackSub;
+                const int phaseClearScore =
+                    AwardBulletCancelBonus(enemy.m_InSpellcard) + AwardSpellcardCaptureBonus(enemy);
+                enemy.m_DeathCallbackSub       = -1;
+                enemy.m_LifeCallbackSub        = -1;
                 enemy.m_TimerCallbackThreshold = -1;
                 enemy.m_TimerCallbackSub       = -1;
                 if (sub >= 0) {
-                    TurnAllBulletsIntoPointItems();
+                    totalScore += phaseClearScore;
                     DespawnAllNonBossEnemies();
                     SpawnDeathEffect(enemy);
                     enemy.m_SubId      = sub;
                     enemy.m_FrameTimer = -1;
                 } else {
-                    TurnAllBulletsIntoPointItems();
+                    totalScore += phaseClearScore;
                     DespawnAllNonBossEnemies();
                     totalScore += enemy.m_Score;
                     SpawnDeathEffect(enemy);
@@ -463,8 +516,8 @@ void EnemyManager::SpawnEffect(int scriptIdx, const glm::vec2& pos, float zIndex
     for (auto& effect : m_Effects) {
         if (effect.active) continue;
 
-        auto obj = effect.vm.obj;
-        effect = EffectInstance{};
+        auto obj      = effect.vm.obj;
+        effect        = EffectInstance{};
         effect.active = true;
         effect.vm.obj = obj;
         m_EffectAnm.SetScript(effect.vm, scriptIdx, Anm::EFF00.offset);
@@ -502,8 +555,8 @@ int EnemyManager::GetDeathSecondaryScript(int deathAnm2) const {
 
 void EnemyManager::SpawnDeathEffect(const Enemy& enemy) {
     AudioManager::Instance().Play(SoundEffect::EnemyDeath);
-    const glm::vec2 pos = enemy.m_Pos;
-    const int       primaryScript = GetDeathPrimaryScript(enemy.m_DeathEffectPrimary);
+    const glm::vec2 pos             = enemy.m_Pos;
+    const int       primaryScript   = GetDeathPrimaryScript(enemy.m_DeathEffectPrimary);
     const int       secondaryScript = GetDeathSecondaryScript(enemy.m_DeathEffectSecondary);
 
     SpawnEffect(primaryScript, pos, 0.78f);
@@ -519,7 +572,7 @@ void EnemyManager::SpawnDeathEffect(const Enemy& enemy) {
 
 void EnemyManager::DrawEnemies() {
     std::array<Enemy*, MAX_ENEMIES> drawList{};
-    size_t count = 0;
+    size_t                          count = 0;
     for (auto& enemy : m_Enemies) {
         if (!enemy.m_Alive || !enemy.m_Vm.obj) continue;
         drawList[count++] = &enemy;
@@ -569,13 +622,13 @@ BossHudState EnemyManager::GetBossHudState() const {
         if (!enemy.m_Alive || !enemy.m_IsBoss) continue;
 
         BossHudState state;
-        state.visible          = true;
-        state.showSpellName    = enemy.m_ShowSpellName;
-        state.life             = enemy.m_Life;
-        state.minLife          = 0;
-        state.maxLife          = enemy.m_BossMaxLife > 0 ? enemy.m_BossMaxLife : 1;
-        state.bossLifeCount    = enemy.m_BossLifeCount;
-        state.title            = enemy.m_BossTitle;
+        state.visible       = true;
+        state.showSpellName = enemy.m_ShowSpellName;
+        state.life          = enemy.m_Life;
+        state.minLife       = 0;
+        state.maxLife       = enemy.m_BossMaxLife > 0 ? enemy.m_BossMaxLife : 1;
+        state.bossLifeCount = enemy.m_BossLifeCount;
+        state.title         = enemy.m_BossTitle;
         if (enemy.m_TimerCallbackThreshold >= 0) {
             const int framesLeft = std::max(0, enemy.m_TimerCallbackThreshold - enemy.m_BossTimer);
             state.secondsRemaining = (framesLeft + 59) / 60;
@@ -593,9 +646,9 @@ void EnemyManager::SkipToFrame(int frame) {
     }
     m_BulletManager.ClearAll();
     m_LaserManager.ClearAll();
-    m_Frame = frame;
+    m_Frame         = frame;
     m_TimelineFrame = frame;
-    m_TimelineIdx = 0;
+    m_TimelineIdx   = 0;
     while (m_TimelineIdx < m_Timeline.size() && m_Timeline[m_TimelineIdx].frame < frame) {
         m_TimelineIdx++;
     }

@@ -42,15 +42,16 @@ struct Enemy {
     int   m_ScriptCounter      = 0;
 
     // Boss
-    bool        m_IsBoss           = false;
-    bool        m_CanTakeDamage    = true;
-    bool        m_InSpellcard      = false;  // damage /7 during spellcard (TH6 behavior)
-    int         m_BossTimer        = 0;
-    int         m_BossMaxLife      = 1;
-    int         m_BossLifeCount    = 0;
-    int         m_SpellcardBonus   = 0;
-    bool        m_ShowSpellName    = false;
-    int         m_DeathCallbackSub = -1;
+    bool        m_IsBoss                 = false;
+    bool        m_CanTakeDamage          = true;
+    bool        m_InSpellcard            = false;  // damage /7 during spellcard (TH6 behavior)
+    int         m_BossTimer              = 0;
+    int         m_BossMaxLife            = 1;
+    int         m_BossLifeCount          = 0;
+    int         m_SpellcardBonus         = 0;
+    bool        m_SpellcardCaptureFailed = false;
+    bool        m_ShowSpellName          = false;
+    int         m_DeathCallbackSub       = -1;
     std::string m_BossTitle;
 
     int m_AnmDefault   = -1;

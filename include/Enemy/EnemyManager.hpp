@@ -21,13 +21,13 @@ class ItemManager;
 class Player;
 
 struct BossHudState {
-    bool        visible           = false;
-    bool        showSpellName     = false;
-    int         life              = 0;
-    int         minLife           = 0;
-    int         maxLife           = 1;
-    int         bossLifeCount     = 0;
-    int         secondsRemaining  = 0;
+    bool        visible          = false;
+    bool        showSpellName    = false;
+    int         life             = 0;
+    int         minLife          = 0;
+    int         maxLife          = 1;
+    int         bossLifeCount    = 0;
+    int         secondsRemaining = 0;
     std::string title;
 };
 
@@ -46,6 +46,7 @@ class EnemyManager {
     void         TurnAllBulletsIntoPointItems();
     void         TurnBulletsIntoPointItemsInRadiusRange(glm::vec2 center, float innerRadius,
                                                         float outerRadius);
+    void         FailActiveSpellcardCapture();
     BossHudState GetBossHudState() const;
     int          GetTimelineFrame() const { return m_TimelineFrame; }
     void         SkipToFrame(int frame);
@@ -67,6 +68,8 @@ class EnemyManager {
     void        UpdateBossCallbacks(Enemy& enemy, GameManager& gm);
     void        KillAllNonBossEnemies();
     void        DespawnAllNonBossEnemies();
+    int         AwardBulletCancelBonus(bool awardPointItems);
+    int         AwardSpellcardCaptureBonus(const Enemy& enemy) const;
     void        SpawnDeathEffect(const Enemy& enemy);
     void        SpawnEffect(int scriptIdx, const glm::vec2& pos, float zIndex = 0.8f,
                             const glm::vec2& scale = {1.0f, 1.0f});
@@ -78,7 +81,7 @@ class EnemyManager {
     void        SetTimeStopped(bool stopped);
     void        ValidateTimelineSubIds() const;
 
-    std::array<Enemy, MAX_ENEMIES> m_Enemies{};
+    std::array<Enemy, MAX_ENEMIES>          m_Enemies{};
     std::array<EffectInstance, MAX_EFFECTS> m_Effects{};
 
     Anm::Manager       m_Anm;
@@ -86,7 +89,7 @@ class EnemyManager {
     Util::Renderer     m_Renderer;
     EnemyBulletManager m_BulletManager;
     EnemyLaserManager  m_LaserManager;
-    ItemManager*       m_Items = nullptr;
+    ItemManager*       m_Items       = nullptr;
     GameManager*       m_GameManager = nullptr;
     bool               m_TimeStopped = false;
 
