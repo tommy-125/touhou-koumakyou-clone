@@ -106,6 +106,15 @@
     "spell": true,
     "showSpellName": true
   },
+  "stage3.gorgeous_sweet_flower": {
+    "title": "Flower Sign \"Gorgeous Sweet Flower\"",
+    "lifeCount": 0,
+    "timerFrames": 1200,
+    "timerSub": 16,
+    "deathSub": 15,
+    "spell": true,
+    "showSpellName": true
+  },
   "stage3.meiling_first_nonspell": {
     "title": "Hong Meiling",
     "life": 14000,
@@ -151,6 +160,15 @@
     "timerSub": 33,
     "lifeThreshold": 2000,
     "lifeSub": 33,
+    "spell": true,
+    "showSpellName": true
+  },
+  "stage3.extreme_color_typhoon": {
+    "title": "Extreme Color Typhoon",
+    "lifeCount": 0,
+    "timerFrames": 2160,
+    "timerSub": 34,
+    "deathSub": 34,
     "spell": true,
     "showSpellName": true
   },

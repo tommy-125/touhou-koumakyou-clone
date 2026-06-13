@@ -5,6 +5,7 @@
 #include "Enemy/Enemy.hpp"
 #include "Enemy/EnemyBulletManager.hpp"
 #include "Enemy/EnemyLaserManager.hpp"
+#include "Enemy/EnemyScriptUtil.hpp"
 #include "Scene/Stage3/Stage3Patterns.hpp"
 #include "Scene/StageScriptUtil.hpp"
 
@@ -33,8 +34,13 @@ Stage3Script::Stage3Script() {
                         if (t == 100) enemy.m_CanTakeDamage = true;
                         if (t >= 130) RunMeilingMidbossPattern(enemy, ctx, t - 130);
                     });
-    AddTimedRunOnlyPattern({SUB_MEILING_MIDBOSS_SPELL_A, SUB_MEILING_MIDBOSS_SPELL_B},
-                           RunMeilingMidbossSpell);
+    AddBossPhasePattern({SUB_MEILING_MIDBOSS_SPELL_A, SUB_MEILING_MIDBOSS_SPELL_B},
+                        StageUtil::ConfigId::BossPhase::Stage3GorgeousSweetFlower,
+                        RunMeilingMidbossSpell, [](Enemy& enemy, EnemySubCtx& ctx) {
+                            enemy.m_LockedShotAngle    = EnemyScriptUtil::RandFloat(-PI, PI);
+                            enemy.m_SecondaryShotAngle = EnemyScriptUtil::RandFloat(-PI, PI);
+                            ctx.StartLerpTo(enemy, 192.0f, 144.0f, 120);
+                        });
     AddTimedRunOnlyPattern(SUB_MEILING_MIDBOSS_DEATH, [](Enemy& enemy, EnemySubCtx& ctx, int t) {
         if (t == 0) {
             StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Life);
@@ -67,8 +73,8 @@ Stage3Script::Stage3Script() {
                             ctx.StartLerpTo(enemy, 192.0f, 64.0f, 120);
                         });
     AddBossPhasePattern(
-        SUB_MEILING_SECOND_NONSPELL,
-        StageUtil::ConfigId::BossPhase::Stage3MeilingSecondNonspell, RunMeilingSecondNonSpell,
+        SUB_MEILING_SECOND_NONSPELL, StageUtil::ConfigId::BossPhase::Stage3MeilingSecondNonspell,
+        RunMeilingSecondNonSpell,
         [](Enemy& enemy, EnemySubCtx& ctx) {
             StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
         },
@@ -84,7 +90,11 @@ Stage3Script::Stage3Script() {
         {SUB_MEILING_COLORFUL_RAIN_A, SUB_MEILING_COLORFUL_RAIN_B},
         StageUtil::ConfigId::BossPhase::Stage3ColorfulRain, RunColorfulRainSpell,
         [](Enemy& enemy, EnemySubCtx& ctx) { ctx.StartLerpTo(enemy, 192.0f, 64.0f, 120); });
-    AddTimedRunOnlyPattern(SUB_MEILING_EXTREME_TYPHOON, RunGorgeousTyphoonSpell);
+    AddBossPhasePattern(SUB_MEILING_EXTREME_TYPHOON,
+                        StageUtil::ConfigId::BossPhase::Stage3ExtremeColorTyphoon,
+                        RunGorgeousTyphoonSpell, [](Enemy& enemy, EnemySubCtx& ctx) {
+                            StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
+                        });
     AddTimedRunOnlyPattern(SUB_MEILING_DEATH, [](Enemy& enemy, EnemySubCtx& ctx, int t) {
         if (t == 0) {
             enemy.m_CanTakeDamage = false;

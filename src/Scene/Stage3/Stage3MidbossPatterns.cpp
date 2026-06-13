@@ -49,22 +49,6 @@ void RunMeilingMidbossPattern(Enemy& enemy, EnemySubCtx& ctx, int frame) {
 }
 
 void RunMeilingMidbossSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        enemy.m_CanTakeDamage          = false;
-        enemy.m_ShowSpellName          = true;
-        enemy.m_InSpellcard            = true;
-        enemy.m_SpellcardBonus         = 0;
-        enemy.m_SpellcardCaptureFailed = false;
-        enemy.m_BossTitle              = "Flower Sign \"Gorgeous Sweet Flower\"";
-        enemy.m_BossTimer              = 0;
-        enemy.m_TimerCallbackThreshold = 1200;
-        enemy.m_TimerCallbackSub       = SUB_MEILING_MIDBOSS_ESCAPE;
-        enemy.m_DeathCallbackSub       = SUB_MEILING_MIDBOSS_DEATH;
-        enemy.m_LockedShotAngle        = ScriptUtil::RandFloat(-PI, PI);
-        enemy.m_SecondaryShotAngle     = ScriptUtil::RandFloat(-PI, PI);
-        ctx.BulletCancelIntoPointItems();
-        ctx.StartLerpTo(enemy, 192.0f, 144.0f, 120);
-    }
     if (t == 120) enemy.m_CanTakeDamage = true;
     if (t < 120) return;
 

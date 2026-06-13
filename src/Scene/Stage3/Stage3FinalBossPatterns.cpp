@@ -230,22 +230,6 @@ void RunColorfulRainSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
 }
 
 void RunGorgeousTyphoonSpell(Enemy& enemy, EnemySubCtx& ctx, int t) {
-    if (t == 0) {
-        enemy.m_CanTakeDamage          = false;
-        enemy.m_InSpellcard            = true;
-        enemy.m_ShowSpellName          = true;
-        enemy.m_SpellcardBonus         = 0;
-        enemy.m_SpellcardCaptureFailed = false;
-        enemy.m_BossTitle              = "Extreme Color Typhoon";
-        enemy.m_BossTimer              = 0;
-        enemy.m_TimerCallbackThreshold = 2160;
-        enemy.m_TimerCallbackSub       = SUB_MEILING_DEATH;
-        enemy.m_LifeCallbackThreshold  = -1;
-        enemy.m_LifeCallbackSub        = -1;
-        enemy.m_DeathCallbackSub       = SUB_MEILING_DEATH;
-        StageUtil::ApplyReward(enemy, ctx, StageUtil::ConfigId::Reward::Power5);
-        ctx.BulletCancelIntoPointItems();
-    }
     if (t == 60) {
         ctx.StartLerpTo(enemy, 192.0f, 128.0f, 120);
     }
