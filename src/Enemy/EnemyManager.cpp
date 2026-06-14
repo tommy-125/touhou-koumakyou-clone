@@ -427,7 +427,7 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
         // players from skipping spellcards with a burst hit.
         if (enemy.m_IsBoss && enemy.m_LifeCallbackThreshold >= 0 &&
             enemy.m_Life < enemy.m_LifeCallbackThreshold) {
-            totalScore += AwardBulletCancelBonus(enemy.m_InSpellcard);
+            totalScore += AwardBulletCancelBonus(true);
             totalScore += AwardSpellcardCaptureBonus(enemy);
             enemy.m_Life                   = enemy.m_LifeCallbackThreshold;
             int sub                        = enemy.m_LifeCallbackSub;
@@ -449,7 +449,7 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
                 int       sub         = enemy.m_DeathCallbackSub >= 0 ? enemy.m_DeathCallbackSub
                                                                       : enemy.m_LifeCallbackSub;
                 const int phaseClearScore =
-                    AwardBulletCancelBonus(enemy.m_InSpellcard) + AwardSpellcardCaptureBonus(enemy);
+                    AwardBulletCancelBonus(true) + AwardSpellcardCaptureBonus(enemy);
                 enemy.m_DeathCallbackSub       = -1;
                 enemy.m_LifeCallbackSub        = -1;
                 enemy.m_TimerCallbackThreshold = -1;
