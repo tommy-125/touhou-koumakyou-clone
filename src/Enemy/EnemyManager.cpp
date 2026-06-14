@@ -170,12 +170,13 @@ void EnemyManager::DespawnAllNonBossEnemies() {
     }
 }
 
-void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
+void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& gm) {
     if (!enemy.m_IsBoss) return;
 
     enemy.m_BossTimer++;
 
-    if (enemy.m_LifeCallbackThreshold >= 0 && enemy.m_Life < enemy.m_LifeCallbackThreshold) {
+    if (enemy.m_LifeCallbackThreshold >= 0 && enemy.m_Life <= enemy.m_LifeCallbackThreshold) {
+        gm.AddScore(AwardBulletCancelBonus(true) + AwardSpellcardCaptureBonus(enemy));
         enemy.m_Life                   = enemy.m_LifeCallbackThreshold;
         int sub                        = enemy.m_LifeCallbackSub;
         enemy.m_LifeCallbackThreshold  = -1;
@@ -183,7 +184,6 @@ void EnemyManager::UpdateBossCallbacks(Enemy& enemy, GameManager& /*gm*/) {
         enemy.m_TimerCallbackThreshold = -1;
         enemy.m_TimerCallbackSub       = enemy.m_DeathCallbackSub;
         enemy.m_CanTakeDamage          = false;
-        TurnAllBulletsIntoPointItems();
         DespawnAllNonBossEnemies();
         enemy.m_SubId      = sub;
         enemy.m_FrameTimer = -1;
@@ -422,11 +422,11 @@ int EnemyManager::ApplyPlayerBulletDamage(Player& player) {
             AudioManager::Instance().Play(SoundEffect::BossDamage);
         }
 
-        // Boss overshoot guard: if a single hit crosses below a pending life callback
+        // Boss overshoot guard: if a single hit crosses a pending life callback
         // threshold, clamp to threshold and trigger the callback instead of death. Prevents
         // players from skipping spellcards with a burst hit.
         if (enemy.m_IsBoss && enemy.m_LifeCallbackThreshold >= 0 &&
-            enemy.m_Life < enemy.m_LifeCallbackThreshold) {
+            enemy.m_Life <= enemy.m_LifeCallbackThreshold) {
             totalScore += AwardBulletCancelBonus(true);
             totalScore += AwardSpellcardCaptureBonus(enemy);
             enemy.m_Life                   = enemy.m_LifeCallbackThreshold;
