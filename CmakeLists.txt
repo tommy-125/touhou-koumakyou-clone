@@ -54,3 +54,11 @@ target_link_libraries(${PROJECT_NAME}
     nlohmann_json::nlohmann_json
     ${DEPENDENCY_LINK_LIBRARIES}
 )
+
+if(MINGW)
+    target_link_options(${PROJECT_NAME} PRIVATE
+        -static
+        -static-libgcc
+        -static-libstdc++
+    )
+endif()
